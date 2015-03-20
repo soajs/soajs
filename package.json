@@ -1,0 +1,59 @@
+{
+  "name": "soajs",
+  "description": "soajs framework",
+  "version": "0.0.1",
+  "author": {
+    "name": "soajs team",
+    "email": "team@soajs.org"
+  },
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:soajs/soajs.git"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "devDependencies": {
+    "bcrypt": "*",
+    "grunt":"0.4.5",
+    "grunt-contrib-jshint":"0.10.0",
+    "grunt-jsdoc" : "*",
+    "grunt-contrib-clean" : "*",
+    "grunt-mocha-test" : "*",
+    "grunt-env" : "*",
+    "grunt-istanbul" : "0.3.0",
+    "grunt-coveralls" : "*",
+    "jshint" : "*",
+    "lodash": "*",
+    "mocha" : "*"
+
+  },
+  "dependencies": {
+    "async": "*",
+    "body-parser": "*",
+    "bunyan": "*",
+    "bunyan-prettystream": "*",
+    "cookie-parser": "*",
+    "express": "*",
+    "express-session": "*",
+    "jsonschema" : "*",
+    "method-override": "*",
+    "moment": "*",
+    "mongoskin": "*",
+    "morgan": "*",
+    "netmask": "*",
+    "nodemailer": "*",
+    "nodemailer-direct-transport": "*",
+    "nodemailer-sendmail-transport": "*",
+    "nodemailer-smtp-transport": "*",
+    "oauth2-server" : "*",
+    "request": "*",
+    "swig": "*",
+    "useragent": "*",
+    "validator": "*"
+  }
+}
