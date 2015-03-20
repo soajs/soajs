@@ -46,56 +46,56 @@ describe("testing connection", function() {
 		mongo.find('myCollection', {}, function(error, response) {
 			assert.ok(error);
 			assert.ok(!response);
-			assert.equal(error.message, 'auth failed');
+            assert.ok(error.message);
 
 			mongo.findOne('myCollection', {}, function(error, response) {
 				assert.ok(error);
 				assert.ok(!response);
-				assert.equal(error.message, 'auth failed');
+                assert.ok(error.message);
 				mongo.insert('myCollection', {}, function(error, response) {
 					assert.ok(error);
 					assert.ok(!response);
-					assert.equal(error.message, 'auth failed');
+                    assert.ok(error.message);
 					mongo.save('myCollection', {}, function(error, response) {
 						assert.ok(error);
 						assert.ok(!response);
-						assert.equal(error.message, 'auth failed');
+                        assert.ok(error.message);
 						mongo.update('myCollection', {'a': 'b'}, {$set: {'a': 'c'}}, function(error, response) {
 							assert.ok(error);
 							assert.ok(!response);
-							assert.equal(error.message, 'auth failed');
+                            assert.ok(error.message);
 							mongo.count('myCollection', {'a': 'b'}, function(error, response) {
 								assert.ok(error);
 								assert.ok(!response);
-								assert.equal(error.message, 'auth failed');
+                                assert.ok(error.message);
 								mongo.ensureIndex('myCollection', {'a': 1}, null, function(error, response) {
 									assert.ok(error);
 									assert.ok(!response);
-									assert.equal(error.message, 'auth failed');
+                                    assert.ok(error.message);
 									mongo.getCollection('myCollection', function(error, response) {
 										assert.ok(error);
 										assert.ok(!response);
-										assert.equal(error.message, 'auth failed');
+                                        assert.ok(error.message);
 										mongo.remove('myCollection', {}, function(error, response) {
 											assert.ok(error);
 											assert.ok(!response);
-											assert.equal(error.message, 'auth failed');
+                                            assert.ok(error.message);
 											mongo.findAndModify('myCollection', {'a': 'b'}, {a: 1}, {'a': 'c'}, function(error, response) {
 												assert.ok(error);
 												assert.ok(!response);
-												assert.equal(error.message, 'auth failed');
+                                                assert.ok(error.message);
 												mongo.findAndRemove('myCollection', {'a': 'b'}, {a: 1}, function(error, response) {
 													assert.ok(error);
 													assert.ok(!response);
-													assert.equal(error.message, 'auth failed');
+                                                    assert.ok(error.message);
 													mongo.dropCollection('myCollection', function(error, response) {
 														assert.ok(error);
 														assert.ok(!response);
-														assert.equal(error.message, 'auth failed');
+                                                        assert.ok(error.message);
 														mongo.dropDatabase(function(error, response) {
 															assert.ok(error);
 															assert.ok(!response);
-															assert.equal(error.message, 'auth failed');
+                                                            assert.ok(error.message);
 															done();
 														});
 													});

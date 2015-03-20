@@ -56,7 +56,6 @@ describe("testing mail functionality", function() {
 			mailer = new coreMail({
 				'type': 'sendmail',
 				'options': {
-					"path": "/usr/sbin/sendmail"
 				}
 			});
 			assert.ok(mailer);
