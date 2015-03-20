@@ -109,7 +109,6 @@ describe("testing mail functionality", function() {
 			soajsMailer = new soajsMail({
 				'type': 'sendmail',
 				'options': {
-					'path': '/usr/sbin/sendmail'
 				}
 			});
 			assert.ok(soajsMailer);
