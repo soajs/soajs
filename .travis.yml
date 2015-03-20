@@ -13,6 +13,9 @@ addons:
   hosts:
     - localhost
 
+before_install:
+  - sudo apt-get install sendmail
+
 before_script:
   - npm install -g grunt-cli
 
