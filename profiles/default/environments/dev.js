@@ -134,7 +134,7 @@ var registry = {
 			"host": "127.0.0.1",
 			"url": "http://127.0.0.1:4000/example03",
 			"requestTimeoutRenewal": 2,
-			"requestTimeout": 10
+			"requestTimeout": 5
 		},
 		"example04": {
 			"extKeyRequired": true,

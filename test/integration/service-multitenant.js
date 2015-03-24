@@ -43,8 +43,7 @@ var tenantConfig = {
 };
 var tenantMongo = new Mongo(tenantConfig);
 
-var ObjectId = require("mongoskin").ObjectID;
-var testTenant = helper.requireModule('./test/provision/tenants/test')(ObjectId);
+var testTenant = require("soajs.mongodb.data/modules/soajs/data/tenant.js");
 
 var holder = {
 	controller: null,
@@ -216,10 +215,10 @@ var lib = {
 		});
 
 		holder.service.post("/testRoute2", function(req, res) {
-			console.log("waiting 25000 milliseconds before returning a response .... do not stop the test execution");
+			console.log("waiting 15000 milliseconds before returning a response .... do not stop the test execution");
 			setTimeout(function() {
 				res.json(req.soajs.buildResponse(null, req.soajs.inputmaskData));
-			}, 25000);
+			}, 15000);
 		});
 
 		holder.service.start(cb);

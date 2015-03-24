@@ -9,37 +9,6 @@ var requester = helper.requester;
 var controllerApp = new (helper.requireModule('./servers/controller.js'));
 var soajs = helper.requireModule('index.js');
 
-var mongoskin = require('mongoskin');
-
-var dbHelper = {
-	holder:{},
-	init: function(){
-		dbHelper.holder.db = mongoskin.db('mongodb://@localhost:27017/core_provision', {safe:true});
-	},
-	provisionProducts:function(cb){
-
-		var productsCol = dbHelper.holder.db.collection('products');
-		productsCol.drop();
-
-		var testProduct = helper.requireModule('test/provision/products/testProduct.js')(mongoskin.ObjectID);
-		productsCol.insert(testProduct,function(err,result){
-			cb(err,result);
-		});
-	},
-	provisionTenants:function(cb){
-
-		var tenantsCol = dbHelper.holder.db.collection('tenants');
-		tenantsCol.drop();
-
-		var test = helper.requireModule('test/provision/tenants/test.js')(mongoskin.ObjectID);
-		tenantsCol.insert(test,function(err,result){
-			cb(err,result);
-		});
-
-	}
-};
-
-
 describe('Testing controllerServer', function() {
 	before(function(done) {
 	  controllerApp.start(function(err) {
@@ -245,16 +214,15 @@ describe('Testing example03 via controllerServer w/services', function() {
 	});
 
 	before(function(done) {
-	  dbHelper.init();
 	  async.series([
-	  	dbHelper.provisionProducts,
-	  	dbHelper.provisionTenants,
 	  	function(cb){ controllerApp.start(cb);},
 	  	function(cb){ service.start(cb); }
 	  	], 
 	  	function(err) {
 		    assert.ifError(err);
-		    done();
+		    setTimeout(function(){
+			    done();
+		    }, 1000);
 	  });
 	});
 	after(function(done) {

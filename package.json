@@ -1,7 +1,7 @@
 {
   "name": "soajs",
   "description": "soajs framework",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -18,6 +18,7 @@
     "test": "grunt test"
   },
   "devDependencies": {
+    "soajs.mongodb.data": "0.0.*",
     "bcrypt": "*",
     "grunt":"0.4.5",
     "grunt-contrib-jshint":"0.10.0",
@@ -29,7 +30,8 @@
     "grunt-coveralls" : "*",
     "jshint" : "*",
     "lodash": "*",
-    "mocha" : "*"
+    "mocha" : "*",
+    "shelljs": "*"
 
   },
   "dependencies": {

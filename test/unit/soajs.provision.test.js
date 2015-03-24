@@ -3,13 +3,13 @@ var assert = require('assert');
 var helper = require("../helper.js");
 var soajsProvision = helper.requireModule('./modules/soajs.provision');
 var ObjectId = require("mongoskin").ObjectID;
-var testTenant = helper.requireModule('./test/provision/tenants/test')(ObjectId);
 
 var keyConfig = {
     "algorithm": 'aes256',
     "password": 'soajs key lal massa'
 };
-
+var key = "d1eaaf5fdc35c11119330a8a0273fee9";
+var extKey = "aa39b5490c4a4ed0e56d7ec1232a428f771e8bb83cfcee16de14f735d0f5da587d5968ec4f785e38570902fd24e0b522b46cb171872d1ea038e88328e7d973ff47d9392f72b2d49566209eb88eb60aed8534a965cf30072c39565bd8d72f68ac";
 var metaData = {
 	"name": "core_provision",
 	"prefix": '',
@@ -74,7 +74,7 @@ describe('testing soajs provisioning', function() {
 		});
 
 		it("success - will return data", function(done) {
-			soajsProvision.generateExtKey(testTenant.applications[0].keys[0].key, keyConfig, function(error, data) {
+			soajsProvision.generateExtKey(key, keyConfig, function(error, data) {
 				assert.ifError(error);
 				assert.ok(data);
 				externalKey = data;
@@ -103,7 +103,7 @@ describe('testing soajs provisioning', function() {
 		});
 
 		it("success - will return data", function(done) {
-			soajsProvision.getExternalKeyData(testTenant.applications[0].keys[0].extKeys[0].extKey, keyConfig, function(error, data) {
+			soajsProvision.getExternalKeyData(extKey, keyConfig, function(error, data) {
 				assert.ifError(error);
 				assert.ok(data);
 				//console.log(data);
