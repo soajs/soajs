@@ -183,7 +183,7 @@ module.exports = {
 					var type = paramConfig.validation.type;
 
 					//apply type casting if headers content-type is not JSON, otherwise inputs are received as strings
-					if(!obj.req.headers['content-type'] || obj.req.headers['content-type'] !== 'application/json') {
+					if(!obj.req.headers['content-type'] || obj.req.headers['content-type'].indexOf('application/json') === -1) {
 						data[param] = castType(data[param], type, paramConfig.validation);
 					}
 
