@@ -71,6 +71,8 @@ var provision = {
             core.provision.getKey(keyObj.key, function (err, key) {
                 if (err)
                     return cb(err, null);
+                if (!key)
+                    return cb(core.error.generate(153));
 
                 struct_keys[keyObj.key] = key;
                 var obj = getKeyData(struct_keys[keyObj.key], extKey);
