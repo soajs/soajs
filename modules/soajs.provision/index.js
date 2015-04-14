@@ -15,7 +15,7 @@ var struct_packages = {};
  */
 function getKeyData(keyStruct, extKey) {
     var obj = null;
-    if (keyStruct.extKeys) {
+    if (keyStruct && keyStruct.extKeys) {
         var extKeysLen = keyStruct.extKeys.length;
         for (var i = 0; i < extKeysLen; i++) {
             if (keyStruct.extKeys[i].extKey === extKey) {
