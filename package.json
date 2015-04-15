@@ -6,6 +6,7 @@
     "name": "soajs team",
     "email": "team@soajs.org"
   },
+  "license" : "Apache-2.0",
   "main": "index.js",
   "repository": {
     "type": "git",
