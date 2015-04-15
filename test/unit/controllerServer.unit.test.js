@@ -166,7 +166,6 @@ describe('Testing example01 via controllerServer w/services', function() {
 			}, function(err,body,response){
 	    		assert.ifError(err);
 	    		assert.equal(response.statusCode,200);
-	    		assert.equal((Date.now() - body.ts)<5,true);
 	    		delete body.ts;
 	    		assert.deepEqual(body,{"result":true,"service":{"service":"example01","type":"rest","route":"/heartbeat"}});
 	    		done();	
