@@ -1,16 +1,16 @@
 'use strict';
 
 var ENV_hosts = {
-    "env" : "dev",
-    "service" : "urac",
-    "ip" : "127.0.0.1"
+    "env": "dev",
+    "service": "urac",
+    "ip": "127.0.0.1"
 }
 
 var services_schema = {
-    "name" : "",
+    "name": "",
     "extKeyRequired": true,
     "port": 4001,
-    "apis" : []
+    "apis": []
 };
 
 var ENV_schema = {
@@ -18,19 +18,19 @@ var ENV_schema = {
         "clusters": {
             "cluster1": {
                 "servers": {
-                    "servers" : "",
+                    "servers": "",
                     "credentials": ""
                 },
                 "options": {
-                    "URLParam":"",
-                    "extraParam":""
+                    "URLParam": "",
+                    "extraParam": ""
                 }
             }
         },
         "config": {
             "prefix": "",
             "session": {
-                "cluster" : "cluster1",
+                "cluster": "cluster1",
                 "name": "core_session",
                 'store': {},
                 "collection": "sessions",
@@ -38,8 +38,8 @@ var ENV_schema = {
                 'expireAfter': 1000 * 60 * 60 * 24 * 14 // 2 weeks
             }
         },
-        "databases" : {
-            "examples" : {
+        "databases": {
+            "examples": {
                 "cluster": "cluster1",
                 "tenantSpecific": true
             }
@@ -47,7 +47,7 @@ var ENV_schema = {
     },
     "services": {
         "serviceConfig": {
-            "controller" : {
+            "controller": {
                 "maxPoolSize": 100,
                 "authorization": true,
                 "port": 4000,
@@ -59,9 +59,9 @@ var ENV_schema = {
             "logger": {},
             "cors": {},
             "oauth": {},
-            "maintenancePortInc" : {},
-            "cookie" : {},
-            "session" : {}
+            "maintenancePortInc": {},
+            "cookie": {},
+            "session": {}
         }
     }
 }
@@ -100,6 +100,10 @@ var registry = {
     },
 
     "serviceConfig": {
+        "awareness": {
+            "healthCheckInterval": 1000 * 2, // 2 seconds
+            "autoRelaodRegistry" : 1000 * 60 * 5 // 5 minutes
+        },
         "agent": {
             "topologyDir": "/opt/soajs/"
         },
