@@ -41,7 +41,11 @@ function service(param) {
     var soajs = {};
     soajs.serviceName = param.serviceName || param.config.serviceName;
     var registry = null;
-    core.getRegistry(soajs.serviceName, null, function (reg) {
+
+    //TODO: build the apiList array fomr config.schemas
+    var apiList = [];
+
+    core.getRegistry(soajs.serviceName, apiList, param.config.awareness, function (reg) {
         registry = reg;
 
         soajs.serviceConf = lib.registry.getServiceConf(soajs.serviceName, registry);

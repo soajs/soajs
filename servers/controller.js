@@ -14,7 +14,7 @@ var controller_mw = require('./../mw/controller/index');
 function controller() {
     var serviceName = "controller";
     var _self = this;
-    this.registry = core.getRegistry(serviceName, null, function (reg) {
+    this.registry = core.getRegistry(serviceName, null, true, function (reg) {
         _self.registry = reg;
 
         _self.log = core.getLogger(serviceName, _self.registry.serviceConfig.logger);

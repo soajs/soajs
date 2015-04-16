@@ -1,6 +1,19 @@
 'use strict';
 
-var schema = {
+var ENV_hosts = {
+    "env" : "dev",
+    "service" : "urac",
+    "ip" : "127.0.0.1"
+}
+
+var services_schema = {
+    "name" : "",
+    "extKeyRequired": true,
+    "port": 4001,
+    "apis" : []
+};
+
+var ENV_schema = {
     "dbs": {
         "clusters": {
             "cluster1": {
@@ -33,12 +46,23 @@ var schema = {
         }
     },
     "services": {
-        "hosts" : {
-          "urac" : {
-              "ips" : []
-          }
-        },
-        "serviceConfig": {}
+        "serviceConfig": {
+            "controller" : {
+                "maxPoolSize": 100,
+                "authorization": true,
+                "port": 4000,
+                "requestTimeout": 30,
+                "requestTimeoutRenewal": 0
+            },
+            "agent": {},
+            "key": {},
+            "logger": {},
+            "cors": {},
+            "oauth": {},
+            "maintenancePortInc" : {},
+            "cookie" : {},
+            "session" : {}
+        }
     }
 }
 
@@ -116,29 +140,30 @@ var registry = {
             "authorization": true,
 
             "port": 4000,
-            "host": "127.0.0.1",
             "requestTimeout": 30,
-            "requestTimeoutRenewal": 0
+            "requestTimeoutRenewal": 0,
+
+            "host": ["127.0.0.1"]
         },
         "urac": {
             "extKeyRequired": true,
             "port": 4001,
-            "host": "127.0.0.1"
+            "host": ["127.0.0.1"]
         },
         "oauth": {
             "extKeyRequired": true,
             "port": 4002,
-            "host": "127.0.0.1"
+            "host": ["127.0.0.1"]
         },
         "dashboard": {
             "extKeyRequired": true,
             "port": 4003,
-            "host": "127.0.0.1",
+            "host": ["127.0.0.1"]
         },
         "agent": {
             "extKeyRequired": false,
             "port": 4004,
-            "host": "127.0.0.1",
+            "host": ["127.0.0.1"],
             "requestTimeoutRenewal": 10,
             "requestTimeout": 30
         },
@@ -146,29 +171,29 @@ var registry = {
         "example01": {
             "extKeyRequired": false,
             "port": 4010,
-            "host": "127.0.0.1"
+            "host": ["127.0.0.1"]
         },
         "example02": {
             "extKeyRequired": true,
             "port": 4011,
-            "host": "127.0.0.1"
+            "host": ["127.0.0.1"]
         },
         "example03": {
             "extKeyRequired": true,
             "port": 4012,
-            "host": "127.0.0.1",
             "requestTimeoutRenewal": 2,
-            "requestTimeout": 5
+            "requestTimeout": 5,
+            "host": ["127.0.0.1"]
         },
         "example04": {
             "extKeyRequired": true,
             "port": 4013,
-            "host": "127.0.0.1"
+            "host": ["127.0.0.1"]
         },
         "contactUs": {
             "extKeyRequired": false,
             "port": 4015,
-            "host": "127.0.0.1"
+            "host": ["127.0.0.1"]
         }
     }
 };

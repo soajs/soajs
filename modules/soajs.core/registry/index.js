@@ -28,7 +28,7 @@ function deepFreeze(o) {
     }
 }
 
-function loadRegistry(cb) {
+function loadRegistry(serviceName, apiList, cb) {
     if (fs.existsSync(regFile)) {
         delete require.cache[require.resolve(regFile)];
         var regFileObj = require(regFile);
@@ -45,10 +45,24 @@ function loadRegistry(cb) {
 
             //TODO: use registry.coreDB.provision to connect to DB and load the following:
             /**
-             * tenantMetaDB   -> registry.tenantMetaDB
-             * serviceConfig  -> registry.serviceConfig
-             * services       -> registry.services
-             * sessionDB      -> registry.coreDB.session
+             * ENV_schema:
+             * --------------
+             * registry.tenantMetaDB    //tenantSpecific true
+             * registry.serviceConfig
+             * registry.coreDB.session
+             * registry.coreDB          //tenantSpecific false
+             * services.controller      // without the hosts array
+             *
+             * services_schema:
+             * -------------------
+             * services.SERVICENAME     // if in service
+             * services.EVERYSERVICE    // if in controller only and awareness is true
+             *
+             *  ENV_hosts:
+             *  -------------
+             *  services.controller.hosts   // if in service and awareness is true
+             *  services.EVERYSERVICE.hosts // if in controller only and awareness is true
+             *
              */
 
             deepFreeze(registry);
@@ -65,7 +79,7 @@ function loadRegistry(cb) {
 exports.getRegistry = function (serviceName, apiList, reload, cb) {
     try {
         if (reload || !registry_struct[regEnvironment]) {
-            loadRegistry(function () {
+            loadRegistry(serviceName, apiList, function () {
                 return cb(registry_struct[regEnvironment]);
             });
         }
