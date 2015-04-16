@@ -1,11 +1,15 @@
 'use strict';
 
-var http = require('http');
+var connect = require('connect');
+var http = require('http')
+var request = require('request');
 var core = require('./../modules/soajs.core/index.js');
 
+var favicon_mw = require('./../mw/favicon/index');
 var cors_mw = require('./../mw/cors/index');
 var soajs_mw = require('./../mw/soajs/index');
 var response_mw = require('./../mw/response/index');
+var awareness_mw = require('./../mw/awareness/index');
 var controller_mw = require('./../mw/controller/index');
 
 /**
@@ -14,68 +18,65 @@ var controller_mw = require('./../mw/controller/index');
 function controller() {
     var _self = this;
     _self.awareness = true;
+    _self.serviceAwarenessObj = {};
     _self.serviceName = "controller";
     core.getRegistry(_self.serviceName, null, _self.awareness, function (reg) {
         _self.registry = reg;
-
         _self.log = core.getLogger(_self.serviceName, _self.registry.serviceConfig.logger);
-        _self.server = http.createServer(function (req, res) {
-            if (req.url === '/favicon.ico') {
-                res.writeHead(200, {'Content-Type': 'image/x-icon'});
-                res.end();
-                return;
-            }
-            soajs_mw({
-                "serviceName": _self.serviceName,
-                "log": _self.log,
-                "registry": _self.registry
-            })(req, res, function () {
-                cors_mw()(req, res, function () {
-                    response_mw({"controllerResponse": true})(req, res, function () {
-                        controller_mw()(req, res, function () {
-                            var body = '';
 
-                            req.on("data", function (chunk) {
-                                body += chunk;
-                            });
+        var app = connect()
+        app.use(favicon_mw());
+        app.use(soajs_mw({
+            "serviceName": _self.serviceName,
+            "log": _self.log,
+            "registry": _self.registry
+        }));
+        app.use(cors_mw());
+        app.use(response_mw({"controllerResponse": true}));
+        app.use(awareness_mw(_self.awareness, _self.serviceName, _self.registry, _self.log));
+        app.use(controller_mw());
+        app.use(function (req, res, next) {
+            var body = '';
 
-                            /* Close the connection */
-                            req.on("end", function () {
-                                process.nextTick(function () {
-                                    try {
-                                        req.soajs.controller.gotoservice(req, res, body);
-                                    } catch (err) {
-                                        return req.soajs.controllerResponse(core.error.getError(136));
-                                    }
-                                });
-                            });
+            req.on("data", function (chunk) {
+                body += chunk;
+            });
 
-
-                            req.on("error", function (error) {
-                                req.soajs.log.error("Error @ controller:", error);
-                                if (req.soajs.controller.redirectedRequest) {
-                                    req.soajs.controller.redirectedRequest.abort();
-                                }
-                            });
-
-                            req.on("close", function () {
-                                if (req.soajs.controller.redirectedRequest) {
-                                    req.soajs.log.info("Request aborted:", req.url);
-                                    req.soajs.controller.redirectedRequest.abort();
-                                }
-                            });
-                        });
-                    });
+            /* Close the connection */
+            req.on("end", function () {
+                process.nextTick(function () {
+                    try {
+                        req.soajs.controller.gotoservice(req, res, body);
+                    } catch (err) {
+                        return req.soajs.controllerResponse(core.error.getError(136));
+                    }
                 });
             });
+
+
+            req.on("error", function (error) {
+                req.soajs.log.error("Error @ controller:", error);
+                if (req.soajs.controller.redirectedRequest) {
+                    req.soajs.controller.redirectedRequest.abort();
+                }
+            });
+
+            req.on("close", function () {
+                if (req.soajs.controller.redirectedRequest) {
+                    req.soajs.log.info("Request aborted:", req.url);
+                    req.soajs.controller.redirectedRequest.abort();
+                }
+            });
+
+            next();
         });
 
+        _self.server = http.createServer(app);
         _self.serverMaintenance = http.createServer(function (req, res) {
             if (req.url === '/reloadRegistry') {
                 core.reloadRegistry(_self.serviceName, null, _self.awareness, function (reg) {
                     res.writeHead(200, {'Content-Type': 'application/json'});
-                    res.end(JSON.stringify(reg));
-                    return;
+                    return res.end(JSON.stringify(reg));
                 });
             }
 
@@ -98,7 +99,6 @@ function controller() {
 
             return heartbeat(res);
         });
-
     });
 }
 
@@ -121,7 +121,7 @@ controller.prototype.start = function (cb) {
         }
         else
             _self.log.info(_self.serviceName + " service started on port: " + _self.registry.services.controller.port);
-        if (cb) {
+        if (cb && typeof cb === "function") {
             cb(err);
         }
     });

@@ -14,11 +14,11 @@ registry_struct[regEnvironment] = null;
 // TODO: Delete this variable after implementation
 
 var _hardcode = {
-    "tenantMetaDB" : {},
-    "serviceConfig" : {
+    "tenantMetaDB": {},
+    "serviceConfig": {
         "awareness": {
-            "healthCheckInterval": 1000 * 2, // 2 seconds
-            "autoRelaodRegistry" : 1000 * 60 * 5 // 5 minutes
+            "healthCheckInterval": 1000 * 5, // 5 seconds
+            "autoRelaodRegistry": 1000 * 60 * 5 // 5 minutes
         },
         "agent": {
             "topologyDir": "/opt/soajs/"
@@ -53,8 +53,8 @@ var _hardcode = {
             "saveUninitialized": false
         }
     },
-    "coreDB" :{
-        "session" : {
+    "coreDB": {
+        "session": {
             "name": "core_session",
             "prefix": "",
             "servers": [
@@ -85,17 +85,22 @@ var _hardcode = {
             'expireAfter': 1000 * 60 * 60 * 24 * 14 // 2 weeks
         }
     },
-    "services" : {
+    "services": {
         "controller": {
             "maxPoolSize": 100,
             "authorization": true,
             "port": 4000,
             "requestTimeout": 30,
-            "requestTimeoutRenewal": 0
+            "requestTimeoutRenewal": 0,
+            "hosts" : []
+        },
+        "example01" : {
+            "extKeyRequired": false,
+            "port": 4040,
+            "hosts" : ["127.0.0.1"]
         }
     }
 };
-
 
 
 function deepFreeze(o) {
@@ -121,18 +126,13 @@ function loadRegistry(serviceName, apiList, reload, awareness, cb) {
         var regFileObj = require(regFile);
         if (regFileObj && typeof regFileObj === 'object') {
             var registry = {
+                "projectPath": projectPath,
                 "name": regFileObj.name,
                 "version": regFileObj.version,
                 "environment": regFileObj.environment,
-                "projectPath": projectPath,
                 "coreDB": {
-                    "provision": regFileObj.provisionDB,
-                    "session" : _hardcode.coreDB.session
-                },
-                "tenantMetaDB" :_hardcode.tenantMetaDB,
-                "serviceConfig" : _hardcode.serviceConfig,
-                "services" : _hardcode.services
-
+                    "provision": regFileObj.provisionDB
+                }
             };
 
             //TODO: use registry.coreDB.provision to connect to DB and load the following:
@@ -156,8 +156,18 @@ function loadRegistry(serviceName, apiList, reload, awareness, cb) {
              * registry.services.EVERYSERVICE.hosts // if in controller only and awareness is true
              */
 
-            //deepFreeze(registry);
+            registry["coreDB"]["session"] = _hardcode.coreDB.session;
+            registry["tenantMetaDB"] = _hardcode.tenantMetaDB;
+            registry["serviceConfig"] = _hardcode.serviceConfig;
+            registry["services"] = _hardcode.services;
 
+            if (!registry["services"][serviceName]) {
+                registry["services"][serviceName] = {
+                    "extKeyRequired": false,
+                    "port": 4050
+                }
+            }
+//console.log (registry);
             registry_struct[regEnvironment] = registry;
         }
     }

@@ -40,12 +40,13 @@ function service(param) {
     }
     var soajs = {};
     soajs.serviceName = param.serviceName || param.config.serviceName;
+    soajs.awareness = param.config.awareness || false;
     var registry = null;
 
     //TODO: build the apiList array fomr config.schemas
     var apiList = [];
 
-    core.getRegistry(soajs.serviceName, apiList, param.config.awareness, function (reg) {
+    core.getRegistry(soajs.serviceName, apiList, soajs.awareness, function (reg) {
         registry = reg;
 
         soajs.serviceConf = lib.registry.getServiceConf(soajs.serviceName, registry);
@@ -54,21 +55,18 @@ function service(param) {
         _self._log = core.getLogger(soajs.serviceName, registry.serviceConfig.logger);
 
         if (!soajs.serviceName || !soajs.serviceConf) {
-            _self._log.error('Service failed to start because soajs.serviceName is [' + soajs.serviceName + ']');
+            if (!soajs.serviceName)
+                _self._log.error('Service failed to start, serviceName is empty [' + soajs.serviceName + ']');
+            else
+                _self._log.error('Service [' + soajs.serviceName + '] failed to start. Unable to find the service entry in registry');
             return;
         }
 
         _self.app = express();
         _self.appMaintenance = express();
 
-        _self.app.all('*', function (req, res, next) {
-            if (req.url === '/favicon.ico') {
-                res.writeHead(200, {'Content-Type': 'image/x-icon'});
-                return res.end();
-            }
-            else
-                return next();
-        });
+        var favicon_mw = require("./../mw/favicon/index");
+        _self.app.use(favicon_mw());
 
         if (param.logger) {
             var logger = require('morgan');
@@ -170,10 +168,13 @@ service.prototype.start = function (cb) {
         provision.loadProvision(function (loaded) {
             if (loaded) {
                 _self.app.httpServer = _self.app.listen(_self.app.soajs.serviceConf.info.port, function (err) {
-                    _self.log.info(_self.app.soajs.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
-                    if (cb) {
-                        cb(err);
+                    _self._log.info(_self.app.soajs.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
+                    // Awareness
+                    if (_self.app.soajs.awareness){
+
                     }
+                    if (cb && typeof cb === "function")
+                        cb(err);
                 });
 
                 //MAINTENANCE Service Routes
@@ -197,7 +198,7 @@ service.prototype.start = function (cb) {
                 });
 
                 _self.appMaintenance.get("/reloadRegistry", function (req, res) {
-                    core.reloadRegistry(_self.app.soajs.serviceName, null, true, function (reg) {
+                    core.reloadRegistry(_self.app.soajs.serviceName, null, _self.app.soajs.awareness, function (reg) {
                         var response = maintenanceResponse(req);
                         response['result'] = true;
                         response['data'] = reg;
@@ -239,13 +240,16 @@ service.prototype.start = function (cb) {
                     response['result'] = true;
                     res.jsonp(response);
                 });
-                _self.appMaintenance.httpServer = _self.appMaintenance.listen(maintenancePort, function (err){
-                    _self.log.info(_self.app.soajs.serviceName + " service maintenance is listening on port: " + maintenancePort);
+                _self.appMaintenance.httpServer = _self.appMaintenance.listen(maintenancePort, function (err) {
+                    _self._log.info(_self.app.soajs.serviceName + " service maintenance is listening on port: " + maintenancePort);
                 });
             }
         });
     } else {
-        cb(new Error('Failed starting service'));
+        if (cb && typeof cb === "function")
+            cb(new Error('Failed starting service'));
+        else
+            throw new Error('Failed starting service');
     }
 };
 

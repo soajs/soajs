@@ -40,6 +40,7 @@
     "body-parser": "*",
     "bunyan": "*",
     "bunyan-prettystream": "*",
+    "connect" : "*",
     "cookie-parser": "*",
     "express": "*",
     "express-session": "*",
