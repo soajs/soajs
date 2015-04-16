@@ -31,9 +31,17 @@ function deepFreeze(o) {
 function loadRegistry(cb) {
     if (fs.existsSync(regFile)) {
         delete require.cache[require.resolve(regFile)];
-        var registry = require(regFile);
-        if (registry && typeof registry === 'object') {
-            registry.projectPath = projectPath;
+        var regFileObj = require(regFile);
+        if (regFileObj && typeof regFileObj === 'object') {
+            var registry = {
+                "name": regFileObj.name,
+                "version": regFileObj.version,
+                "environment": regFileObj.environment,
+                "projectPath": projectPath,
+                "coreDB": {
+                    "provision": regFileObj.provisionDB
+                }
+            };
 
             //TODO: use registry.coreDB.provision to connect to DB and load the following:
             /**

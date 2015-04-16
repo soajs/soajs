@@ -1,23 +1,37 @@
 'use strict';
-var dServers = require("../configurations/servers");
-var dOptions = require("../configurations/options");
-
 
 var registry = {
-	"name": "dev",
-	"version": "0.0",
-	"environment": "develop", // develop || production
+    "name": "dev",
+    "version": "0.0",
+    "environment": "develop", // develop || production
 
-	"coreDB": {
-		"provision": {
-			"name": "core_provision",
-			"prefix": dServers.prefix,
-			"servers": dServers.servers,
-			"credentials": dServers.credentials,
-			"URLParam": dOptions.URLParam,
-			"extraParam": dOptions.extraParam
-		}
-	}
+    "provisionDB": {
+        "name": "core_provision",
+        "prefix": "",
+        "servers": [
+            {
+                "host": "127.0.0.1",
+                "port": 27017
+            }
+        ],
+        "credentials": null,
+        "URLParam": {
+            "connectTimeoutMS": 0,
+            "socketTimeoutMS": 0,
+            "maxPoolSize": 5,
+            "wtimeoutMS": 0,
+            "slaveOk": true
+        },
+        "extraParam": {
+            "db": {
+                "native_parser": true
+            },
+            "server": {
+                "auto_reconnect": true
+            }
+        }
+    }
+
 };
 
 module.exports = registry;
