@@ -3,7 +3,7 @@ var fs = require('fs');
 
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
-var registryDir = (process.env.SOAJS_REGDIR || __dirname+"/../../../");//__dirname);
+var registryDir = (process.env.SOAJS_REGDIR || __dirname + "/../../../");//__dirname);
 var projectPath = registryDir + 'profiles/' + (process.env.SOAJS_PRJ || 'default/');
 var envPath = projectPath + 'environments/';
 var regFile = envPath + regEnvironment.toLowerCase() + '.js';
@@ -14,7 +14,7 @@ registry_struct[regEnvironment] = null;
 function deepFreeze(o) {
     var prop, propKey = null;
     Object.freeze(o); // First freeze the object.
-    for(propKey in o) {
+    for (propKey in o) {
         if (o.hasOwnProperty(propKey)) {
             prop = o[propKey];
             if (!prop || !o.hasOwnProperty(propKey) || (typeof prop !== "object") || Object.isFrozen(prop)) {
@@ -28,34 +28,41 @@ function deepFreeze(o) {
     }
 }
 
-function loadRegistry() {
+function loadRegistry(cb) {
     if (fs.existsSync(regFile)) {
         delete require.cache[require.resolve(regFile)];
         var registry = require(regFile);
         if (registry && typeof registry === 'object') {
             registry.projectPath = projectPath;
+
+            //TODO: use registry.coreDB.provision to connect to DB and load the following:
+            /**
+             * tenantMetaDB   -> registry.tenantMetaDB
+             * serviceConfig  -> registry.serviceConfig
+             * services       -> registry.services
+             * sessionDB      -> registry.coreDB.session
+             */
+
             deepFreeze(registry);
+
             registry_struct[regEnvironment] = registry;
         }
     }
     else
         throw new Error('Invalid profile path: ' + regFile);
+
+    return cb();
 }
 
-loadRegistry();
-
-exports.getRegistry = function () {
+exports.getRegistry = function (serviceName, apiList, reload, cb) {
     try {
-        return registry_struct[regEnvironment];
-    } catch (e) {
-        throw new Error('Failed to get registry: ' + e.message);
-    }
-};
-
-exports.reloadRegistry = function () {
-    try {
-        loadRegistry();
-        return registry_struct[regEnvironment];
+        if (reload || !registry_struct[regEnvironment]) {
+            loadRegistry(function () {
+                return cb(registry_struct[regEnvironment]);
+            });
+        }
+        else
+            return cb(registry_struct[regEnvironment]);
     } catch (e) {
         throw new Error('Failed to get registry: ' + e.message);
     }

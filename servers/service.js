@@ -9,7 +9,6 @@ var lib = require("./../lib/index");
 
 var express = require("./../classes/express");
 
-var _log = null;
 /*
  * param = {
  *           logger : boolean
@@ -31,6 +30,7 @@ var _log = null;
  * @param param
  */
 function service(param) {
+    var _self = this;
     var defaultParam = ["bodyParser", "methodOverride", "cookieParser", "logger", "inputmask"];
     var len = defaultParam.length;
     for (var i = 0; i < len; i++) {
@@ -40,168 +40,171 @@ function service(param) {
     }
     var soajs = {};
     soajs.serviceName = param.serviceName || param.config.serviceName;
-    var registry = core.getRegistry();
-    soajs.serviceConf = lib.registry.getServiceConf(soajs.serviceName, registry);
-    soajs.provision = registry.coreDB.provision;
+    var registry = null;
+    core.getRegistry(soajs.serviceName, null, function (reg) {
+        registry = reg;
 
-    _log = core.getLogger(soajs.serviceName, registry.serviceConfig.logger);
+        soajs.serviceConf = lib.registry.getServiceConf(soajs.serviceName, registry);
+        soajs.provision = registry.coreDB.provision;
 
-    if (!soajs.serviceName || !soajs.serviceConf) {
-        _log.error('Service failed to start because soajs.serviceName is [' + soajs.serviceName + ']');
-        return;
-    }
+        _self._log = core.getLogger(soajs.serviceName, registry.serviceConfig.logger);
 
-    this.app = express();
-    this.appMaintenance = express();
-    var self = this;
-
-    this.app.all('*', function (req, res, next) {
-        if (req.url === '/favicon.ico') {
-            res.writeHead(200, {'Content-Type': 'image/x-icon'});
-            return res.end();
+        if (!soajs.serviceName || !soajs.serviceConf) {
+            _self._log.error('Service failed to start because soajs.serviceName is [' + soajs.serviceName + ']');
+            return;
         }
-        else
-            return next();
-    });
 
-    if (param.logger) {
-        var logger = require('morgan');
-        this.app.use(logger('combined'));
-    }
-    var soajs_mw = require("./../mw/soajs/index");
-    this.app.use(soajs_mw({"registry": registry, "log": _log}));
-    this.appMaintenance.use(soajs_mw({"registry": registry, "log": _log}));
+        _self.app = express();
+        _self.appMaintenance = express();
 
-    var response_mw = require("./../mw/response/index");
-    this.app.use(response_mw({}));
-    this.appMaintenance.use(response_mw({}));
-
-    if (param.bodyParser) {
-        var bodyParser = require('body-parser');
-        this.app.use(bodyParser.json());
-        this.app.use(bodyParser.urlencoded({extended: true}));
-    }
-
-    if (param.methodOverride) {
-        var methodOverride = require('method-override');
-        this.app.use(methodOverride());
-    }
-
-    if (param.cookieParser) {
-        var cookieParser = require('cookie-parser');
-        this.app.use(cookieParser(soajs.serviceConf._conf.cookie.secret));
-    }
-
-    if (param.session) {
-        var session = require('express-session');
-        var MongoStore = require('./../modules/soajs.mongoStore/index.js')(session);
-        var store = new MongoStore(registry.coreDB.session);
-        var sessConf = {};
-        for (var key in soajs.serviceConf._conf.session) {
-            if (soajs.serviceConf._conf.session.hasOwnProperty(key)) {
-                sessConf[key] = soajs.serviceConf._conf.session[key];
+        _self.app.all('*', function (req, res, next) {
+            if (req.url === '/favicon.ico') {
+                res.writeHead(200, {'Content-Type': 'image/x-icon'});
+                return res.end();
             }
-        }
-        sessConf.store = store;
-        this.app.use(session(sessConf));
-    }
-
-    if (param.inputmask && param.config.schema) {
-        var inputmask_mw = require("./../mw/inputmask/index");
-        var inputmaskSrc = ["params", "headers", "query"];
-        if (param.cookieParser) {
-            inputmaskSrc.push("cookies");
-        }
-        if (param.bodyParser) {
-            inputmaskSrc.push("body");
-        }
-
-        soajs.inputmask = inputmask_mw(param.config, inputmaskSrc);
-    }
-
-    if (param.bodyParser && param.oauth) {
-        var oauthserver = require('oauth2-server');
-        this.oauth = oauthserver({
-            model: provision.oauthModel,
-            grants: registry.serviceConfig.oauth.grants,
-            debug: registry.serviceConfig.oauth.debug
+            else
+                return next();
         });
 
-        soajs.oauthService = param.oauthService || {"name": "oauth", "tokenApi": "/token"};
-        if (!soajs.oauthService.name)
-            soajs.oauthService.name = "oauth";
-        if (!soajs.oauthService.tokenApi)
-            soajs.oauthService.tokenApi = "/token";
+        if (param.logger) {
+            var logger = require('morgan');
+            _self.app.use(logger('combined'));
+        }
+        var soajs_mw = require("./../mw/soajs/index");
+        _self.app.use(soajs_mw({"registry": registry, "log": _self._log}));
+        _self.appMaintenance.use(soajs_mw({"registry": registry, "log": _self._log}));
 
-        soajs.oauth = this.oauth.authorise();
-    }
+        var response_mw = require("./../mw/response/index");
+        _self.app.use(response_mw({}));
+        _self.appMaintenance.use(response_mw({}));
 
-    var service_mw = require("./../mw/service/index");
-    this.app.use(service_mw({"soajs": soajs, "app": self.app, "param": param}));
+        if (param.bodyParser) {
+            var bodyParser = require('body-parser');
+            _self.app.use(bodyParser.json());
+            _self.app.use(bodyParser.urlencoded({extended: true}));
+        }
 
-    this.app.soajs = soajs;
+        if (param.methodOverride) {
+            var methodOverride = require('method-override');
+            _self.app.use(methodOverride());
+        }
+
+        if (param.cookieParser) {
+            var cookieParser = require('cookie-parser');
+            _self.app.use(cookieParser(soajs.serviceConf._conf.cookie.secret));
+        }
+
+        if (param.session) {
+            var session = require('express-session');
+            var MongoStore = require('./../modules/soajs.mongoStore/index.js')(session);
+            var store = new MongoStore(registry.coreDB.session);
+            var sessConf = {};
+            for (var key in soajs.serviceConf._conf.session) {
+                if (soajs.serviceConf._conf.session.hasOwnProperty(key)) {
+                    sessConf[key] = soajs.serviceConf._conf.session[key];
+                }
+            }
+            sessConf.store = store;
+            _self.app.use(session(sessConf));
+        }
+
+        if (param.inputmask && param.config.schema) {
+            var inputmask_mw = require("./../mw/inputmask/index");
+            var inputmaskSrc = ["params", "headers", "query"];
+            if (param.cookieParser) {
+                inputmaskSrc.push("cookies");
+            }
+            if (param.bodyParser) {
+                inputmaskSrc.push("body");
+            }
+
+            soajs.inputmask = inputmask_mw(param.config, inputmaskSrc);
+        }
+
+        if (param.bodyParser && param.oauth) {
+            var oauthserver = require('oauth2-server');
+            _self.oauth = oauthserver({
+                model: provision.oauthModel,
+                grants: registry.serviceConfig.oauth.grants,
+                debug: registry.serviceConfig.oauth.debug
+            });
+
+            soajs.oauthService = param.oauthService || {"name": "oauth", "tokenApi": "/token"};
+            if (!soajs.oauthService.name)
+                soajs.oauthService.name = "oauth";
+            if (!soajs.oauthService.tokenApi)
+                soajs.oauthService.tokenApi = "/token";
+
+            soajs.oauth = _self.oauth.authorise();
+        }
+
+        var service_mw = require("./../mw/service/index");
+        _self.app.use(service_mw({"soajs": soajs, "app": _self.app, "param": param}));
+
+        _self.app.soajs = soajs;
+
+    });
 }
 
 /**
  *
  */
 service.prototype.start = function (cb) {
-    if (this.app && this.app.soajs) {
+    var _self = this;
+    if (_self.app && _self.app.soajs) {
 
-        this.app.all('*', function (req, res) {
+        _self.app.all('*', function (req, res) {
             req.soajs.log.error(151, 'Unknown API : ' + req.path);
             res.jsonp(req.soajs.buildResponse(core.error.getError(151)));
         });
 
-        this.app.use(logErrors);
-        this.app.use(clientErrorHandler);
-        this.app.use(errorHandler);
+        _self.app.use(logErrors);
+        _self.app.use(clientErrorHandler);
+        _self.app.use(errorHandler);
 
-        var self = this;
-
-        provision.init(this.app.soajs.provision, _log);
+        provision.init(_self.app.soajs.provision, _self._log);
         provision.loadProvision(function (loaded) {
             if (loaded) {
-                self.app.httpServer = self.app.listen(self.app.soajs.serviceConf.info.port, function (err) {
+                _self.app.httpServer = _self.app.listen(_self.app.soajs.serviceConf.info.port, function (err) {
                     if (cb) {
                         cb(err);
                     }
                 });
 
                 //MAINTENANCE Service Routes
-                var maintenanceResponse = function (req) {
+                var maintenanceResponse = function (req, route) {
                     var response = {
                         'result': false,
                         'ts': Date.now(),
                         'service': {
-                            'service': self.app.soajs.serviceName,
+                            'service': _self.app.soajs.serviceName,
                             'type': 'rest',
-                            'route': req.path
+                            'route': route || req.path
                         }
                     };
                     return response;
                 };
-                self.appMaintenance.get("/heartbeat", function (req, res) {
+                _self.appMaintenance.get("/heartbeat", function (req, res) {
                     var response = maintenanceResponse(req);
                     response['result'] = true;
                     res.jsonp(response);
                 });
 
-                self.appMaintenance.get("/reloadRegistry", function (req, res) {
+                _self.appMaintenance.get("/reloadRegistry", function (req, res) {
                     var newRegistry = core.reloadRegistry();
                     var response = maintenanceResponse(req);
                     response['result'] = true;
                     response['data'] = newRegistry;
                     res.jsonp(response);
                 });
-                self.appMaintenance.get("/loadProvision", function (req, res) {
+                _self.appMaintenance.get("/loadProvision", function (req, res) {
                     provision.loadProvision(function (loaded) {
                         var response = maintenanceResponse(req);
                         response['result'] = loaded;
                         res.jsonp(response);
                     });
                 });
-                self.appMaintenance.get("/generateExtKey/:iKey", function (req, res) {
+                _self.appMaintenance.get("/generateExtKey/:iKey", function (req, res) {
                     var key = req.params.iKey;//"d1eaaf5fdc35c11119330a8a0273fee9";
                     provision.generateExtKey(key, req.soajs.registry.serviceConfig.key, function (err, data) {
                         var response = maintenanceResponse(req);
@@ -212,7 +215,7 @@ service.prototype.start = function (cb) {
                         res.jsonp(response);
                     });
                 });
-                self.appMaintenance.get("/getTenantKeys/:tId", function (req, res) {
+                _self.appMaintenance.get("/getTenantKeys/:tId", function (req, res) {
                     var tId = req.params.tId;//"10d2cb5fc04ce51e06000001";
                     provision.getTenantKeys(tId, function (err, data) {
                         var response = maintenanceResponse(req);
@@ -223,20 +226,12 @@ service.prototype.start = function (cb) {
                         res.jsonp(response);
                     });
                 });
-                self.appMaintenance.all('*', function (req, res) {
-                    var response = {
-                        'result': false,
-                        'ts': Date.now(),
-                        'service': {
-                            'service': self.app.soajs.serviceName,
-                            'type': 'rest',
-                            'route': req.url
-                        },
-                        'error': 'Unknown API : ' + req.path
-                    };
+                _self.appMaintenance.all('*', function (req, res) {
+                    var response = maintenanceResponse(req, "heartbeat");
+                    response['result'] = true;
                     res.jsonp(response);
                 });
-                self.appMaintenance.httpServer = self.appMaintenance.listen(self.app.soajs.serviceConf.info.port + self.app.soajs.serviceConf._conf.maintenancePortInc); //For internal use only
+                _self.appMaintenance.httpServer = _self.appMaintenance.listen(_self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.maintenancePortInc); //For internal use only
             }
         });
     } else {
@@ -245,10 +240,10 @@ service.prototype.start = function (cb) {
 };
 
 service.prototype.stop = function (cb) {
-    _log.info('stopping service[' + this.app.soajs.serviceName + '] on port:', this.app.soajs.serviceConf.info.port);
-    var self = this;
-    self.app.httpServer.close(function (err) {
-        self.appMaintenance.httpServer.close(function (err) {
+    var _self = this;
+    _self._log.info('stopping service[' + _self.app.soajs.serviceName + '] on port:', _self.app.soajs.serviceConf.info.port);
+    _self.app.httpServer.close(function (err) {
+        _self.appMaintenance.httpServer.close(function (err) {
             if (cb) {
                 cb(err);
             }
@@ -332,7 +327,7 @@ function injectInputmask(restApp, args) {
  * @param app
  * @returns {boolean}
  */
-function isSOAJready(app) {
+function isSOAJready(app, _log) {
     if (app && app.soajs)
         return true;
     _log.info("Can't attach route because soajs express app is not defined");
@@ -342,47 +337,52 @@ function isSOAJready(app) {
  *
  */
 service.prototype.all = function () {
-    if (!isSOAJready(this.app)) return;
-    var args = injectOauth(this, arguments);
-    args = injectInputmask(this, args);
-    this.app.all.apply(this.app, args);
+    var _self = this;
+    if (!isSOAJready(_self.app, _self._log)) return;
+    var args = injectOauth(_self, arguments);
+    args = injectInputmask(_self, args);
+    _self.app.all.apply(_self.app, args);
 };
 /**
  *
  */
 service.prototype.get = function () {
-    if (!isSOAJready(this.app)) return;
-    var args = injectOauth(this, arguments);
-    args = injectInputmask(this, args);
-    this.app.get.apply(this.app, args);
+    var _self = this;
+    if (!isSOAJready(_self.app, _self._log)) return;
+    var args = injectOauth(_self, arguments);
+    args = injectInputmask(_self, args);
+    _self.app.get.apply(_self.app, args);
 };
 /**
  *
  */
 service.prototype.post = function () {
-    if (!isSOAJready(this.app)) return;
-    var args = injectOauth(this, arguments);
-    args = injectInputmask(this, args);
-    this.app.post.apply(this.app, args);
+    var _self = this;
+    if (!isSOAJready(_self.app, _self._log)) return;
+    var args = injectOauth(_self, arguments);
+    args = injectInputmask(_self, args);
+    _self.app.post.apply(_self.app, args);
 };
 
 /**
  *
  */
 service.prototype.put = function () {
-    if (!isSOAJready(this.app)) return;
-    var args = injectOauth(this, arguments);
-    args = injectInputmask(this, args);
-    this.app.put.apply(this.app, args);
+    var _self = this;
+    if (!isSOAJready(_self.app, _self._log)) return;
+    var args = injectOauth(_self, arguments);
+    args = injectInputmask(_self, args);
+    _self.app.put.apply(_self.app, args);
 };
 /**
  *
  */
 service.prototype.delete = function () {
-    if (!isSOAJready(this.app)) return;
-    var args = injectOauth(this, arguments);
-    args = injectInputmask(this, args);
-    this.app.delete.apply(this.app, args);
+    var _self = this;
+    if (!isSOAJready(_self.app, _self._log)) return;
+    var args = injectOauth(_self, arguments);
+    args = injectInputmask(_self, args);
+    _self.app.delete.apply(_self.app, args);
 };
 
 

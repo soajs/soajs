@@ -12,7 +12,7 @@ module.exports = function (configuration) {
     log = configuration.log;
 
     return function (req, res, next) {
-        registry = configuration.registry || core.getRegistry();
+        registry = configuration.registry;
         if (!req.soajs)
             req.soajs = {};
 

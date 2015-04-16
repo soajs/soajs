@@ -3,9 +3,6 @@
 var http = require('http');
 var core = require('./../modules/soajs.core/index.js');
 
-var registry = core.getRegistry();
-var log = null;
-
 var cors_mw = require('./../mw/cors/index');
 var soajs_mw = require('./../mw/soajs/index');
 var response_mw = require('./../mw/response/index');
@@ -15,79 +12,88 @@ var controller_mw = require('./../mw/controller/index');
  *
  */
 function controller() {
-    log = core.getLogger("controller", registry.serviceConfig.logger);
-    this.server = http.createServer(function (req, res) {
-        if (req.url === '/favicon.ico') {
-            res.writeHead(200, {'Content-Type': 'image/x-icon'});
-            res.end();
-            return;
-        }
-        soajs_mw({"serviceName": "controller", "log": log, "registry": registry})(req, res, function () {
-            cors_mw()(req, res, function () {
-                response_mw({"controllerResponse": true})(req, res, function () {
-                    controller_mw()(req, res, function () {
-                        var body = '';
+    var serviceName = "controller";
+    var _self = this;
+    this.registry = core.getRegistry(serviceName, null, function (reg) {
+        _self.registry = reg;
 
-                        req.on("data", function (chunk) {
-                            body += chunk;
-                        });
+        _self.log = core.getLogger(serviceName, _self.registry.serviceConfig.logger);
+        _self.server = http.createServer(function (req, res) {
+            if (req.url === '/favicon.ico') {
+                res.writeHead(200, {'Content-Type': 'image/x-icon'});
+                res.end();
+                return;
+            }
+            soajs_mw({"serviceName": serviceName, "log": _self.log, "registry": _self.registry})(req, res, function () {
+                cors_mw()(req, res, function () {
+                    response_mw({"controllerResponse": true})(req, res, function () {
+                        controller_mw()(req, res, function () {
+                            var body = '';
 
-                        /* Close the connection */
-                        req.on("end", function () {
-                            process.nextTick(function () {
-                                try {
-                                    req.soajs.controller.gotoservice(req, res, body);
-                                } catch (err) {
-                                    return req.soajs.controllerResponse(core.error.getError(136));
+                            req.on("data", function (chunk) {
+                                body += chunk;
+                            });
+
+                            /* Close the connection */
+                            req.on("end", function () {
+                                process.nextTick(function () {
+                                    try {
+                                        req.soajs.controller.gotoservice(req, res, body);
+                                    } catch (err) {
+                                        return req.soajs.controllerResponse(core.error.getError(136));
+                                    }
+                                });
+                            });
+
+
+                            req.on("error", function (error) {
+                                req.soajs.log.error("Error @ controller:", error);
+                                if (req.soajs.controller.redirectedRequest) {
+                                    req.soajs.controller.redirectedRequest.abort();
                                 }
                             });
-                        });
 
-
-                        req.on("error", function (error) {
-                            req.soajs.log.error("Error @ controller:", error);
-                            if (req.soajs.controller.redirectedRequest) {
-                                req.soajs.controller.redirectedRequest.abort();
-                            }
-                        });
-
-                        req.on("close", function () {
-                            if (req.soajs.controller.redirectedRequest) {
-                                req.soajs.log.info("Request aborted:", req.url);
-                                req.soajs.controller.redirectedRequest.abort();
-                            }
+                            req.on("close", function () {
+                                if (req.soajs.controller.redirectedRequest) {
+                                    req.soajs.log.info("Request aborted:", req.url);
+                                    req.soajs.controller.redirectedRequest.abort();
+                                }
+                            });
                         });
                     });
                 });
             });
         });
-    });
 
-    this.serverMaintenance = http.createServer(function (req, res) {
-        if (req.url === '/reloadRegistry') {
-            registry = core.reloadRegistry();
-            res.writeHead(200, {'Content-Type': 'application/json'});
-            res.end(JSON.stringify(registry));
-            return;
-        }
+        _self.serverMaintenance = http.createServer(function (req, res) {
+            if (req.url === '/reloadRegistry') {
+                core.reloadRegistry(serviceName, null, function (reg) {
+                    res.writeHead(200, {'Content-Type': 'application/json'});
+                    res.end(JSON.stringify(reg));
+                    return;
+                });
+            }
 
-        if (req.url === '/heartbeat') {
-            res.writeHead(200, {'Content-Type': 'application/json'});
-            var response = {
-                'result': true,
-                'ts': Date.now(),
-                'service': {
-                    'service': 'CONTROLLER',
-                    'type': 'rest',
-                    'route': '/heartbeat'
-                }
-            };
-            res.end(JSON.stringify(response));
-            return;
-        }
+            var heartbeat = function (res) {
+                res.writeHead(200, {'Content-Type': 'application/json'});
+                var response = {
+                    'result': true,
+                    'ts': Date.now(),
+                    'service': {
+                        'service': serviceName.toUpperCase(),
+                        'type': 'rest',
+                        'route': '/heartbeat'
+                    }
+                };
+                res.end(JSON.stringify(response));
+            }
+            if (req.url === '/heartbeat') {
+                return heartbeat(res);
+            }
 
-        res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end("nothing to do!");
+            return heartbeat(res);
+        });
+
     });
 }
 
@@ -95,31 +101,32 @@ function controller() {
  *
  */
 controller.prototype.start = function (cb) {
-    this.server.on('error', function (err) {
+    var _self = this;
+    _self.server.on('error', function (err) {
         if (err.code === 'EADDRINUSE') {
-            log.error('Address [port: ' + registry.services.controller.port + '] in use by another service, exiting');
+            _self.log.error('Address [port: ' + _self.registry.services.controller.port + '] in use by another service, exiting');
         }
         else
-            log.error(err);
+            _self.log.error(err);
     });
-    this.server.listen(registry.services.controller.port, function (err) {
+    _self.server.listen(_self.registry.services.controller.port, function (err) {
         if (err) {
-            log.error(err);
+            _self.log.error(err);
         }
         if (cb) {
             cb(err);
         }
     });
-    this.serverMaintenance.on('error', function (err) {
+    _self.serverMaintenance.on('error', function (err) {
         if (err.code === 'EADDRINUSE') {
-            log.error('Address [port: ' + (registry.services.controller.port + registry.serviceConfig.maintenancePortInc) + '] in use by another service, exiting');
+            _self.log.error('Address [port: ' + (_self.registry.services.controller.port + _self.registry.serviceConfig.maintenancePortInc) + '] in use by another service, exiting');
         }
         else
-            log.error(err);
+            _self.log.error(err);
     });
-    this.serverMaintenance.listen(registry.services.controller.port + registry.serviceConfig.maintenancePortInc, function (err) {
+    _self.serverMaintenance.listen(_self.registry.services.controller.port + _self.registry.serviceConfig.maintenancePortInc, function (err) {
         if (err) {
-            log.error(err);
+            _self.log.error(err);
         }
     });
 
@@ -127,9 +134,9 @@ controller.prototype.start = function (cb) {
 
 
 controller.prototype.stop = function (cb) {
-    log.info('stopping controllerServer on port:', registry.services.controller.port);
-    var self = this;
-    this.server.close(function (err) {
+    var _self = this;
+    _self.log.info('stopping controllerServer on port:', _self.registry.services.controller.port);
+    _self.server.close(function (err) {
         self.serverMaintenance.close(function (err) {
             if (cb) {
                 cb(err);
