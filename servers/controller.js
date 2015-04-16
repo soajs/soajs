@@ -12,19 +12,24 @@ var controller_mw = require('./../mw/controller/index');
  *
  */
 function controller() {
-    var serviceName = "controller";
     var _self = this;
-    this.registry = core.getRegistry(serviceName, null, true, function (reg) {
+    _self.awareness = true;
+    _self.serviceName = "controller";
+    core.getRegistry(_self.serviceName, null, _self.awareness, function (reg) {
         _self.registry = reg;
 
-        _self.log = core.getLogger(serviceName, _self.registry.serviceConfig.logger);
+        _self.log = core.getLogger(_self.serviceName, _self.registry.serviceConfig.logger);
         _self.server = http.createServer(function (req, res) {
             if (req.url === '/favicon.ico') {
                 res.writeHead(200, {'Content-Type': 'image/x-icon'});
                 res.end();
                 return;
             }
-            soajs_mw({"serviceName": serviceName, "log": _self.log, "registry": _self.registry})(req, res, function () {
+            soajs_mw({
+                "serviceName": _self.serviceName,
+                "log": _self.log,
+                "registry": _self.registry
+            })(req, res, function () {
                 cors_mw()(req, res, function () {
                     response_mw({"controllerResponse": true})(req, res, function () {
                         controller_mw()(req, res, function () {
@@ -67,7 +72,7 @@ function controller() {
 
         _self.serverMaintenance = http.createServer(function (req, res) {
             if (req.url === '/reloadRegistry') {
-                core.reloadRegistry(serviceName, null, function (reg) {
+                core.reloadRegistry(_self.serviceName, null, _self.awareness, function (reg) {
                     res.writeHead(200, {'Content-Type': 'application/json'});
                     res.end(JSON.stringify(reg));
                     return;
@@ -80,7 +85,7 @@ function controller() {
                     'result': true,
                     'ts': Date.now(),
                     'service': {
-                        'service': serviceName.toUpperCase(),
+                        'service': _self.serviceName.toUpperCase(),
                         'type': 'rest',
                         'route': '/heartbeat'
                     }
@@ -102,6 +107,7 @@ function controller() {
  */
 controller.prototype.start = function (cb) {
     var _self = this;
+    var maintenancePort = _self.registry.services.controller.port + _self.registry.serviceConfig.maintenancePortInc;
     _self.server.on('error', function (err) {
         if (err.code === 'EADDRINUSE') {
             _self.log.error('Address [port: ' + _self.registry.services.controller.port + '] in use by another service, exiting');
@@ -113,21 +119,25 @@ controller.prototype.start = function (cb) {
         if (err) {
             _self.log.error(err);
         }
+        else
+            _self.log.info(_self.serviceName + " service started on port: " + _self.registry.services.controller.port);
         if (cb) {
             cb(err);
         }
     });
     _self.serverMaintenance.on('error', function (err) {
         if (err.code === 'EADDRINUSE') {
-            _self.log.error('Address [port: ' + (_self.registry.services.controller.port + _self.registry.serviceConfig.maintenancePortInc) + '] in use by another service, exiting');
+            _self.log.error('Address [port: ' + (maintenancePort) + '] in use by another service, exiting');
         }
         else
             _self.log.error(err);
     });
-    _self.serverMaintenance.listen(_self.registry.services.controller.port + _self.registry.serviceConfig.maintenancePortInc, function (err) {
+    _self.serverMaintenance.listen(maintenancePort, function (err) {
         if (err) {
             _self.log.error(err);
         }
+        else
+            _self.log.info(_self.serviceName + " service maintenance is listening on port: " + maintenancePort);
     });
 
 };

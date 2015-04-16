@@ -170,12 +170,14 @@ service.prototype.start = function (cb) {
         provision.loadProvision(function (loaded) {
             if (loaded) {
                 _self.app.httpServer = _self.app.listen(_self.app.soajs.serviceConf.info.port, function (err) {
+                    _self.log.info(_self.app.soajs.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
                     if (cb) {
                         cb(err);
                     }
                 });
 
                 //MAINTENANCE Service Routes
+                var maintenancePort = _self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.maintenancePortInc;
                 var maintenanceResponse = function (req, route) {
                     var response = {
                         'result': false,
@@ -195,11 +197,13 @@ service.prototype.start = function (cb) {
                 });
 
                 _self.appMaintenance.get("/reloadRegistry", function (req, res) {
-                    var newRegistry = core.reloadRegistry();
-                    var response = maintenanceResponse(req);
-                    response['result'] = true;
-                    response['data'] = newRegistry;
-                    res.jsonp(response);
+                    core.reloadRegistry(_self.app.soajs.serviceName, null, true, function (reg) {
+                        var response = maintenanceResponse(req);
+                        response['result'] = true;
+                        response['data'] = reg;
+                        res.jsonp(response);
+
+                    });
                 });
                 _self.appMaintenance.get("/loadProvision", function (req, res) {
                     provision.loadProvision(function (loaded) {
@@ -235,7 +239,9 @@ service.prototype.start = function (cb) {
                     response['result'] = true;
                     res.jsonp(response);
                 });
-                _self.appMaintenance.httpServer = _self.appMaintenance.listen(_self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.maintenancePortInc); //For internal use only
+                _self.appMaintenance.httpServer = _self.appMaintenance.listen(maintenancePort, function (err){
+                    _self.log.info(_self.app.soajs.serviceName + " service maintenance is listening on port: " + maintenancePort);
+                });
             }
         });
     } else {
