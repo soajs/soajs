@@ -145,30 +145,40 @@ var build = {
 		});
 	},
 
-	"registerNewService": function(dbConfiguration, serviceObj, cb) {
+	"registerNewService": function(dbConfiguration, serviceObj, ports, cb) {
 		var mongo = new Mongo(dbConfiguration);
-		mongo.insert('services', serviceObj, cb);
+		mongo.findOne('services', { 'port': serviceObj.port }, function(error, record) {
+			if(error) { return cb(error); }
+			if(!record) {
+				mongo.insert('services', serviceObj, cb);
+			}
+			else {
+				var newPort = randomInt(ports.controller + ports.randomInc, ports.controller + ports.maintenanceInc);
+				serviceObj.port = newPort;
+				build.registerNewService(dbConfiguration, serviceObj, ports, cb);
+			}
+		})
 	},
 
 	"checkRegisterServiceIP": function(dbConfiguration, hostObj, cb) {
 		var mongo = new Mongo(dbConfiguration);
 		var counter = 0;
 		for(var i = 0; i < hostObj.ips.length; i++) {
-			var criteria = {'env': hostObj.env, 'name': hostObj.name, 'ip': hostObj.ips[i] };
+			var criteria = {'env': hostObj.env, 'name': hostObj.name, 'ip': hostObj.ips[i]};
 			//check if this host has this ip in the env
 			mongo.findOne('hosts', criteria, function(error, dbRecord) {
 				if(error) { return cb(error); }
-				if(dbRecord){
+				if(dbRecord) {
 					//if it does, increment the count and check if all ips are processed
 					counter++;
 					if(counter == hostObj.ips.length) {
 						return cb(null, true);
 					}
 				}
-				else{
+				else {
 					//insert a new entry to the host
 					mongo.insert('hosts', criteria, function(error) {
-						if(error){ return cb(error); }
+						if(error) { return cb(error); }
 
 						//increment the count and check if all ips are processed
 						counter++;
@@ -201,10 +211,6 @@ var build = {
 		 * registry.services.controller.hosts   // if in service and awareness is true
 		 * registry.services.EVERYSERVICE.hosts // if in controller only and awareness is true
 		 */
-
-		var randomInt = function(low, high) {
-			return Math.floor(Math.random() * (high - low) + low);
-		};
 
 		var metaAndCoreDB = build.metaAndCoreDB(registryDBInfo.ENV_schema);
 		registry["tenantMetaDB"] = metaAndCoreDB.metaDB;
@@ -253,7 +259,7 @@ var build = {
 						'port': registry["services"][param.serviceName].port,
 						'apis': param.apis
 					};
-					build.registerNewService(registry.coreDB.provision, newServiceObj, function(error) {
+					build.registerNewService(registry.coreDB.provision, newServiceObj, registryDBInfo.ENV_schema.services.config.ports, function(error) {
 						if(error) {
 							throw new Error('Unable to register new service ' + param.serviceName + ' : ' + error.message);
 						}
@@ -285,6 +291,10 @@ var build = {
 		}
 	}
 };
+
+function randomInt(low, high) {
+	return Math.floor(Math.random() * (high - low) + low);
+}
 
 function deepFreeze(o) {
 	var prop;
