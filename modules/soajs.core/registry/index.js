@@ -147,7 +147,7 @@ var build = {
 
 	"registerNewService": function(dbConfiguration, serviceObj, ports, cb) {
 		var mongo = new Mongo(dbConfiguration);
-		mongo.findOne('services', { 'port': serviceObj.port }, function(error, record) {
+		mongo.findOne('services', {'port': serviceObj.port}, function(error, record) {
 			if(error) { return cb(error); }
 			if(!record) {
 				mongo.insert('services', serviceObj, cb);
@@ -162,33 +162,16 @@ var build = {
 
 	"checkRegisterServiceIP": function(dbConfiguration, hostObj, cb) {
 		var mongo = new Mongo(dbConfiguration);
-		var counter = 0;
-		for(var i = 0; i < hostObj.ips.length; i++) {
-			var criteria = {'env': hostObj.env, 'name': hostObj.name, 'ip': hostObj.ips[i]};
-			//check if this host has this ip in the env
-			mongo.findOne('hosts', criteria, function(error, dbRecord) {
-				if(error) { return cb(error); }
-				if(dbRecord) {
-					//if it does, increment the count and check if all ips are processed
-					counter++;
-					if(counter == hostObj.ips.length) {
-						return cb(null, true);
-					}
-				}
-				else {
-					//insert a new entry to the host
-					mongo.insert('hosts', criteria, function(error) {
-						if(error) { return cb(error); }
-
-						//increment the count and check if all ips are processed
-						counter++;
-						if(counter == hostObj.ips.length) {
-							return cb(null, true);
-						}
-					});
-				}
-			});
-		}
+		//check if this host has this ip in the env
+		mongo.findOne('hosts', hostObj, function(error, dbRecord) {
+			if(error) { return cb(error); }
+			if(!dbRecord) {
+				mongo.insert('hosts', hostObj, cb);
+			}
+			else {
+				return cb(null, true);
+			}
+		});
 	},
 
 	"buildRegistry": function(param, registry, registryDBInfo, callback) {
@@ -280,7 +263,7 @@ var build = {
 			var hostObj = {
 				'env': registry.name.toLowerCase(),
 				'name': param.serviceName,
-				'ips': param.serviceIp
+				'ip': param.serviceIp
 			};
 			build.checkRegisterServiceIP(registry.coreDB.provision, hostObj, function(error) {
 				if(error) {

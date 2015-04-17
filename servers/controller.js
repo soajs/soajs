@@ -20,7 +20,7 @@ function controller(param) {
 	_self.awareness = true;
 	_self.serviceAwarenessObj = {};
 	_self.serviceName = "controller";
-	_self.serviceIp = param.serviceIp || "127.0.0.1";
+	_self.serviceIp = (param && param.serviceIp) ? param : "127.0.0.1";
 }
 
 controller.prototype.init = function(callback) {
