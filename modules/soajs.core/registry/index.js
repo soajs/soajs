@@ -179,7 +179,7 @@ function loadRegistry(param, cb) {
 
 exports.getRegistry = function (param, cb) {
     try {
-        if (reload || !registry_struct[regEnvironment]) {
+        if (param.reload || !registry_struct[regEnvironment]) {
             loadRegistry(param, function () {
                 return cb(registry_struct[regEnvironment]);
             });
