@@ -17,14 +17,10 @@ var ENV_schema = {
     "dbs": {
         "clusters": {
             "cluster1": {
-                "servers": {
-                    "servers": "",
-                    "credentials": ""
-                },
-                "options": {
-                    "URLParam": "",
-                    "extraParam": ""
-                }
+                "servers": "",
+                "credentials": "",
+                "URLParam": "",
+                "extraParam": ""
             }
         },
         "config": {
@@ -101,7 +97,7 @@ var registry = {
     "serviceConfig": {
         "awareness": {
             "healthCheckInterval": 1000 * 2, // 2 seconds
-            "autoRelaodRegistry" : 1000 * 60 * 5 // 5 minutes
+            "autoRelaodRegistry": 1000 * 60 * 5 // 5 minutes
         },
         "agent": {
             "topologyDir": "/opt/soajs/"
@@ -126,7 +122,7 @@ var registry = {
             "grants": ['password', 'refresh_token'],
             "debug": false
         },
-        "ports":{"controller": 4000,"maintenanceInc": 1000, "randomInc": 100},
+        "ports": {"controller": 4000, "maintenanceInc": 1000, "randomInc": 100},
         "cookie": {"secret": "this is a secret sentence"},
         "session": {
             "name": "soajsID",
