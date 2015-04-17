@@ -27,7 +27,7 @@ var _hardcode = {
             "algorithm": 'aes256',
             "password": 'soajs key lal massa'
         },
-        "logger": {
+        "logger": { //ATTENTION: this is not all the properties for logger
             "src": true,
             "level": "debug"
         },
@@ -43,7 +43,7 @@ var _hardcode = {
             "grants": ['password', 'refresh_token'],
             "debug": false
         },
-        "maintenancePortInc": 1000,
+        "ports": {"controller": 4000, "maintenanceInc": 1000, "randomInc": 100},
         "cookie": {"secret": "this is a secret sentence"},
         "session": {
             "name": "soajsID",
@@ -92,12 +92,12 @@ var _hardcode = {
             "port": 4000,
             "requestTimeout": 30,
             "requestTimeoutRenewal": 0,
-            "hosts" : []
+            "hosts": []
         },
-        "example01" : {
+        "example01": {
             "extKeyRequired": false,
             "port": 4040,
-            "hosts" : ["127.0.0.1"]
+            "hosts": ["127.0.0.1"]
         }
     }
 };
@@ -120,7 +120,7 @@ function deepFreeze(o) {
     }
 }
 
-function loadRegistry(serviceName, apiList, reload, awareness, cb) {
+function loadRegistry(param, cb) {
     if (fs.existsSync(regFile)) {
         delete require.cache[require.resolve(regFile)];
         var regFileObj = require(regFile);
@@ -161,10 +161,10 @@ function loadRegistry(serviceName, apiList, reload, awareness, cb) {
             registry["serviceConfig"] = _hardcode.serviceConfig;
             registry["services"] = _hardcode.services;
 
-            if (!registry["services"][serviceName]) {
-                registry["services"][serviceName] = {
+            if (!registry["services"][param.serviceName]) {
+                registry["services"][param.serviceName] = {
                     "extKeyRequired": false,
-                    "port": 4050
+                    "port": param.designatedPort || 4050
                 }
             }
 //console.log (registry);
@@ -177,10 +177,10 @@ function loadRegistry(serviceName, apiList, reload, awareness, cb) {
     return cb();
 }
 
-exports.getRegistry = function (serviceName, apiList, reload, awareness, cb) {
+exports.getRegistry = function (param, cb) {
     try {
         if (reload || !registry_struct[regEnvironment]) {
-            loadRegistry(serviceName, apiList, reload, awareness, function () {
+            loadRegistry(param, function () {
                 return cb(registry_struct[regEnvironment]);
             });
         }

@@ -20,7 +20,7 @@ function controller() {
     _self.awareness = true;
     _self.serviceAwarenessObj = {};
     _self.serviceName = "controller";
-    core.getRegistry(_self.serviceName, null, _self.awareness, function (reg) {
+    core.getRegistry({"serviceName":_self.serviceName, "apiList":null, "awareness": _self.awareness}, function (reg) {
         _self.registry = reg;
         _self.log = core.getLogger(_self.serviceName, _self.registry.serviceConfig.logger);
 
@@ -33,7 +33,12 @@ function controller() {
         }));
         app.use(cors_mw());
         app.use(response_mw({"controllerResponse": true}));
-        app.use(awareness_mw(_self.awareness, _self.serviceName, _self.registry, _self.log));
+        app.use(awareness_mw({
+            "awareness": _self.awareness,
+            "serviceName": _self.serviceName,
+            "registry": _self.registry,
+            "log": _self.log
+        }));
         app.use(controller_mw());
         app.use(function (req, res, next) {
             var body = '';
@@ -74,7 +79,7 @@ function controller() {
         _self.server = http.createServer(app);
         _self.serverMaintenance = http.createServer(function (req, res) {
             if (req.url === '/reloadRegistry') {
-                core.reloadRegistry(_self.serviceName, null, _self.awareness, function (reg) {
+                core.reloadRegistry({"serviceName":_self.serviceName, "apiList":null, "awareness":_self.awareness}, function (reg) {
                     res.writeHead(200, {'Content-Type': 'application/json'});
                     return res.end(JSON.stringify(reg));
                 });
@@ -107,7 +112,7 @@ function controller() {
  */
 controller.prototype.start = function (cb) {
     var _self = this;
-    var maintenancePort = _self.registry.services.controller.port + _self.registry.serviceConfig.maintenancePortInc;
+    var maintenancePort = _self.registry.services.controller.port + _self.registry.serviceConfig.ports.maintenanceInc;
     _self.server.on('error', function (err) {
         if (err.code === 'EADDRINUSE') {
             _self.log.error('Address [port: ' + _self.registry.services.controller.port + '] in use by another service, exiting');

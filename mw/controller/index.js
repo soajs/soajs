@@ -129,7 +129,7 @@ function redirectToService(req, res, body) {
             if (req.soajs.controller.renewalCount <= requestTOR) {
                 req.soajs.log.info('Trying to keep request alive by checking the service heartbeat ...');
                 request({
-                    'uri': 'http://' + restServiceParams.host + ':' + (restServiceParams.port + req.soajs.registry.serviceConfig.maintenancePortInc) + '/heartbeat',
+                    'uri': 'http://' + host + ':' + (restServiceParams.port + req.soajs.registry.serviceConfig.ports.maintenanceInc) + '/heartbeat',
                     'headers': req.headers
                 }, function (error, response, body) {
                     if (!error && response.statusCode === 200) {

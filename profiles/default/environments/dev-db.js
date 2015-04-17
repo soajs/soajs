@@ -50,7 +50,6 @@ var ENV_schema = {
             "controller": {
                 "maxPoolSize": 100,
                 "authorization": true,
-                "port": 4000,
                 "requestTimeout": 30,
                 "requestTimeoutRenewal": 0
             },
@@ -59,7 +58,7 @@ var ENV_schema = {
             "logger": {},
             "cors": {},
             "oauth": {},
-            "maintenancePortInc": {},
+            "ports": {},
             "cookie": {},
             "session": {}
         }
@@ -127,7 +126,7 @@ var registry = {
             "grants": ['password', 'refresh_token'],
             "debug": false
         },
-        "maintenancePortInc": 1000,
+        "ports":{"controller": 4000,"maintenanceInc": 1000, "randomInc": 100},
         "cookie": {"secret": "this is a secret sentence"},
         "session": {
             "name": "soajsID",

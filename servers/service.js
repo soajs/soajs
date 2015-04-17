@@ -46,7 +46,12 @@ function service(param) {
     //TODO: build the apiList array fomr config.schemas
     var apiList = [];
 
-    core.getRegistry(soajs.serviceName, apiList, soajs.awareness, function (reg) {
+    core.getRegistry({
+        "serviceName": soajs.serviceName,
+        "designatedPort" : param.config.serviceName || null,
+        "apiList": apiList,
+        "awareness": soajs.awareness
+    }, function (reg) {
         registry = reg;
 
         soajs.serviceConf = lib.registry.getServiceConf(soajs.serviceName, registry);
@@ -139,7 +144,15 @@ function service(param) {
 
             soajs.oauth = _self.oauth.authorise();
         }
-
+        if (soajs.awareness) {
+            var awareness_mw = require("./../mw/service/index");
+            _self.app.use(awareness_mw({
+                "awareness": soajs.awareness,
+                "serviceName": soajs.serviceName,
+                "registry": registry,
+                "log": _self.log
+            }));
+        }
         var service_mw = require("./../mw/service/index");
         _self.app.use(service_mw({"soajs": soajs, "app": _self.app, "param": param}));
 
@@ -170,7 +183,7 @@ service.prototype.start = function (cb) {
                 _self.app.httpServer = _self.app.listen(_self.app.soajs.serviceConf.info.port, function (err) {
                     _self._log.info(_self.app.soajs.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
                     // Awareness
-                    if (_self.app.soajs.awareness){
+                    if (_self.app.soajs.awareness) {
 
                     }
                     if (cb && typeof cb === "function")
@@ -178,7 +191,7 @@ service.prototype.start = function (cb) {
                 });
 
                 //MAINTENANCE Service Routes
-                var maintenancePort = _self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.maintenancePortInc;
+                var maintenancePort = _self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
                 var maintenanceResponse = function (req, route) {
                     var response = {
                         'result': false,
@@ -198,7 +211,11 @@ service.prototype.start = function (cb) {
                 });
 
                 _self.appMaintenance.get("/reloadRegistry", function (req, res) {
-                    core.reloadRegistry(_self.app.soajs.serviceName, null, _self.app.soajs.awareness, function (reg) {
+                    core.reloadRegistry({
+                        "serviceName": _self.app.soajs.serviceName,
+                        "apiList": null,
+                        "awareness": _self.app.soajs.awareness
+                    }, function (reg) {
                         var response = maintenanceResponse(req);
                         response['result'] = true;
                         response['data'] = reg;
