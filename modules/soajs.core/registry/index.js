@@ -222,6 +222,7 @@ var build = {
 			var serviceObj = build.service(registryDBInfo.services_schema, param.serviceName);
 			if(serviceObj) {
 				registry["services"][param.serviceName] = serviceObj;
+				//todo: check the apis list if they are updated or removed
 				resume();
 			}
 			else {
@@ -234,24 +235,19 @@ var build = {
 					                                                                             registryDBInfo.ENV_schema.services.config.ports.maintenanceInc)
 				};
 
-				if(!param.reload) {
-					//adding service for the first time to services collection
-					var newServiceObj = {
-						'name': param.serviceName,
-						'extKeyRequired': registry["services"][param.serviceName].extKeyRequired,
-						'port': registry["services"][param.serviceName].port,
-						'apis': param.apiList
-					};
-					build.registerNewService(registry.coreDB.provision, newServiceObj, registryDBInfo.ENV_schema.services.config.ports, function(error) {
-						if(error) {
-							throw new Error('Unable to register new service ' + param.serviceName + ' : ' + error.message);
-						}
-						resume();
-					});
-				}
-				else {
+				//adding service for the first time to services collection
+				var newServiceObj = {
+					'name': param.serviceName,
+					'extKeyRequired': registry["services"][param.serviceName].extKeyRequired,
+					'port': registry["services"][param.serviceName].port,
+					'apis': param.apiList
+				};
+				build.registerNewService(registry.coreDB.provision, newServiceObj, registryDBInfo.ENV_schema.services.config.ports, function(error) {
+					if(error) {
+						throw new Error('Unable to register new service ' + param.serviceName + ' : ' + error.message);
+					}
 					resume();
-				}
+				});
 			}
 		}
 
