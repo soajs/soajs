@@ -40,7 +40,6 @@ var _hardcode = {
                         }
                     ],
                     "credentials": null,
-
                     "URLParam": {
                         "connectTimeoutMS": 0,
                         "socketTimeoutMS": 0,
@@ -56,7 +55,6 @@ var _hardcode = {
                             "auto_reconnect": true
                         }
                     }
-
                 }
             },
             "config": {
@@ -123,93 +121,6 @@ var _hardcode = {
                 }
             }
         }
-    },
-
-    "tenantMetaDB": {},
-    "serviceConfig": {
-        "awareness": {
-            "healthCheckInterval": 1000 * 5, // 5 seconds
-            "autoRelaodRegistry": 1000 * 60 * 5 // 5 minutes
-        },
-        "agent": {
-            "topologyDir": "/opt/soajs/"
-        },
-        "key": {
-            "algorithm": 'aes256',
-            "password": 'soajs key lal massa'
-        },
-        "logger": { //ATTENTION: this is not all the properties for logger
-            "src": true,
-            "level": "debug"
-        },
-        "cors": {
-            "enabled": true,
-            "origin": '*',
-            "credentials": 'true',
-            "methods": 'GET,HEAD,PUT,PATCH,POST,DELETE',
-            "headers": 'key,soajsauth,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type',
-            "maxage": 1728000
-        },
-        "oauth": {
-            "grants": ['password', 'refresh_token'],
-            "debug": false
-        },
-        "ports": {"controller": 4000, "maintenanceInc": 1000, "randomInc": 100},
-        "cookie": {"secret": "this is a secret sentence"},
-        "session": {
-            "name": "soajsID",
-            "secret": "this is antoine hage app server",
-            "cookie": {"path": '/', "httpOnly": true, "secure": false, "domain": "soajs.com", "maxAge": null},
-            "resave": false,
-            "saveUninitialized": false
-        }
-    },
-    "coreDB": {
-        "session": {
-            "name": "core_session",
-            "prefix": "",
-            "servers": [
-                {
-                    "host": "127.0.0.1",
-                    "port": 27017
-                }
-            ],
-            "credentials": null,
-            "URLParam": {
-                "connectTimeoutMS": 0,
-                "socketTimeoutMS": 0,
-                "maxPoolSize": 5,
-                "wtimeoutMS": 0,
-                "slaveOk": true
-            },
-            "extraParam": {
-                "db": {
-                    "native_parser": true
-                },
-                "server": {
-                    "auto_reconnect": true
-                }
-            },
-            'store': {},
-            "collection": "sessions",
-            'stringify': false,
-            'expireAfter': 1000 * 60 * 60 * 24 * 14 // 2 weeks
-        }
-    },
-    "services": {
-        "controller": {
-            "maxPoolSize": 100,
-            "authorization": true,
-            "port": 4000,
-            "requestTimeout": 30,
-            "requestTimeoutRenewal": 0,
-            "hosts": []
-        },
-        "example01": {
-            "extKeyRequired": false,
-            "port": 4040,
-            "hosts": ["127.0.0.1"]
-        }
     }
 };
 
@@ -269,8 +180,8 @@ var build = {
             servicesObj[STRUCT[i].name] = {
                 "extKeyRequired": STRUCT[i].extKeyRequired,
                 "port": STRUCT[i].port,
-                "requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal,
-                "requestTimeout": STRUCT[i].requestTimeoutRenewal
+                "requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
+                "requestTimeout": STRUCT[i].requestTimeoutRenewal || null
             };
         }
     },
@@ -285,8 +196,8 @@ var build = {
                 serviceObj = {
                     "extKeyRequired": STRUCT[i].extKeyRequired,
                     "port": STRUCT[i].port,
-                    "requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal,
-                    "requestTimeout": STRUCT[i].requestTimeoutRenewal
+                    "requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
+                    "requestTimeout": STRUCT[i].requestTimeoutRenewal || null
                 };
                 return serviceObj;
             }
@@ -375,7 +286,7 @@ function loadRegistry(param, cb) {
                 }
             };
             if (param.serviceName === "controller") {
-                build.allServices(_hardcode.services_schema,registry["services"]);
+                build.allServices(_hardcode.services_schema, registry["services"]);
                 //TODO: build.servicesHosts
             }
             else {
@@ -393,10 +304,9 @@ function loadRegistry(param, cb) {
                     //TODO: build.controllerHosts
                 }
             }
-            registry["services"] = _hardcode.services;
 
+            //console.log(registry);
 
-console.log (registry);
             registry_struct[regEnvironment] = registry;
         }
     }

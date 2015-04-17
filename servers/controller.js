@@ -53,6 +53,7 @@ function controller() {
                     try {
                         req.soajs.controller.gotoservice(req, res, body);
                     } catch (err) {
+                        _self.log.error(err);
                         return req.soajs.controllerResponse(core.error.getError(136));
                     }
                 });

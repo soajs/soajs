@@ -7,14 +7,14 @@ module.exports = {
 		'102': 'Log & Registry are needed for any service to function.',
 		'103': 'The length of the generate ext key is bad.',
 
-		'13x': "REST MANAGER",
+		'13x': "CONTROLLER",
 		'130': "Unknown service.",
-		'131': "RM mw requires configuration to be the first param.",
+		'131': "Controller mw requires configuration to be the first param.",
 		'132': "A valid key is needed to access any API.",
 		'133': "The service you are trying to reach is not reachable at this moment.",
 		'134': "All requests to the service you are trying to reach are timing out.",
 		'135': "Error occurred while redirecting your request to the service",
-		'136': "RM catched an error while redirecting to service.",
+		'136': "Controller catched an error while redirecting to service.",
 
 		'15x': "REST CORE",
 		'150': "Something blew up @ rest core!",

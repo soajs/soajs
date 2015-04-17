@@ -23,7 +23,7 @@ module.exports = function () {
 
         var parameters = extractBuildParameters(req, parsedUrl.pathname.split('/')[1], parsedUrl.path);
         if (!parameters) {
-            req.soajs.log.fatal("url[", req.url, "] couldn't be matched to a service");
+            req.soajs.log.fatal("url[", req.url, "] couldn't be matched to a service or the service entry in registry is missing [port || hosts]");
             return req.soajs.controllerResponse(core.error.getError(130));
         }
 
@@ -78,18 +78,12 @@ module.exports = function () {
  * @returns {*}
  */
 function extractBuildParameters(req, service, url) {
-    //var servParameters = null;
     if (service && req.soajs.registry && req.soajs.registry.services && req.soajs.registry.services[service] && req.soajs.registry.services[service].port && req.soajs.registry.services[service].hosts) {
-        //servParameters = {};
-        //servParameters.extKeyRequired = req.soajs.registry.services[service].extKeyRequired;
-        //servParameters.port = req.soajs.registry.services[service].port;
-        //servParameters.host = req.soajs.registry.services[service].host;
         req.soajs.registry.services[service].url = url.substring(service.length + 1);
         req.soajs.registry.services[service].name = service;
-        //servParameters.requestTimeoutRenewal = req.soajs.registry.services[service].requestTimeoutRenewal;
-        //servParameters.requestTimeout = req.soajs.registry.services[service].requestTimeout;
+        return req.soajs.registry.services[service];
     }
-    return req.soajs.registry.services[service];
+    return null;
 }
 
 /**
