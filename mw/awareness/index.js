@@ -58,7 +58,6 @@ module.exports = function (param) {
         };
 
         var roundRobin = function (s, cb) {
-            console.log(s);
             if (s && param.registry.services[s] && param.registry.services[s].hosts && serviceAwarenessObj[s] && serviceAwarenessObj[s].healthy && serviceAwarenessObj[s].healthy.length > 0) {
                 if (!serviceAwarenessObj[s].index || serviceAwarenessObj[s].index >= param.registry.services[s].hosts.length)
                     serviceAwarenessObj[s].index = 0;

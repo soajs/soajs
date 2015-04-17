@@ -17,7 +17,12 @@ var _hardcode = {
     "ENV_hosts": [
         {
             "env": "dev",
-            "service": "controller",
+            "name": "controller",
+            "ip": "127.0.0.1"
+        },
+        {
+            "env": "dev",
+            "name": "example01",
             "ip": "127.0.0.1"
         }
     ],
@@ -185,8 +190,18 @@ var build = {
             };
         }
     },
-    "servicesHosts": function (servicesObj) {
-
+    "servicesHosts": function (STRUCT, servicesObj) {
+        var i = 0;
+        for (i = 0; i < STRUCT.length; i++) {
+            if (STRUCT[i].env === regEnvironment) {
+                if (servicesObj[STRUCT[i].name]) {
+                    if (!servicesObj[STRUCT[i].name].hosts)
+                        servicesObj[STRUCT[i].name].hosts = [];
+                    if (servicesObj[STRUCT[i].name].hosts.indexOf(STRUCT[i].ip) === -1)
+                        servicesObj[STRUCT[i].name].hosts.push(STRUCT[i].ip)
+                }
+            }
+        }
     },
     "service": function (STRUCT, serviceName) {
         var serviceObj = null;
@@ -205,7 +220,15 @@ var build = {
         return serviceObj;
     },
     "controllerHosts": function (STRUCT, controllerObj) {
-
+        var i = 0;
+        for (i = 0; i < STRUCT.length; i++) {
+            if (STRUCT[i].name === "controller" && STRUCT[i].env === regEnvironment) {
+                if (!controllerObj.hosts)
+                    controllerObj.hosts = [];
+                if (controllerObj.hosts.indexOf(STRUCT[i].ip) === -1)
+                    controllerObj.hosts.push(STRUCT[i].ip)
+            }
+        }
     }
 };
 
@@ -287,7 +310,7 @@ function loadRegistry(param, cb) {
             };
             if (param.serviceName === "controller") {
                 build.allServices(_hardcode.services_schema, registry["services"]);
-                //TODO: build.servicesHosts
+                build.servicesHosts(_hardcode.ENV_hosts, registry["services"]);
             }
             else {
                 var serviceObj = build.service(_hardcode.services_schema, param.serviceName);
@@ -301,11 +324,12 @@ function loadRegistry(param, cb) {
                     }
                 }
                 if (param.awareness) {
-                    //TODO: build.controllerHosts
+                    build.controllerHosts(_hardcode.ENV_hosts, registry["services"].controller);
                 }
             }
+            //TODO: add service ip to ENV_hosts
 
-            //console.log(registry);
+            console.log(registry);
 
             registry_struct[regEnvironment] = registry;
         }
