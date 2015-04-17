@@ -12,7 +12,7 @@ module.exports = function (param) {
     var serviceAwarenessObj = {};
     if (param.awareness) {
         var awareness_reloadRegistry = function () {
-            core.reloadRegistry({"serviceName":param.serviceName, "apiList":null, "awareness":param.awareness}, function (reg) {
+            core.reloadRegistry({"serviceName":param.serviceName, "apiList":param.apiList, "awareness":param.awareness}, function (reg) {
                 param.log.info("Self Awareness reloaded registry. next reload is in [" + param.registry.serviceConfig.awareness.autoRelaodRegistry + "] milliseconds");
                 setTimeout(awareness_reloadRegistry, param.registry.serviceConfig.awareness.autoRelaodRegistry);
             });
