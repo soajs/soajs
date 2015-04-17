@@ -164,12 +164,9 @@ var build = {
 		var mongo = new Mongo(dbConfiguration);
 		//check if this host has this ip in the env
 		mongo.findOne('hosts', hostObj, function(error, dbRecord) {
-			if(error) { return cb(error); }
+			if(error || dbRecord) { return cb(error); }
 			if(!dbRecord) {
 				mongo.insert('hosts', hostObj, cb);
-			}
-			else {
-				return cb(null, true);
 			}
 		});
 	},
