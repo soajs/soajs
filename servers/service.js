@@ -42,6 +42,7 @@ function service(param) {
 	soajs.param = param;
 	soajs.serviceName = param.serviceName || param.config.serviceName;
 	soajs.awareness = param.config.awareness || false;
+	soajs.serviceIp = param.serviceIp || "127.0.0.1";
 
 	_self.app = express();
 	_self.appMaintenance = express();
@@ -92,13 +93,14 @@ service.prototype.init = function(callback) {
 	var param = soajs.param;
 
 	//TODO: build the apiList array fomr config.schemas
-    _self.app.soajs.apiList = [];
+	_self.app.soajs.apiList = [];
 	core.getRegistry({
 		"serviceName": soajs.serviceName,
 		"designatedPort": param.config.designatedPort || null,
 		"extKeyRequired": param.config.extKeyRequired || false,
 		"apiList": _self.app.soajs.apiList,
-		"awareness": soajs.awareness
+		"awareness": soajs.awareness,
+		"serviceIp": soajs.serviceIp
 	}, function(reg) {
 		registry = reg;
 
@@ -164,7 +166,8 @@ service.prototype.init = function(callback) {
 				"serviceName": soajs.serviceName,
 				"registry": registry,
 				"log": _self.log,
-                "apiList" : _self.app.soajs.apiList
+				"apiList": _self.app.soajs.apiList,
+				"serviceIp": _self.app.soajs.serviceIp
 			}));
 		}
 		var service_mw = require("./../mw/service/index");
@@ -228,7 +231,8 @@ service.prototype.start = function(cb) {
 						core.reloadRegistry({
 							"serviceName": _self.app.soajs.serviceName,
 							"apiList": _self.app.soajs.apiList,
-							"awareness": _self.app.soajs.awareness
+							"awareness": _self.app.soajs.awareness,
+							"serviceIp": _self.app.soajs.serviceIp
 						}, function(reg) {
 							var response = maintenanceResponse(req);
 							response['result'] = true;

@@ -24,7 +24,16 @@ module.exports = function(config, inputmaskSrc) {
 	if(Object.keys(config).length === 0) { throw new Error("Inputmask error: Empty configuration"); }
 
 	var configValidate = configSchemaValidator.validate(config, "/soajs");
-	if(!configValidate.valid) { throw new Error("Inputmask error: Invalid configuration"); }
+	if(!configValidate.valid) {
+		//configValidate.errors is an array
+		var errMsgs =[];
+		configValidate.errors.forEach(function(oneError){
+			errMsgs.push(oneError.stack);
+		});
+
+		//todo: prettify the errMsgs before printing it.
+		throw new Error("Inputmask error: Invalid configuration: " + errMsgs);
+	}
 
 	return function(req, res, next) {
 		if(!req.soajs) { req.soajs = {}; }

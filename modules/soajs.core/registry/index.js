@@ -257,7 +257,7 @@ var build = {
 						'name': param.serviceName,
 						'extKeyRequired': registry["services"][param.serviceName].extKeyRequired,
 						'port': registry["services"][param.serviceName].port,
-						'apis': param.apis
+						'apis': param.apiList
 					};
 					build.registerNewService(registry.coreDB.provision, newServiceObj, registryDBInfo.ENV_schema.services.config.ports, function(error) {
 						if(error) {
@@ -280,7 +280,7 @@ var build = {
 			var hostObj = {
 				'env': registry.name.toLowerCase(),
 				'name': param.serviceName,
-				'ips': registryDBInfo.ENV_schema.ips
+				'ips': param.serviceIp
 			};
 			build.checkRegisterServiceIP(registry.coreDB.provision, hostObj, function(error) {
 				if(error) {
@@ -294,23 +294,6 @@ var build = {
 
 function randomInt(low, high) {
 	return Math.floor(Math.random() * (high - low) + low);
-}
-
-function deepFreeze(o) {
-	var prop;
-	Object.freeze(o); // First freeze the object.
-	for(var propKey in o) {
-		if(o.hasOwnProperty(propKey)) {
-			prop = o[propKey];
-			if(!prop || !o.hasOwnProperty(propKey) || (typeof prop !== "object") || Object.isFrozen(prop)) {
-				// If the object is on the prototype, not an object, or is already frozen,
-				// skip it. Note that this might leave an unfrozen reference somewhere in the
-				// object if there is an already frozen object containing an unfrozen object.
-				continue;
-			}
-			deepFreeze(prop); // Recursively call deepFreeze.
-		}
-	}
 }
 
 function loadRegistry(param, cb) {

@@ -3,13 +3,10 @@ var schemas = [
 	{
 		'label': '/soajs/Errors',
 		'schema': {
-			"title": "Errors",
-			"description": "Key-value pairs of error codes and their descriptions",
 			"type": "object",
 			"patternProperties": {
 				'^[1-9][0-9]{0,2}$': {
-					"type": "string",
-					"description": "The error code and description"
+					"type": "string"
 				}
 			},
 			"additionalProperties": false
@@ -34,7 +31,6 @@ var schemas = [
 			"type": "object",
 			"properties": {
 				"commonFields": {
-					"title": "Common Fields Reference",
 					"type": "array",
 					"items": {
 						"type": "string",
@@ -42,10 +38,18 @@ var schemas = [
 					},
 					"uniqueItems": true,
 					"minItems": 1
+				},
+				"_apiInfo": {
+					"type": "object",
+					"properties": {
+						"l": {"type": "string", required: true},
+						"group": {"type": "string", required: false},
+						"groupMain": {"type": "boolean", required: false}
+					}
 				}
 			},
 			"patternProperties": {
-				"^(?!commonFields)[_a-z][_a-zA-Z0-9]*$": {"$ref": "/soajs/Field"}
+				"^(?!commonFields|_apiInfo)[_a-z][_a-zA-Z0-9]*$": {"$ref": "/soajs/Field"}
 			},
 			"additionalProperties": false
 		}
@@ -63,9 +67,10 @@ var schemas = [
 	{
 		'label': '/soajs',
 		'schema': {
-			"title": "Config Schema",
 			"type": "object",
 			"properties": {
+				"extKeyRequired": {"type": "boolean", "required": false},
+				"designatedPort": {"type": "integer", "required": false},
 				"errors": {"$ref": "/soajs/Errors"},
 				"schema": {
 					"properties": {

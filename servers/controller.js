@@ -15,16 +15,17 @@ var controller_mw = require('./../mw/controller/index');
 /**
  *
  */
-function controller() {
+function controller(param) {
 	var _self = this;
 	_self.awareness = true;
 	_self.serviceAwarenessObj = {};
 	_self.serviceName = "controller";
+	_self.serviceIp = param.serviceIp || "127.0.0.1";
 }
 
 controller.prototype.init = function(callback) {
 	var _self = this;
-	core.getRegistry({"serviceName": _self.serviceName, "apiList": null, "awareness": _self.awareness}, function(reg) {
+	core.getRegistry({"serviceName": _self.serviceName, "apiList": null, "awareness": _self.awareness, "serviceIp": _self.serviceIp}, function(reg) {
 		_self.registry = reg;
 		_self.log = core.getLogger(_self.serviceName, _self.registry.serviceConfig.logger);
 
@@ -41,7 +42,8 @@ controller.prototype.init = function(callback) {
 			"awareness": _self.awareness,
 			"serviceName": _self.serviceName,
 			"registry": _self.registry,
-			"log": _self.log
+			"log": _self.log,
+			"serviceIp": _self.serviceIp
 		}));
 		app.use(controller_mw());
 		app.use(function(req, res, next) {
@@ -84,7 +86,7 @@ controller.prototype.init = function(callback) {
 		_self.server = http.createServer(app);
 		_self.serverMaintenance = http.createServer(function(req, res) {
 			if(req.url === '/reloadRegistry') {
-				core.reloadRegistry({"serviceName": _self.serviceName, "apiList": null, "awareness": _self.awareness}, function(reg) {
+				core.reloadRegistry({"serviceName": _self.serviceName, "apiList": null, "awareness": _self.awareness, "serviceIp": _self.serviceIp}, function(reg) {
 					res.writeHead(200, {'Content-Type': 'application/json'});
 					return res.end(JSON.stringify(reg));
 				});
