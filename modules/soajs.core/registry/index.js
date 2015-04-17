@@ -252,18 +252,19 @@ var build = {
 			if(param.serviceName !== 'controller' && param.awareness) {
 				build.controllerHosts(registryDBInfo.ENV_hosts, registry["services"].controller);
 			}
-
-			var hostObj = {
-				'env': registry.name.toLowerCase(),
-				'name': param.serviceName,
-				'ip': param.serviceIp
-			};
-			build.checkRegisterServiceIP(registry.coreDB.provision, hostObj, function(error) {
-				if(error) {
-					throw new Error("Unable to register new host for service:" + error.message);
-				}
-				callback();
-			});
+            if (param.serviceIp) {
+                var hostObj = {
+                    'env': registry.name.toLowerCase(),
+                    'name': param.serviceName,
+                    'ip': param.serviceIp
+                };
+                build.checkRegisterServiceIP(registry.coreDB.provision, hostObj, function (error) {
+                    if (error) {
+                        throw new Error("Unable to register new host for service:" + error.message);
+                    }
+                    callback();
+                });
+            }
 		}
 	}
 };
