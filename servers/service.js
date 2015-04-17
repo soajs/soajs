@@ -40,9 +40,6 @@ function service(param) {
 	}
 	var soajs = {};
 	soajs.param = param;
-	soajs.serviceName = param.serviceName || param.config.serviceName;
-	soajs.awareness = param.config.awareness || false;
-	soajs.serviceIp = param.serviceIp || "127.0.0.1";
 
 	_self.app = express();
 	_self.appMaintenance = express();
@@ -91,8 +88,18 @@ service.prototype.init = function(callback) {
 	var registry = null;
 	var soajs = _self.app.soajs;
 	var param = soajs.param;
-
-	//TODO: build the apiList array fomr config.schemas
+    soajs.serviceName = param.serviceName || param.config.serviceName;
+    soajs.awareness = param.config.awareness || false;
+    soajs.serviceIp = param.config.serviceIp;
+    var fetchedHostIp = null;
+    if (!soajs.serviceIp) {
+         fetchedHostIp = core.getHostIp();
+        if (fetchedHostIp && fetchedHostIp.result)
+            soajs.serviceIp = fetchedHostIp.ip;
+        else
+            soajs.serviceIp = null;
+    }
+	//TODO: build the apiList array from config.schemas
 	_self.app.soajs.apiList = [];
 	core.getRegistry({
 		"serviceName": soajs.serviceName,
@@ -108,6 +115,15 @@ service.prototype.init = function(callback) {
 		soajs.provision = registry.coreDB.provision;
 
 		_self._log = core.getLogger(soajs.serviceName, registry.serviceConfig.logger);
+
+        if (fetchedHostIp){
+            if (!fetchedHostIp.result) {
+                _self._log.warn("Unable to find the service host ip. The service will NOT be registered for awareness.");
+                _self._log.info("IPs found: ", ips);
+            }
+            else
+                _self._log.info("The IP registered for service awareness : ", fetchedHostIp.ip);
+        }
 
 		if(!soajs.serviceName || !soajs.serviceConf) {
 			if(!soajs.serviceName) {

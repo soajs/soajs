@@ -20,14 +20,29 @@ function controller(param) {
 	_self.awareness = true;
 	_self.serviceAwarenessObj = {};
 	_self.serviceName = "controller";
-	_self.serviceIp = (param && param.serviceIp) ? param.serviceIp : "127.0.0.1";
+	_self.serviceIp = (param && param.serviceIp) ? param.serviceIp : null;
 }
 
 controller.prototype.init = function(callback) {
 	var _self = this;
+    var fetchedHostIp = null;
+    if (!_self.serviceIp) {
+        fetchedHostIp = core.getHostIp();
+        if (fetchedHostIp && fetchedHostIp.result)
+            _self.serviceIp = fetchedHostIp.ip;
+    }
 	core.getRegistry({"serviceName": _self.serviceName, "apiList": null, "awareness": _self.awareness, "serviceIp": _self.serviceIp}, function(reg) {
 		_self.registry = reg;
 		_self.log = core.getLogger(_self.serviceName, _self.registry.serviceConfig.logger);
+
+        if (fetchedHostIp){
+            if (!fetchedHostIp.result) {
+                _self.log.warn("Unable to find the service host ip. The service will NOT be registered for awareness.");
+                _self.log.info("IPs found: ", ips);
+            }
+            else
+                _self.log.info("The IP registered for service awareness : ", fetchedHostIp.ip);
+        }
 
 		var app = connect();
 		app.use(favicon_mw());
