@@ -322,6 +322,7 @@ function loadRegistry(param, cb) {
                         "extKeyRequired": param.extKeyRequired || false,
                         "port": param.designatedPort || randomInt(_hardcode.ENV_schema.services.config.ports.controller + _hardcode.ENV_schema.services.config.ports.randomInc, _hardcode.ENV_schema.services.config.ports.controller + _hardcode.ENV_schema.services.config.ports.maintenanceInc)
                     }
+                    //TODO: add to services_schema if param.reload === false
                 }
                 if (param.awareness) {
                     build.controllerHosts(_hardcode.ENV_hosts, registry["services"].controller);
