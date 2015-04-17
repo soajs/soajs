@@ -85,11 +85,11 @@ function service(param) {
 	_self.app.soajs = soajs;
 }
 
-service.prototype.init = function(soajs, callback) {
+service.prototype.init = function(callback) {
 	var _self = this;
 	var registry = null;
-	var param = JSON.parse(JSON.stringify(soajs.param));
-	delete soajs.param;
+	var soajs = _self.app.soajs;
+	var param = soajs.param;
 
 	//TODO: build the apiList array fomr config.schemas
 	var apiList = [];
@@ -188,7 +188,7 @@ service.prototype.start = function(cb) {
 		_self.app.use(clientErrorHandler);
 		_self.app.use(errorHandler);
 
-		_self.init(_self.app.soajs, function() {
+		_self.init(function() {
 			provision.init(_self.app.soajs.provision, _self._log);
 			provision.loadProvision(function(loaded) {
 				if(loaded) {
