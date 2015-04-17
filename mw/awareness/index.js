@@ -1,6 +1,7 @@
 'use strict';
 
 var request = require('request');
+var async = require('async');
 
 var core = require('../../modules/soajs.core');
 /**
@@ -12,47 +13,55 @@ module.exports = function (param) {
     var serviceAwarenessObj = {};
     if (param.awareness) {
         var awareness_reloadRegistry = function () {
-            core.reloadRegistry({"serviceName":param.serviceName, "apiList":param.apiList, "awareness":param.awareness, "serviceIp": param.serviceIp}, function (reg) {
+            core.reloadRegistry({
+                "serviceName": param.serviceName,
+                "apiList": param.apiList,
+                "awareness": param.awareness,
+                "serviceIp": param.serviceIp
+            }, function (reg) {
                 param.log.info("Self Awareness reloaded registry. next reload is in [" + param.registry.serviceConfig.awareness.autoRelaodRegistry + "] milliseconds");
                 setTimeout(awareness_reloadRegistry, param.registry.serviceConfig.awareness.autoRelaodRegistry);
             });
         };
         var awareness_healthCheck = function () {
-            var s, sObj, i = null;
-            //TODO make the check async
-            for (s in param.registry.services) {
+            var servicesArr = [];
+            for (var s in param.registry.services) {
                 if (param.registry.services.hasOwnProperty(s) && s !== param.serviceName) {
-                    sObj = param.registry.services[s];
-                    if (sObj.hosts) {
-                        for (i = 0; i < sObj.hosts.length; i++) {
-                            var host = sObj.hosts[i];
-                            request({
-                                'uri': 'http://' + host + ':' + (sObj.port + param.registry.serviceConfig.ports.maintenanceInc) + '/heartbeat'
-                            }, function (error, response, body) {
-                                if (!serviceAwarenessObj[s])
-                                    serviceAwarenessObj[s] = {"healthy": [], "index": 0};
-                                if (!serviceAwarenessObj[s].healthy)
-                                    serviceAwarenessObj[s].healthy = [];
-                                if (!error && response.statusCode === 200) {
-                                    if (serviceAwarenessObj[s].healthy.indexOf(host) === -1)
-                                        serviceAwarenessObj[s].healthy.push(host);
-                                }
-                                else {
-                                    param.log.warn("Self Awareness health check for service [" + s + "] for host [" + host + "] is NOT healthy");
-                                    if (serviceAwarenessObj[s].healthy.indexOf(host) !== -1) {
-                                        //TODO: if we guarantee uniqueness we will not need the for loop
-                                        for (var ii = 0; ii < serviceAwarenessObj[s].healthy.length; ii++) {
-                                            if (serviceAwarenessObj[s].healthy[ii] === host)
-                                                serviceAwarenessObj[s].healthy.splice(ii, 1);
-                                        }
-                                    }
-                                }
-                            });
+                    if (!serviceAwarenessObj[s])
+                        serviceAwarenessObj[s] = {"healthy": [], "index": 0};
+                    if (!serviceAwarenessObj[s].healthy)
+                        serviceAwarenessObj[s].healthy = [];
+                    if (param.registry.services[s].hosts && param.registry.services[s].hosts.length > 0) {
+                        var sObj = {"name":s,"port" : param.registry.services[s].port};
+                        for (var i = 0; i < param.registry.services[s].hosts.length; i++) {
+                            sObj.host = param.registry.services[s].hosts[i];
+                            servicesArr.push(sObj);
                         }
                     }
-                    //console.log(registry.services[s]);
                 }
             }
+            async.each(servicesArr,
+                function (sObj, callback) {
+                    request({
+                        'uri': 'http://' + sObj.host + ':' + (sObj.port + param.registry.serviceConfig.ports.maintenanceInc) + '/heartbeat'
+                    }, function (error, response, body) {
+                        if (!error && response.statusCode === 200) {
+                            if (serviceAwarenessObj[sObj.name].healthy.indexOf(sObj.host) === -1)
+                                serviceAwarenessObj[sObj.name].healthy.push(sObj.host);
+                        }
+                        else {
+                            param.log.warn("Self Awareness health check for service [" + sObj.name + "] for host [" + sObj.host + "] is NOT healthy");
+                            if (serviceAwarenessObj[sObj.name].healthy.indexOf(sObj.host) !== -1) {
+                                //TODO: if we guarantee uniqueness we will not need the for loop
+                                for (var ii = 0; ii < serviceAwarenessObj[sObj.name].healthy.length; ii++) {
+                                    if (serviceAwarenessObj[sObj.name].healthy[ii] === sObj.host)
+                                        serviceAwarenessObj[sObj.name].healthy.splice(ii, 1);
+                                }
+                            }
+                        }
+                    });
+                }
+            );
             //console.log(serviceAwarenessObj);
             setTimeout(awareness_healthCheck, param.registry.serviceConfig.awareness.healthCheckInterval);
         };
