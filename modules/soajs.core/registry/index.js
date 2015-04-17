@@ -319,7 +319,7 @@ function loadRegistry(param, cb) {
                 }
                 else {
                     registry["services"][param.serviceName] = {
-                        "extKeyRequired": false,
+                        "extKeyRequired": param.extKeyRequired || false,
                         "port": param.designatedPort || randomInt(_hardcode.ENV_schema.services.config.ports.controller + _hardcode.ENV_schema.services.config.ports.randomInc, _hardcode.ENV_schema.services.config.ports.controller + _hardcode.ENV_schema.services.config.ports.maintenanceInc)
                     }
                 }

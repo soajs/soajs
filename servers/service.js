@@ -48,7 +48,8 @@ function service(param) {
 
     core.getRegistry({
         "serviceName": soajs.serviceName,
-        "designatedPort" : param.config.serviceName || null,
+        "designatedPort" : param.config.designatedPort || null,
+        "extKeyRequired" : param.config.extKeyRequired || false,
         "apiList": apiList,
         "awareness": soajs.awareness
     }, function (reg) {
