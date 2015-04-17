@@ -39,6 +39,7 @@ module.exports = function (param) {
                             else {
                                 param.log.warn("Self Awareness health check for service [" + s + "] for host [" + host + "] is NOT healthy");
                                 if (serviceAwarenessObj[s].healthy.indexOf(host) !== -1) {
+                                    //TODO: if we guarantee uniqueness we will not need the for loop
                                     for (var ii = 0; ii < serviceAwarenessObj[s].healthy.length; ii++) {
                                         if (serviceAwarenessObj[s].healthy[ii] === host)
                                             serviceAwarenessObj[s].healthy.splice(ii, 1);

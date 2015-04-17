@@ -161,20 +161,24 @@ function loadRegistry(param, cb) {
             registry["serviceConfig"] = _hardcode.serviceConfig;
             registry["services"] = _hardcode.services;
 
+            var randomInt = function (low, high) {
+                return Math.floor(Math.random() * (high - low) + low);
+            };
+
             if (!registry["services"][param.serviceName]) {
                 registry["services"][param.serviceName] = {
                     "extKeyRequired": false,
-                    "port": param.designatedPort || 4050
-                }
+                    "port": param.designatedPort || randomInt(_hardcode.serviceConfig.ports.controller + _hardcode.serviceConfig.ports.randomInc, _hardcode.serviceConfig.ports.controller + _hardcode.serviceConfig.ports.maintenanceInc)
             }
-//console.log (registry);
-            registry_struct[regEnvironment] = registry;
         }
+//console.log (registry);
+        registry_struct[regEnvironment] = registry;
     }
-    else
-        throw new Error('Invalid profile path: ' + regFile);
+}
+else
+throw new Error('Invalid profile path: ' + regFile);
 
-    return cb();
+return cb();
 }
 
 exports.getRegistry = function (param, cb) {
