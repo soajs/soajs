@@ -103,7 +103,7 @@ service.prototype.init = function(callback) {
 	_self.app.soajs.apiList = [];
 	core.getRegistry({
 		"serviceName": soajs.serviceName,
-		"designatedPort": param.config.designatedPort || null,
+		"designatedPort": param.config.servicePort || null,
 		"extKeyRequired": param.config.extKeyRequired || false,
 		"apiList": _self.app.soajs.apiList,
 		"awareness": soajs.awareness,
