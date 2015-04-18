@@ -10,7 +10,7 @@ exports.reloadRegistry = function (param, cb) {
     if (!param) param = {};
     param.reload = false;
     param.designatedPort = null;
-    return registry.getRegistry(param, null, cb);
+    return registry.getRegistry(param, cb);
 };
 exports.getLogger = require('./logger/index');
 exports.meta = require('./meta/index');

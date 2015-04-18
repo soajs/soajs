@@ -10,7 +10,15 @@ describe("testing cors", function() {
 		var req = {
 			method: 'options',
 			soajs: {
-				registry: soajs.getRegistry()
+				registry: {"serviceConfig": {
+                    "cors": {
+                        "enabled": true,
+                        "origin": '*',
+                        "credentials": 'true',
+                        "methods": 'GET,HEAD,PUT,PATCH,POST,DELETE',
+                        "headers": 'key,soajsauth,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type',
+                        "maxage": 1728000
+                    }}}
 			}
 		};
 

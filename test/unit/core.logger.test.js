@@ -3,8 +3,11 @@ var assert = require('assert');
 var fs = require("fs");
 var helper = require("../helper.js");
 var core = helper.requireModule('./modules/soajs.core/index');
-var registry = core.getRegistry();
-var coreLogger = core.getLogger('testing', registry.serviceConfig.logger);
+//var registry = core.getRegistry();
+var coreLogger = core.getLogger('testing', {
+    "src": true,
+    "level": "debug"
+});
 var methods = ['trace', 'warn', 'fatal', 'error','debug', 'info'];
 
 var dataObj = {
