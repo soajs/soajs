@@ -18,9 +18,11 @@ var controller_mw = require('./../mw/controller/index');
 function controller(param) {
 	var _self = this;
 	_self.awareness = true;
-	_self.serviceAwarenessObj = {};
 	_self.serviceName = "controller";
-	_self.serviceIp = (param && param.serviceIp) ? param.serviceIp : null;
+    if (process.argv.length === 3)
+        _self.serviceIp = process.argv[2]; //TODO: arg to the service on startup
+    else
+        _self.serviceIp = null;
 }
 
 controller.prototype.init = function(callback) {
@@ -33,6 +35,7 @@ controller.prototype.init = function(callback) {
     }
 	core.getRegistry({"serviceName": _self.serviceName, "apiList": null, "awareness": _self.awareness, "serviceIp": _self.serviceIp}, function(reg) {
 		_self.registry = reg;
+        //console.log(reg);
 		_self.log = core.getLogger(_self.serviceName, _self.registry.serviceConfig.logger);
 
         if (fetchedHostIp){
@@ -80,7 +83,6 @@ controller.prototype.init = function(callback) {
 				});
 			});
 
-
 			req.on("error", function(error) {
 				req.soajs.log.error("Error @ controller:", error);
 				if(req.soajs.controller.redirectedRequest) {
@@ -95,7 +97,7 @@ controller.prototype.init = function(callback) {
 				}
 			});
 
-			next();
+			//next();
 		});
 
 		_self.server = http.createServer(app);
@@ -137,7 +139,7 @@ controller.prototype.init = function(callback) {
  */
 controller.prototype.start = function(cb) {
 	var _self = this;
-	_self.init(function() {
+	//_self.init(function() {
 		var maintenancePort = _self.registry.services.controller.port + _self.registry.serviceConfig.ports.maintenanceInc;
 		_self.server.on('error', function(err) {
 			if(err.code === 'EADDRINUSE') {
@@ -174,7 +176,7 @@ controller.prototype.start = function(cb) {
 				_self.log.info(_self.serviceName + " service maintenance is listening on port: " + maintenancePort);
 			}
 		});
-	});
+	//});
 };
 
 

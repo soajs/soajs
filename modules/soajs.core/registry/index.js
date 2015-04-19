@@ -123,18 +123,15 @@ var build = {
 		var mongo = new Mongo(dbConfiguration);
 		mongo.findOne('environment', {'code': envCode.toUpperCase()}, function(error, envRecord) {
 			if(error) { return callback(error); }
-
 			mongo.find('hosts', {'env': envCode}, function(error, hostsRecords) {
 				if(error) { return callback(error); }
-
 				var servicesNames = [];
 				hostsRecords.forEach(function(oneHost) {
 					servicesNames.push(oneHost.name);
 				});
-
-				mongo.find('services', {'name': {$in: servicesNames}}, function(error, servicesRecords) {
+				//mongo.find('services', {'name': {$in: servicesNames}}, function(error, servicesRecords) {
+                    mongo.find('services', function(error, servicesRecords) {
 					if(error) { return callback(error); }
-
 					return callback(null, {
 						'ENV_schema': envRecord,
 						'services_schema': servicesRecords,
@@ -210,6 +207,8 @@ var build = {
 				"requestTimeoutRenewal": registryDBInfo.ENV_schema.services.controller.requestTimeoutRenewal
 			}
 		};
+        //console.log(param.serviceName);
+        //console.log(registryDBInfo)
 		if(param.serviceName === "controller") {
 			build.allServices(registryDBInfo.services_schema, registry["services"]);
 			build.servicesHosts(registryDBInfo.ENV_hosts, registry["services"]);
@@ -288,7 +287,6 @@ function loadRegistry(param, cb) {
 					"provision": regFileObj.provisionDB
 				}
 			};
-
 			build.loadDBInformation(registry.coreDB.provision, registry.name, function(error, RegistryFromDB) {
 				if(error) {
 					throw new Error('Unable to load Registry Db Info: ' + error.message);

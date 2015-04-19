@@ -9,6 +9,7 @@ var requester = helper.requester;
 var controllerApp = new (helper.requireModule('./servers/controller.js'));
 var soajs = helper.requireModule('index.js');
 
+controllerApp.init(function () {
 describe('Testing controllerServer', function() {
 	before(function(done) {
 	  controllerApp.start(function(err) {
@@ -60,8 +61,9 @@ describe('Testing controllerServer', function() {
 			}, function(err,body,response){
 	    		assert.ifError(err);
 	    		assert.equal(response.statusCode,200);
+                assert.equal(body.result, true);
 	    		//assert.equal(body,"nothing to do!");
-	    		assert.equal(response.headers['content-type'],'text/plain');
+	    		//assert.equal(response.headers['content-type'],'text/plain');
 				done();	
 		});
 	});
@@ -89,7 +91,6 @@ describe('Testing controllerServer', function() {
 
 describe('Testing example01 via controllerServer w/services', function() {
 	var service = new soajs.server.service({
-	  "serviceName" : 'example01',
 	  "bodyParser": true,
 	  "methodOverride": true,
 	  "cookieParser": true,
@@ -99,7 +100,11 @@ describe('Testing example01 via controllerServer w/services', function() {
 	  "security": false,
 	  "multitenant": false,
 	  "acl": false,
-	  "config": {errors:{},schema:{
+	  "config": {
+          "serviceName" : 'example01',
+          "servicePort" : 4010,
+          errors:{},
+          schema:{
 	  	"/validService" : {
 	            "firstName": {
 	                "source": ['query.firstName'],
@@ -110,10 +115,12 @@ describe('Testing example01 via controllerServer w/services', function() {
 	            }
 
 	  	}
-	  }}});
+	  }}})  ;
+    service.init(function(){
 	service.get("/validService", function (req, res) {
 	    res.json(req.soajs.buildResponse(null,{test:true}));
 	});
+    });
 	before(function(done) {
 	  controllerApp.start(function(err) {
 	  	service.start(function(err) {
@@ -324,4 +331,5 @@ describe('Testing services w/o serviceName via controllerServer ', function() {
 	});
 });
 
+});
 

@@ -1,6 +1,7 @@
 "use strict";
 var assert = require('assert');
 var helper = require("../helper.js");
+var core = helper.requireModule('./modules/soajs.core');
 var soajsProvision = helper.requireModule('./modules/soajs.provision');
 var ObjectId = require("mongoskin").ObjectID;
 
@@ -41,7 +42,8 @@ var mongo = new soajsMongo(metaData);
 
 describe('testing soajs provisioning', function() {
 	var internalKey, externalKey;
-	soajsProvision.init(metaData);
+    var log = core.getLogger("standalone", { src: true, level: 'debug' });
+	soajsProvision.init(metaData, log);
 
 	describe("testing generateInternalKey", function() {
 

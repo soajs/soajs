@@ -44,42 +44,6 @@ function service(param) {
 	_self.app = express();
 	_self.appMaintenance = express();
 
-	var favicon_mw = require("./../mw/favicon/index");
-	_self.app.use(favicon_mw());
-
-	if(param.logger) {
-		var logger = require('morgan');
-		_self.app.use(logger('combined'));
-	}
-
-	var response_mw = require("./../mw/response/index");
-	_self.app.use(response_mw({}));
-	_self.appMaintenance.use(response_mw({}));
-
-	if(param.bodyParser) {
-		var bodyParser = require('body-parser');
-		_self.app.use(bodyParser.json());
-		_self.app.use(bodyParser.urlencoded({extended: true}));
-	}
-
-	if(param.methodOverride) {
-		var methodOverride = require('method-override');
-		_self.app.use(methodOverride());
-	}
-
-	if(param.inputmask && param.config.schema) {
-		var inputmask_mw = require("./../mw/inputmask/index");
-		var inputmaskSrc = ["params", "headers", "query"];
-		if(param.cookieParser) {
-			inputmaskSrc.push("cookies");
-		}
-		if(param.bodyParser) {
-			inputmaskSrc.push("body");
-		}
-
-		soajs.inputmask = inputmask_mw(param.config, inputmaskSrc);
-	}
-
 	_self.app.soajs = soajs;
 }
 
@@ -90,7 +54,10 @@ service.prototype.init = function(callback) {
 	var param = soajs.param;
     soajs.serviceName = param.serviceName || param.config.serviceName;
     soajs.awareness = param.config.awareness || false;
-    soajs.serviceIp = param.config.serviceIp;
+    if (process.argv.length === 3)
+    soajs.serviceIp = process.argv[2]; //TODO: arg to the service on startup
+    else
+        soajs.serviceIp = null;
     var fetchedHostIp = null;
     if (!soajs.serviceIp) {
          fetchedHostIp = core.getHostIp();
@@ -99,6 +66,7 @@ service.prototype.init = function(callback) {
         else
             soajs.serviceIp = null;
     }
+
 	//TODO: build the apiList array from config.schemas
 	_self.app.soajs.apiList = [];
 	core.getRegistry({
@@ -110,7 +78,6 @@ service.prototype.init = function(callback) {
 		"serviceIp": soajs.serviceIp
 	}, function(reg) {
 		registry = reg;
-
 		soajs.serviceConf = lib.registry.getServiceConf(soajs.serviceName, registry);
 		soajs.provision = registry.coreDB.provision;
 
@@ -122,7 +89,7 @@ service.prototype.init = function(callback) {
                 _self._log.info("IPs found: ", ips);
             }
             else
-                _self._log.info("The IP registered for service awareness : ", fetchedHostIp.ip);
+                _self._log.info("The IP registered for service ["+soajs.serviceName+"] awareness : ", fetchedHostIp.ip);
         }
 
 		if(!soajs.serviceName || !soajs.serviceConf) {
@@ -134,28 +101,64 @@ service.prototype.init = function(callback) {
 			return;
 		}
 
-		var soajs_mw = require("./../mw/soajs/index");
-		_self.app.use(soajs_mw({"registry": registry, "log": _self._log}));
-		_self.appMaintenance.use(soajs_mw({"registry": registry, "log": _self._log}));
+        var favicon_mw = require("./../mw/favicon/index");
+        _self.app.use(favicon_mw());
 
-		if(param.cookieParser) {
-			var cookieParser = require('cookie-parser');
-			_self.app.use(cookieParser(soajs.serviceConf._conf.cookie.secret));
-		}
+        if(param.logger) {
+            var logger = require('morgan');
+            _self.app.use(logger('combined'));
+        }
 
-		if(param.session) {
-			var session = require('express-session');
-			var MongoStore = require('./../modules/soajs.mongoStore/index.js')(session);
-			var store = new MongoStore(registry.coreDB.session);
-			var sessConf = {};
-			for(var key in soajs.serviceConf._conf.session) {
-				if(soajs.serviceConf._conf.session.hasOwnProperty(key)) {
-					sessConf[key] = soajs.serviceConf._conf.session[key];
-				}
-			}
-			sessConf.store = store;
-			_self.app.use(session(sessConf));
-		}
+        var soajs_mw = require("./../mw/soajs/index");
+        _self.app.use(soajs_mw({"registry": registry, "log": _self._log}));
+        _self.appMaintenance.use(soajs_mw({"registry": registry, "log": _self._log}));
+
+        var response_mw = require("./../mw/response/index");
+        _self.app.use(response_mw({}));
+        _self.appMaintenance.use(response_mw({}));
+
+        if(param.bodyParser) {
+            var bodyParser = require('body-parser');
+            _self.app.use(bodyParser.json());
+            _self.app.use(bodyParser.urlencoded({extended: true}));
+        }
+
+        if(param.methodOverride) {
+            var methodOverride = require('method-override');
+            _self.app.use(methodOverride());
+        }
+
+        if(param.cookieParser) {
+            var cookieParser = require('cookie-parser');
+            _self.app.use(cookieParser(soajs.serviceConf._conf.cookie.secret));
+        }
+
+        if(param.session) {
+            var session = require('express-session');
+            var MongoStore = require('./../modules/soajs.mongoStore/index.js')(session);
+            var store = new MongoStore(registry.coreDB.session);
+            var sessConf = {};
+            for(var key in soajs.serviceConf._conf.session) {
+                if(soajs.serviceConf._conf.session.hasOwnProperty(key)) {
+                    sessConf[key] = soajs.serviceConf._conf.session[key];
+                }
+            }
+            sessConf.store = store;
+            _self.app.use(session(sessConf));
+        }
+
+        if(param.inputmask && param.config.schema) {
+            var inputmask_mw = require("./../mw/inputmask/index");
+            var inputmaskSrc = ["params", "headers", "query"];
+            if(param.cookieParser) {
+                inputmaskSrc.push("cookies");
+            }
+            if(param.bodyParser) {
+                inputmaskSrc.push("body");
+            }
+
+            soajs.inputmask = inputmask_mw(param.config, inputmaskSrc);
+        }
 
 		if(param.bodyParser && param.oauth) {
 			var oauthserver = require('oauth2-server');
@@ -188,6 +191,7 @@ service.prototype.init = function(callback) {
 		}
 		var service_mw = require("./../mw/service/index");
 		_self.app.use(service_mw({"soajs": soajs, "app": _self.app, "param": param}));
+
 		callback();
 	});
 };
@@ -197,6 +201,7 @@ service.prototype.init = function(callback) {
  */
 service.prototype.start = function(cb) {
 	var _self = this;
+    //_self.init(function() {
 	if(_self.app && _self.app.soajs) {
 
 		_self.app.all('*', function(req, res) {
@@ -208,7 +213,6 @@ service.prototype.start = function(cb) {
 		_self.app.use(clientErrorHandler);
 		_self.app.use(errorHandler);
 
-		_self.init(function() {
 			provision.init(_self.app.soajs.provision, _self._log);
 			provision.loadProvision(function(loaded) {
 				if(loaded) {
@@ -296,7 +300,6 @@ service.prototype.start = function(cb) {
 					});
 				}
 			});
-		});
 	} else {
 		if(cb && typeof cb === "function") {
 			cb(new Error('Failed starting service'));
@@ -304,6 +307,7 @@ service.prototype.start = function(cb) {
 			throw new Error('Failed starting service');
 		}
 	}
+   // });
 };
 
 service.prototype.stop = function(cb) {
