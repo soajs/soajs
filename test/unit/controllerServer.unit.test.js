@@ -76,10 +76,10 @@ controllerApp.init(function () {
                 assert.deepEqual(body, {
                     "result": false,
                     "errors": {
-                        "codes": [135],
+                        "codes": [133],
                         "details": [{
-                            "code": 135,
-                            "message": "Error occurred while redirecting your request to the service"
+                            "code": 133,
+                            "message": "The service you are trying to reach is not reachable at this moment."
                         }]
                     }
                 });
@@ -144,7 +144,7 @@ controllerApp.init(function () {
                     assert.ifError(err);
                     setTimeout(function () {
                         done();
-                    }, 5000);
+                    }, 500);
                 });
                 // });
             });
@@ -276,7 +276,7 @@ controllerApp.init(function () {
                         assert.ifError(err);
                         setTimeout(function () {
                             done();
-                        }, 5000);
+                        }, 500);
                     });
             });
             after(function (done) {
@@ -376,15 +376,25 @@ controllerApp.init(function () {
             // });
         });
         after(function (done) {
-            // controllerApp.stop(function(err) {
-            //   assert.ifError(err);
+             controllerApp.stop(function(err) {
+               assert.ifError(err);
             done();
-            // });
+             });
         });
-        it('Testing starting a serivice without a servicename and a dirname', function (done) {
-            service.start(function (err) {
-                assert.equal(err.toString(), 'Error: Failed starting service');
-                done();
+        it('Testing starting a services without a servicename and a dirname', function (done) {
+
+            service.init(function (err) {
+                //service.start(function (err2) {
+                err = err.toString();
+                console.log(err);
+                    var ii = err.indexOf("Service shutdown due to failure!");
+                    if (ii === -1)
+                        ii = false;
+                    else
+                        ii = true;
+                    assert.equal(ii, true);
+                    done();
+               // });
             });
         });
     });

@@ -386,7 +386,9 @@ var holder = {
 var lib = {
 	startController: function(cb) {
 		holder.controller = new soajs.server.controller();
-		holder.controller.start(cb);
+        holder.controller.init(function() {
+            holder.controller.start(cb);
+        });
 	},
 	stopController: function(cb) {
 		holder.controller.stop(cb);
@@ -419,6 +421,7 @@ var lib = {
 			"config": config
 		});
 
+        holder.service.init(function() {
 		_.forEach(scenarios, function(scenario) {
 			holder.service[scenario.m](scenario.u, function(req, res) {
 				req.soajs.log.info('Test:' + scenario.u + ' ' + scenario.m);
@@ -429,8 +432,12 @@ var lib = {
 				res.json(req.soajs.buildResponse(null, data));
 			});
 		});
-
-		holder.service.start(cb);
+            holder.service.start(function () {
+                setTimeout(function () {
+                    cb();
+                }, 500);
+            });
+        });
 	}
 };
 

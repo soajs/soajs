@@ -98,7 +98,7 @@ service.prototype.init = function(callback) {
 			} else {
 				_self._log.error('Service [' + soajs.serviceName + '] failed to start. Unable to find the service entry in registry');
 			}
-			return;
+			return callback(new Error ("Service shutdown due to failure!"));
 		}
 
         var favicon_mw = require("./../mw/favicon/index");
@@ -222,7 +222,7 @@ service.prototype.start = function(cb) {
 						if(_self.app.soajs.awareness) {
 
 						}
-						if(cb && typeof cb === "function") {
+						if(cb) {
 							cb(err);
 						}
 					});

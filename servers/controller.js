@@ -156,7 +156,7 @@ controller.prototype.start = function(cb) {
 			else {
 				_self.log.info(_self.serviceName + " service started on port: " + _self.registry.services.controller.port);
 			}
-			if(cb && typeof cb === "function") {
+			if(cb) {
 				cb(err);
 			}
 		});
