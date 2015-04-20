@@ -146,13 +146,13 @@ var build = {
 				mongo.find('services', function(error, servicesRecords) {
 					if(error) { return callback(error); }
 					var obj = {};
-					if(envRecord) {
+					if(envRecord && JSON.stringify(envRecord) !== '{}') {
 						obj['ENV_schema'] = envRecord;
 					}
-					if(servicesRecords) {
+					if(servicesRecords && Array.isArray(servicesRecords) && servicesRecords.length > 0) {
 						obj['services_schema'] = servicesRecords;
 					}
-					if(hostsRecords) {
+					if(hostsRecords && Array.isArray(hostsRecords) && hostsRecords.length > 0) {
 						obj['ENV_hosts'] = hostsRecords;
 					}
 
