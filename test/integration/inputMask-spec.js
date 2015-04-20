@@ -17,6 +17,9 @@ scenarios.push({
 	m: 'get',
 	u: '/ping',
 	im: {
+		"_apiInfo": {
+			"l": "ping user get"
+		},
 		"user": {
 			"source": ['query.user'],
 			"required": true,
@@ -36,6 +39,9 @@ scenarios.push({
 	m: 'post',
 	u: '/pingPost',
 	im: {
+		"_apiInfo": {
+			"l": "ping user post"
+		},
 		"user": {
 			"source": ['body.user'],
 			"required": true,
@@ -56,6 +62,9 @@ scenarios.push({
 	m: 'post',
 	u: '/pingPostPath/:path',
 	im: {
+		"_apiInfo": {
+			"l": "ping user post path"
+		},
 		"user": {
 			"source": ['body.user'],
 			"required": true,
@@ -84,6 +93,9 @@ scenarios.push({
 	m: 'get',
 	u: '/echo/:xxx/name',
 	im: {
+		"_apiInfo": {
+			"l": "echo"
+		},
 		"xxx": {
 			"source": ['params.xxx'],
 			"required": true,
@@ -115,6 +127,9 @@ scenarios.push({
 	m: 'post',
 	u: '/pingPostObject',
 	im: {
+		"_apiInfo": {
+			"l": "ping post object"
+		},
 		"name": {
 			"source": ['body.user.name'],
 			"required": true,
@@ -125,7 +140,12 @@ scenarios.push({
 	},
 	tests: [
 		{u: '/pingPostObject', p: {user: {name: 'john'}}, r: {result: true, data: {name: 'john'}}},
-		{only: true, u: '/pingPostObject', p: {user: {name: [1]}}, r: {"result": false, "errors": {"codes": [173], "details": [{"code": 173, "message": "Validation failed for field: name -> The parameter 'name' is not of a type(s) string"}]}}},
+		{
+			only: true,
+			u: '/pingPostObject',
+			p: {user: {name: [1]}},
+			r: {"result": false, "errors": {"codes": [173], "details": [{"code": 173, "message": "Validation failed for field: name -> The parameter 'name' is not of a type(s) string"}]}}
+		},
 		{u: '/pingPostObject', p: {}, r: {"result": false, "errors": {"codes": [172], "details": [{"code": 172, "message": "Missing required field: name"}]}}},
 	]
 });
@@ -134,6 +154,9 @@ scenarios.push({
 	m: 'put',
 	u: '/pingPut',
 	im: {
+		"_apiInfo": {
+			"l": "ping put"
+		},
 		"user": {
 			"source": ['query.user'],
 			"required": true,
@@ -160,6 +183,9 @@ scenarios.push({
 	m: 'delete',
 	u: '/pingDelete',
 	im: {
+		"_apiInfo": {
+			"l": "ping del"
+		},
 		"user": {
 			"source": ['query.user'],
 			"required": true,
@@ -186,6 +212,9 @@ scenarios.push({
 	m: 'post',
 	u: '/pingPostValidation',
 	im: {
+		"_apiInfo": {
+			"l": "ping post validation"
+		},
 		"bodyUser": {
 			"source": ['body.user'],
 			"required": true,
@@ -218,6 +247,9 @@ scenarios.push({
 	m: 'get',
 	u: '/pingGetValidation',
 	im: {
+		"_apiInfo": {
+			"l": "ping get validation"
+		},
 		"bodyUser": {
 			"source": ['query.user'],
 			"required": true,
@@ -254,6 +286,9 @@ scenarios.push({
 	m: 'post',
 	u: '/pingPostValidation2',
 	im: {
+		"_apiInfo": {
+			"l": "ping post validation2"
+		},
 		"bodyUser": {
 			"source": ['body.user'],
 			"required": true,
@@ -320,18 +355,18 @@ scenarios.push({
 				'type': 'regexp'
 			}
 		},
-		'c': {"source": ['body.c'],'validation': {'type': 'object', 'properties': { 'c': {'type': 'object', 'properties': {'a':{'type': 'string'}}} } } },
-		'd': {"source": ['body.d'],'validation': {'type': 'array', 'items': {'type': 'array', 'items': {'type': 'string'}}} },
-		'e': {"source": ['body.e'],'validation': {'type': 'array', 'items': {'type': 'object', 'addtionalProperties': {'type': 'string'}}} },
+		'c': {"source": ['body.c'], 'validation': {'type': 'object', 'properties': {'c': {'type': 'object', 'properties': {'a': {'type': 'string'}}}}}},
+		'd': {"source": ['body.d'], 'validation': {'type': 'array', 'items': {'type': 'array', 'items': {'type': 'string'}}}},
+		'e': {"source": ['body.e'], 'validation': {'type': 'array', 'items': {'type': 'object', 'addtionalProperties': {'type': 'string'}}}},
 		'f': {
 			'source': ['body.f'],
-			'validation':{
-				'type':'object',
+			'validation': {
+				'type': 'object',
 				"patternProperties": {
 					"^[a-z]+$": { //pattern to match an api route
 						"type": "object",
 						"properties": {
-							"access": { 'type': 'array', items: {'type': 'string'} }
+							"access": {'type': 'array', items: {'type': 'string'}}
 						},
 						"additionalProperties": false
 					}
@@ -360,8 +395,33 @@ scenarios.push({
 		{
 			desc: "Issue #12: Body variables sent as urlencoded-form-input",
 			u: '/pingPostValidation2',
-			pf: {user: 'john', isAdmin: true, age: 32, points:120, 'a': 'b', 'patt': '^[a-z]+$', 'c':{'c': {'a':'b'}}, 'd': [['a','b'],['c','d']], 'e':[{'a':'b'}], 'f': {'abc':{ 'access': ['admin','vip']}} },
-			r: {result: true, data: {bodyUser: 'john', bodyIsAdmin: true, bodyAge: 32, points:120, 'a': 'b', 'patt': {}, 'c':{'c': {'a':'b'}}, 'd': [['a','b'],['c','d']], 'e':[{'a':'b'}], 'f': {'abc':{ 'access': ['admin','vip']}}}}
+			pf: {
+				user: 'john',
+				isAdmin: true,
+				age: 32,
+				points: 120,
+				'a': 'b',
+				'patt': '^[a-z]+$',
+				'c': {'c': {'a': 'b'}},
+				'd': [['a', 'b'], ['c', 'd']],
+				'e': [{'a': 'b'}],
+				'f': {'abc': {'access': ['admin', 'vip']}}
+			},
+			r: {
+				result: true,
+				data: {
+					bodyUser: 'john',
+					bodyIsAdmin: true,
+					bodyAge: 32,
+					points: 120,
+					'a': 'b',
+					'patt': {},
+					'c': {'c': {'a': 'b'}},
+					'd': [['a', 'b'], ['c', 'd']],
+					'e': [{'a': 'b'}],
+					'f': {'abc': {'access': ['admin', 'vip']}}
+				}
+			}
 		},
 		{
 			//skip: true,
@@ -386,9 +446,9 @@ var holder = {
 var lib = {
 	startController: function(cb) {
 		holder.controller = new soajs.server.controller();
-        holder.controller.init(function() {
-            holder.controller.start(cb);
-        });
+		holder.controller.init(function() {
+			holder.controller.start(cb);
+		});
 	},
 	stopController: function(cb) {
 		holder.controller.stop(cb);
@@ -421,38 +481,38 @@ var lib = {
 			"config": config
 		});
 
-        holder.service.init(function() {
-		_.forEach(scenarios, function(scenario) {
-			holder.service[scenario.m](scenario.u, function(req, res) {
-				req.soajs.log.info('Test:' + scenario.u + ' ' + scenario.m);
-				var data = {};
-				_.forEach(scenario.im, function(info, input) {
-					data[input] = req.soajs.inputmaskData[input];
+		holder.service.init(function() {
+			_.forEach(scenarios, function(scenario) {
+				holder.service[scenario.m](scenario.u, function(req, res) {
+					req.soajs.log.info('Test:' + scenario.u + ' ' + scenario.m);
+					var data = {};
+					_.forEach(scenario.im, function(info, input) {
+						data[input] = req.soajs.inputmaskData[input];
+					});
+					res.json(req.soajs.buildResponse(null, data));
 				});
-				res.json(req.soajs.buildResponse(null, data));
+			});
+			holder.service.start(function() {
+				setTimeout(function() {
+					cb();
+				}, 500);
 			});
 		});
-            holder.service.start(function () {
-                setTimeout(function () {
-                    cb();
-                }, 500);
-            });
-        });
 	}
 };
 
-describe('testing inputMask', function(){
+describe('testing inputMask', function() {
 
 	before(function(done) {
-		async.series([lib.startController, lib.startTestService], function(err) {
-		//lib.startTestService(function(err) {
+		async.series([lib.startTestService, lib.startController], function(err) {
+			//lib.startTestService(function(err) {
 			assert.ifError(err);
 			done();
 		});
 	});
 	after(function(done) {
 		async.series([lib.stopController, lib.stopTestService], function(err) {
-		//lib.stopTestService(function(err) {
+			//lib.stopTestService(function(err) {
 			assert.ifError(err);
 			done();
 		});
@@ -497,5 +557,4 @@ describe('testing inputMask', function(){
 			});
 		});
 	});
-
 });
