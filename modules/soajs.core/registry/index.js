@@ -72,6 +72,9 @@ var build = {
 	"allServices": function(STRUCT, servicesObj) {
 		if(STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
 			for(var i = 0; i < STRUCT.length; i++) {
+				if(STRUCT[i].name === 'controller'){
+					continue;
+				}
 				servicesObj[STRUCT[i].name] = {
 					"extKeyRequired": STRUCT[i].extKeyRequired,
 					"port": STRUCT[i].port,
