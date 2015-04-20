@@ -95,8 +95,8 @@ controllerApp.init(function() {
 				assert.deepEqual(body, {
 					"result": false,
 					"errors": {
-						"codes": [133],
-						"details": [{"code": 133, "message": "The service you are trying to reach is not reachable at this moment."}]
+						"codes": [132],
+						"details": [{"code": 132, "message": "A valid key is needed to access any API."}]
 					}
 				});
 				done();
@@ -171,8 +171,8 @@ controllerApp.init(function() {
 					assert.deepEqual(body, {
 						"result": false,
 						"errors": {
-							"codes": [133],
-							"details": [{"code": 133, "message": "The service you are trying to reach is not reachable at this moment."}]
+							"codes": [151],
+							"details": [{"code": 151, "message": "You are trying to reach an unknown rest service!"}]
 						}
 					});
 					done();
@@ -187,8 +187,8 @@ controllerApp.init(function() {
 					assert.deepEqual(body, {
 						"result": false,
 						"errors": {
-							"codes": [133],
-							"details": [{"code": 133, "message": "The service you are trying to reach is not reachable at this moment."}]
+							"codes": [151],
+							"details": [{"code": 151, "message": "You are trying to reach an unknown rest service!"}]
 						}
 					});
 					done();
