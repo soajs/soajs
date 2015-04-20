@@ -16,74 +16,83 @@ var build = {
 	"metaAndCoreDB": function(STRUCT) {
 		var metaAndCoreDB = {"metaDB": {}, "coreDB": {}};
 
-		for(var dbName in STRUCT.dbs.databases) {
-			if(STRUCT.dbs.databases.hasOwnProperty(dbName)) {
-				var dbRec = STRUCT.dbs.databases[dbName];
-				var dbObj = null;
-				if(dbRec.cluster && STRUCT.dbs.clusters[dbRec.cluster]) {
-					dbObj = {
-						"prefix": STRUCT.dbs.config.prefix,
-						"servers": STRUCT.dbs.clusters[dbRec.cluster].servers,
-						"credentials": STRUCT.dbs.clusters[dbRec.cluster].credentials,
-						"URLParam": STRUCT.dbs.clusters[dbRec.cluster].URLParam,
-						"extraParam": STRUCT.dbs.clusters[dbRec.cluster].extraParam
-					};
-					if(dbRec.tenantSpecific) {
-						dbObj.name = "#TENANT_NAME#_" + dbName;
-						metaAndCoreDB.metaDB[dbName] = dbObj;
-					}
-					else {
-						dbObj.name = dbName;
-						metaAndCoreDB.coreDB[dbName] = dbObj;
+		if(STRUCT && STRUCT.dbs && STRUCT.dbs.databases) {
+			for(var dbName in STRUCT.dbs.databases) {
+				if(STRUCT.dbs.databases.hasOwnProperty(dbName)) {
+					var dbRec = STRUCT.dbs.databases[dbName];
+					var dbObj = null;
+					if(dbRec.cluster && STRUCT.dbs.clusters[dbRec.cluster]) {
+						dbObj = {
+							"prefix": STRUCT.dbs.config.prefix,
+							"servers": STRUCT.dbs.clusters[dbRec.cluster].servers,
+							"credentials": STRUCT.dbs.clusters[dbRec.cluster].credentials,
+							"URLParam": STRUCT.dbs.clusters[dbRec.cluster].URLParam,
+							"extraParam": STRUCT.dbs.clusters[dbRec.cluster].extraParam
+						};
+						if(dbRec.tenantSpecific) {
+							dbObj.name = "#TENANT_NAME#_" + dbName;
+							metaAndCoreDB.metaDB[dbName] = dbObj;
+						}
+						else {
+							dbObj.name = dbName;
+							metaAndCoreDB.coreDB[dbName] = dbObj;
+						}
 					}
 				}
 			}
 		}
+
 		return metaAndCoreDB;
 	},
 
 	"sessionDB": function(STRUCT) {
 		var sessionDB = null;
-		if(STRUCT.dbs.config.session) {
-			var dbRec = STRUCT.dbs.config.session;
-			if(dbRec.cluster && STRUCT.dbs.clusters[dbRec.cluster]) {
-				sessionDB = {
-					"name": STRUCT.dbs.config.session.name,
-					"prefix": STRUCT.dbs.config.prefix,
-					"servers": STRUCT.dbs.clusters[dbRec.cluster].servers,
-					"credentials": STRUCT.dbs.clusters[dbRec.cluster].credentials,
-					"URLParam": STRUCT.dbs.clusters[dbRec.cluster].URLParam,
-					"extraParam": STRUCT.dbs.clusters[dbRec.cluster].extraParam,
-					'store': STRUCT.dbs.config.session.store,
-					"collection": STRUCT.dbs.config.session.collection,
-					'stringify': STRUCT.dbs.config.session.stringify,
-					'expireAfter': STRUCT.dbs.config.session.expireAfter
-				};
+		if(STRUCT && STRUCT.dbs && STRUCT.dbs.config && STRUCT.dbs.config.session) {
+			if(STRUCT.dbs.config.session) {
+				var dbRec = STRUCT.dbs.config.session;
+				if(dbRec.cluster && STRUCT.dbs.clusters[dbRec.cluster]) {
+					sessionDB = {
+						"name": STRUCT.dbs.config.session.name,
+						"prefix": STRUCT.dbs.config.prefix,
+						"servers": STRUCT.dbs.clusters[dbRec.cluster].servers,
+						"credentials": STRUCT.dbs.clusters[dbRec.cluster].credentials,
+						"URLParam": STRUCT.dbs.clusters[dbRec.cluster].URLParam,
+						"extraParam": STRUCT.dbs.clusters[dbRec.cluster].extraParam,
+						'store': STRUCT.dbs.config.session.store,
+						"collection": STRUCT.dbs.config.session.collection,
+						'stringify': STRUCT.dbs.config.session.stringify,
+						'expireAfter': STRUCT.dbs.config.session.expireAfter
+					};
+				}
 			}
 		}
 		return sessionDB;
 	},
 
 	"allServices": function(STRUCT, servicesObj) {
-		for(var i = 0; i < STRUCT.length; i++) {
-			servicesObj[STRUCT[i].name] = {
-				"extKeyRequired": STRUCT[i].extKeyRequired,
-				"port": STRUCT[i].port,
-				"requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
-				"requestTimeout": STRUCT[i].requestTimeoutRenewal || null
-			};
+		if(STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
+			for(var i = 0; i < STRUCT.length; i++) {
+				servicesObj[STRUCT[i].name] = {
+					"extKeyRequired": STRUCT[i].extKeyRequired,
+					"port": STRUCT[i].port,
+					"requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
+					"requestTimeout": STRUCT[i].requestTimeoutRenewal || null
+				};
+			}
 		}
 	},
 
 	"servicesHosts": function(STRUCT, servicesObj) {
-		for(var i = 0; i < STRUCT.length; i++) {
-			if(STRUCT[i].env === regEnvironment) {
-				if(servicesObj[STRUCT[i].name]) {
-					if(!servicesObj[STRUCT[i].name].hosts) {
-						servicesObj[STRUCT[i].name].hosts = [];
-					}
-					if(servicesObj[STRUCT[i].name].hosts.indexOf(STRUCT[i].ip) === -1) {
-						servicesObj[STRUCT[i].name].hosts.push(STRUCT[i].ip)
+		if(STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
+			for(var i = 0; i < STRUCT.length; i++) {
+				if(STRUCT[i].env === regEnvironment) {
+					if(servicesObj[STRUCT[i].name]) {
+						if(!servicesObj[STRUCT[i].name].hosts) {
+							servicesObj[STRUCT[i].name].hosts = [];
+						}
+						if(servicesObj[STRUCT[i].name].hosts.indexOf(STRUCT[i].ip) === -1) {
+							servicesObj[STRUCT[i].name].hosts.push(STRUCT[i].ip)
+						}
 					}
 				}
 			}
@@ -92,28 +101,32 @@ var build = {
 
 	"service": function(STRUCT, serviceName) {
 		var serviceObj = null;
-		for(var i = 0; i < STRUCT.length; i++) {
-			if(STRUCT[i].name === serviceName) {
-				serviceObj = {
-					"extKeyRequired": STRUCT[i].extKeyRequired,
-					"port": STRUCT[i].port,
-					"requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
-					"requestTimeout": STRUCT[i].requestTimeoutRenewal || null
-				};
-				break;
+		if(STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
+			for(var i = 0; i < STRUCT.length; i++) {
+				if(STRUCT[i].name === serviceName) {
+					serviceObj = {
+						"extKeyRequired": STRUCT[i].extKeyRequired,
+						"port": STRUCT[i].port,
+						"requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
+						"requestTimeout": STRUCT[i].requestTimeoutRenewal || null
+					};
+					break;
+				}
 			}
 		}
 		return serviceObj;
 	},
 
 	"controllerHosts": function(STRUCT, controllerObj) {
-		for(var i = 0; i < STRUCT.length; i++) {
-			if(STRUCT[i].name === "controller" && STRUCT[i].env === regEnvironment) {
-				if(!controllerObj.hosts) {
-					controllerObj.hosts = [];
-				}
-				if(controllerObj.hosts.indexOf(STRUCT[i].ip) === -1) {
-					controllerObj.hosts.push(STRUCT[i].ip)
+		if(STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
+			for(var i = 0; i < STRUCT.length; i++) {
+				if(STRUCT[i].name === "controller" && STRUCT[i].env === regEnvironment) {
+					if(!controllerObj.hosts) {
+						controllerObj.hosts = [];
+					}
+					if(controllerObj.hosts.indexOf(STRUCT[i].ip) === -1) {
+						controllerObj.hosts.push(STRUCT[i].ip)
+					}
 				}
 			}
 		}
@@ -130,13 +143,20 @@ var build = {
 					servicesNames.push(oneHost.name);
 				});
 				//mongo.find('services', {'name': {$in: servicesNames}}, function(error, servicesRecords) {
-                    mongo.find('services', function(error, servicesRecords) {
+				mongo.find('services', function(error, servicesRecords) {
 					if(error) { return callback(error); }
-					return callback(null, {
-						'ENV_schema': envRecord,
-						'services_schema': servicesRecords,
-						'ENV_hosts': hostsRecords
-					});
+					var obj = {};
+					if(envRecord && JSON.stringify(envRecord) !== '{}') {
+						obj['ENV_schema'] = envRecord;
+					}
+					if(servicesRecords && Array.isArray(servicesRecords) && servicesRecords.length > 0) {
+						obj['services_schema'] = servicesRecords;
+					}
+					if(hostsRecords && Array.isArray(hostsRecords) && hostsRecords.length > 0) {
+						obj['ENV_hosts'] = hostsRecords;
+					}
+
+					return callback(null, obj);
 				});
 			});
 		});
@@ -190,7 +210,6 @@ var build = {
 		 * registry.services.controller.hosts   // if in service and awareness is true
 		 * registry.services.EVERYSERVICE.hosts // if in controller only and awareness is true
 		 */
-
 		var metaAndCoreDB = build.metaAndCoreDB(registryDBInfo.ENV_schema);
 		registry["tenantMetaDB"] = metaAndCoreDB.metaDB;
 		registry["serviceConfig"] = registryDBInfo.ENV_schema.services.config;
@@ -209,8 +228,9 @@ var build = {
 				"requestTimeoutRenewal": registryDBInfo.ENV_schema.services.controller.requestTimeoutRenewal
 			}
 		};
-        //console.log(param.serviceName);
-        //console.log(registryDBInfo)
+
+		//console.log(param.serviceName);
+		//console.log(registryDBInfo)
 		if(param.serviceName === "controller") {
 			build.allServices(registryDBInfo.services_schema, registry["services"]);
 			build.servicesHosts(registryDBInfo.ENV_hosts, registry["services"]);
@@ -253,19 +273,19 @@ var build = {
 			if(param.serviceName !== 'controller' && param.awareness) {
 				build.controllerHosts(registryDBInfo.ENV_hosts, registry["services"].controller);
 			}
-            if (param.serviceIp) {
-                var hostObj = {
-                    'env': registry.name.toLowerCase(),
-                    'name': param.serviceName,
-                    'ip': param.serviceIp
-                };
-                build.checkRegisterServiceIP(registry.coreDB.provision, hostObj, function (error) {
-                    if (error) {
-                        throw new Error("Unable to register new host for service:" + error.message);
-                    }
-                    callback();
-                });
-            }
+			if(param.serviceIp) {
+				var hostObj = {
+					'env': registry.name.toLowerCase(),
+					'name': param.serviceName,
+					'ip': param.serviceIp
+				};
+				build.checkRegisterServiceIP(registry.coreDB.provision, hostObj, function(error) {
+					if(error) {
+						throw new Error("Unable to register new host for service:" + error.message);
+					}
+					callback();
+				});
+			}
 		}
 	}
 };
@@ -290,10 +310,14 @@ function loadRegistry(param, cb) {
 				}
 			};
 			build.loadDBInformation(registry.coreDB.provision, registry.name, function(error, RegistryFromDB) {
-				if(error) {
+				if(error || !RegistryFromDB) {
 					throw new Error('Unable to load Registry Db Info: ' + error.message);
 				}
 				else {
+					if(!RegistryFromDB.ENV_schema || !RegistryFromDB.services_schema || !RegistryFromDB.ENV_hosts){
+						throw new Error('Unable to load Registry Db Info. ');
+					}
+
 					build.buildRegistry(param, registry, RegistryFromDB, function() {
 						registry_struct[regEnvironment] = registry;
 						return cb();
