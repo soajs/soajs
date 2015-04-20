@@ -32,8 +32,8 @@ module.exports = function (param) {
                     if (!serviceAwarenessObj[s].healthy)
                         serviceAwarenessObj[s].healthy = [];
                     if (param.registry.services[s].hosts && param.registry.services[s].hosts.length > 0) {
-                        var sObj = {"name":s,"port" : param.registry.services[s].port};
                         for (var i = 0; i < param.registry.services[s].hosts.length; i++) {
+                            var sObj = {"name":s,"port" : param.registry.services[s].port};
                             sObj.host = param.registry.services[s].hosts[i];
                             servicesArr.push(sObj);
                         }
@@ -59,10 +59,13 @@ module.exports = function (param) {
                                 }
                             }
                         }
+                        callback();
                     });
+                }, function(err){
+                    if( err )
+                        param.log.warn('Unable to build awareness structure for services: '+ err);
                 }
             );
-            //console.log(serviceAwarenessObj);
             setTimeout(awareness_healthCheck, param.registry.serviceConfig.awareness.healthCheckInterval);
         };
 
@@ -71,8 +74,10 @@ module.exports = function (param) {
                 if (!serviceAwarenessObj[s].index || serviceAwarenessObj[s].index >= param.registry.services[s].hosts.length)
                     serviceAwarenessObj[s].index = 0;
                 var host = param.registry.services[s].hosts[serviceAwarenessObj[s].index];
-                if (serviceAwarenessObj[s].healthy.indexOf(host) !== -1)
+                if (serviceAwarenessObj[s].healthy.indexOf(host) !== -1) {
+                    serviceAwarenessObj[s].index += 1;
                     return cb(host);
+                }
                 else {
                     serviceAwarenessObj[s].index += 1;
                     return roundRobin(s, cb);

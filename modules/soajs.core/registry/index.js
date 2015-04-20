@@ -314,7 +314,7 @@ function loadRegistry(param, cb) {
 					throw new Error('Unable to load Registry Db Info: ' + error.message);
 				}
 				else {
-					if(!RegistryFromDB.ENV_schema || !RegistryFromDB.services_schema || !RegistryFromDB.ENV_hosts){
+					if(!RegistryFromDB.ENV_schema || !RegistryFromDB.services_schema){
 						throw new Error('Unable to load Registry Db Info. ');
 					}
 
