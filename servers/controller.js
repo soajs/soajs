@@ -19,10 +19,10 @@ function controller(param) {
 	var _self = this;
 	_self.awareness = true;
 	_self.serviceName = "controller";
-    if (process.argv.length === 3)
-        _self.serviceIp = process.argv[2]; //TODO: arg to the service on startup
-    else
-        _self.serviceIp = null;
+    //if (process.argv.length === 3 && process.argv[2] !== "coverage" && process.argv[2] !== "test")
+        _self.serviceIp = process.env.SOAJS_SRVSIP || null;  //TODO: arg to the service on startup
+    //else
+    //    _self.serviceIp = null;
 }
 
 controller.prototype.init = function(callback) {

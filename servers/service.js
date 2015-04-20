@@ -54,10 +54,11 @@ service.prototype.init = function(callback) {
 	var param = soajs.param;
     soajs.serviceName = param.serviceName || param.config.serviceName;
     soajs.awareness = param.config.awareness || false;
-    if (process.argv.length === 3)
-    soajs.serviceIp = process.argv[2]; //TODO: arg to the service on startup
-    else
-        soajs.serviceIp = null;
+    soajs.serviceIp = process.env.SOAJS_SRVSIP || null;
+    //if (process.argv.length === 3)
+   // soajs.serviceIp = process.argv[2]; //TODO: arg to the service on startup
+    //else
+    //    soajs.serviceIp = null;
     var fetchedHostIp = null;
     if (!soajs.serviceIp) {
          fetchedHostIp = core.getHostIp();

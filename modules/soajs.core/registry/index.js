@@ -163,7 +163,9 @@ var build = {
 		mongo.findOne('hosts', hostObj, function(error, dbRecord) {
 			if(error || dbRecord) { return cb(error); }
 			if(!dbRecord) {
-				mongo.insert('hosts', hostObj, cb);
+				mongo.insert('hosts', hostObj, function(err, record){
+                    return cb();
+                });
 			}
 		});
 	},
