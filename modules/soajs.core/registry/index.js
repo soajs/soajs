@@ -317,7 +317,7 @@ function loadRegistry(param, cb) {
 					throw new Error('Unable to load Registry Db Info: ' + error.message);
 				}
 				else {
-					if(!RegistryFromDB.ENV_schema || !RegistryFromDB.services_schema || !RegistryFromDB.ENV_hosts){
+					if(!RegistryFromDB.ENV_schema || !RegistryFromDB.services_schema){
 						throw new Error('Unable to load Registry Db Info. ');
 					}
 
@@ -350,4 +350,8 @@ exports.getRegistry = function(param, cb) {
 	} catch(e) {
 		throw new Error('Failed to get registry: ' + e.message);
 	}
+};
+
+exports.getLoadedRegistry = function(){
+    return registry_struct[regEnvironment];
 };

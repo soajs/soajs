@@ -33,7 +33,7 @@ controller.prototype.init = function(callback) {
         if (fetchedHostIp && fetchedHostIp.result)
             _self.serviceIp = fetchedHostIp.ip;
     }
-	core.getRegistry({"serviceName": _self.serviceName, "apiList": null, "awareness": _self.awareness, "serviceIp": _self.serviceIp}, function(reg) {
+	core.loadRegistry({"serviceName": _self.serviceName, "apiList": null, "awareness": _self.awareness, "serviceIp": _self.serviceIp}, function(reg) {
 		_self.registry = reg;
         //console.log(reg);
 		_self.log = core.getLogger(_self.serviceName, _self.registry.serviceConfig.logger);
@@ -51,15 +51,13 @@ controller.prototype.init = function(callback) {
 		app.use(favicon_mw());
 		app.use(soajs_mw({
 			"serviceName": _self.serviceName,
-			"log": _self.log,
-			"registry": _self.registry
+			"log": _self.log
 		}));
 		app.use(cors_mw());
 		app.use(response_mw({"controllerResponse": true}));
 		app.use(awareness_mw({
 			"awareness": _self.awareness,
 			"serviceName": _self.serviceName,
-			"registry": _self.registry,
 			"log": _self.log,
 			"serviceIp": _self.serviceIp
 		}));
@@ -104,30 +102,31 @@ controller.prototype.init = function(callback) {
 		_self.serverMaintenance = http.createServer(function(req, res) {
 			if(req.url === '/reloadRegistry') {
 				core.reloadRegistry({"serviceName": _self.serviceName, "apiList": null, "awareness": _self.awareness, "serviceIp": _self.serviceIp}, function(reg) {
-					res.writeHead(200, {'Content-Type': 'application/json'});
+                    res.writeHead(200, {'Content-Type': 'application/json'});
 					return res.end(JSON.stringify(reg));
 				});
 			}
+            else {
+                var heartbeat = function (res) {
+                    res.writeHead(200, {'Content-Type': 'application/json'});
+                    var response = {
+                        'result': true,
+                        'ts': Date.now(),
+                        'service': {
+                            'service': _self.serviceName.toUpperCase(),
+                            'type': 'rest',
+                            'route': '/heartbeat'
+                        }
+                    };
+                    res.end(JSON.stringify(response));
+                };
 
-			var heartbeat = function(res) {
-				res.writeHead(200, {'Content-Type': 'application/json'});
-				var response = {
-					'result': true,
-					'ts': Date.now(),
-					'service': {
-						'service': _self.serviceName.toUpperCase(),
-						'type': 'rest',
-						'route': '/heartbeat'
-					}
-				};
-				res.end(JSON.stringify(response));
-			};
+                if (req.url === '/heartbeat') {
+                    return heartbeat(res);
+                }
 
-			if(req.url === '/heartbeat') {
-				return heartbeat(res);
-			}
-
-			return heartbeat(res);
+                return heartbeat(res);
+            }
 		});
 
 		callback();
