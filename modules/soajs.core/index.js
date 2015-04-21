@@ -1,14 +1,17 @@
 'use strict';
 
 var registry = require('./registry/index');
-exports.getRegistry = function (param, cb) {
+exports.getLoadedRegistry = function () {
+    return registry.getLoadedRegistry();
+}
+exports.loadRegistry = function (param, cb) {
     if (!param) param = {};
     param.reload = false;
     return registry.getRegistry(param, cb);
 };
 exports.reloadRegistry = function (param, cb) {
     if (!param) param = {};
-    param.reload = false;
+    param.reload = true;
     param.designatedPort = null;
     return registry.getRegistry(param, cb);
 };

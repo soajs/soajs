@@ -10,31 +10,35 @@ var core = require('../../modules/soajs.core');
  * @returns {Function}
  */
 module.exports = function (param) {
-    var serviceAwarenessObj = {};
     if (param.awareness) {
+        var serviceAwarenessObj = {};
+        var registry = core.getLoadedRegistry();
+
         var awareness_reloadRegistry = function () {
+            registry = core.getLoadedRegistry();
             core.reloadRegistry({
                 "serviceName": param.serviceName,
                 "apiList": param.apiList,
                 "awareness": param.awareness,
                 "serviceIp": param.serviceIp
             }, function (reg) {
-                param.log.info("Self Awareness reloaded registry. next reload is in [" + param.registry.serviceConfig.awareness.autoRelaodRegistry + "] milliseconds");
-                setTimeout(awareness_reloadRegistry, param.registry.serviceConfig.awareness.autoRelaodRegistry);
+                param.log.info("Self Awareness reloaded registry. next reload is in [" + registry.serviceConfig.awareness.autoRelaodRegistry + "] milliseconds");
+                setTimeout(awareness_reloadRegistry, registry.serviceConfig.awareness.autoRelaodRegistry);
             });
         };
         var awareness_healthCheck = function () {
+            registry = core.getLoadedRegistry();
             var servicesArr = [];
-            for (var s in param.registry.services) {
-                if (param.registry.services.hasOwnProperty(s) && s !== param.serviceName) {
+            for (var s in registry.services) {
+                if (registry.services.hasOwnProperty(s) && s !== param.serviceName) {
                     if (!serviceAwarenessObj[s])
                         serviceAwarenessObj[s] = {"healthy": [], "index": 0};
                     if (!serviceAwarenessObj[s].healthy)
                         serviceAwarenessObj[s].healthy = [];
-                    if (param.registry.services[s].hosts && param.registry.services[s].hosts.length > 0) {
-                        for (var i = 0; i < param.registry.services[s].hosts.length; i++) {
-                            var sObj = {"name":s,"port" : param.registry.services[s].port};
-                            sObj.host = param.registry.services[s].hosts[i];
+                    if (registry.services[s].hosts && registry.services[s].hosts.length > 0) {
+                        for (var i = 0; i < registry.services[s].hosts.length; i++) {
+                            var sObj = {"name": s, "port": registry.services[s].port};
+                            sObj.host = registry.services[s].hosts[i];
                             servicesArr.push(sObj);
                         }
                     }
@@ -43,7 +47,7 @@ module.exports = function (param) {
             async.each(servicesArr,
                 function (sObj, callback) {
                     request({
-                        'uri': 'http://' + sObj.host + ':' + (sObj.port + param.registry.serviceConfig.ports.maintenanceInc) + '/heartbeat'
+                        'uri': 'http://' + sObj.host + ':' + (sObj.port + registry.serviceConfig.ports.maintenanceInc) + '/heartbeat'
                     }, function (error, response, body) {
                         if (!error && response.statusCode === 200) {
                             if (serviceAwarenessObj[sObj.name].healthy.indexOf(sObj.host) === -1)
@@ -61,19 +65,20 @@ module.exports = function (param) {
                         }
                         callback();
                     });
-                }, function(err){
-                    if( err )
-                        param.log.warn('Unable to build awareness structure for services: '+ err);
+                }, function (err) {
+                    if (err)
+                        param.log.warn('Unable to build awareness structure for services: ' + err);
                 }
             );
-            setTimeout(awareness_healthCheck, param.registry.serviceConfig.awareness.healthCheckInterval);
+            setTimeout(awareness_healthCheck, registry.serviceConfig.awareness.healthCheckInterval);
         };
 
         var roundRobin = function (s, cb) {
-            if (s && param.registry.services[s] && param.registry.services[s].hosts && serviceAwarenessObj[s] && serviceAwarenessObj[s].healthy && serviceAwarenessObj[s].healthy.length > 0) {
-                if (!serviceAwarenessObj[s].index || serviceAwarenessObj[s].index >= param.registry.services[s].hosts.length)
+
+            if (s && registry.services[s] && registry.services[s].hosts && serviceAwarenessObj[s] && serviceAwarenessObj[s].healthy && serviceAwarenessObj[s].healthy.length > 0) {
+                if (!serviceAwarenessObj[s].index || serviceAwarenessObj[s].index >= registry.services[s].hosts.length)
                     serviceAwarenessObj[s].index = 0;
-                var host = param.registry.services[s].hosts[serviceAwarenessObj[s].index];
+                var host = registry.services[s].hosts[serviceAwarenessObj[s].index];
                 if (serviceAwarenessObj[s].healthy.indexOf(host) !== -1) {
                     serviceAwarenessObj[s].index += 1;
                     return cb(host);
@@ -87,15 +92,18 @@ module.exports = function (param) {
                 return cb(null);
         };
 
-        if (param.registry.serviceConfig.awareness.healthCheckInterval)
+        if (registry.serviceConfig.awareness.healthCheckInterval)
             awareness_healthCheck();
-        if (param.registry.serviceConfig.awareness.autoRelaodRegistry)
-            setTimeout(awareness_reloadRegistry, param.registry.serviceConfig.awareness.autoRelaodRegistry);
+        if (registry.serviceConfig.awareness.autoRelaodRegistry)
+            setTimeout(awareness_reloadRegistry, registry.serviceConfig.awareness.autoRelaodRegistry);
     }
     return function (req, res, next) {
-        req.soajs.awareness = {
-            "getHost": roundRobin
-        };
+        if (param.awareness) {
+            registry = req.soajs.registry;
+            req.soajs.awareness = {
+                "getHost": roundRobin
+            };
+        }
         next();
     }
 };

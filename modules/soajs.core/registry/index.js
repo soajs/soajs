@@ -348,3 +348,7 @@ exports.getRegistry = function(param, cb) {
 		throw new Error('Failed to get registry: ' + e.message);
 	}
 };
+
+exports.getLoadedRegistry = function(){
+    return registry_struct[regEnvironment];
+};

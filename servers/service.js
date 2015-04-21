@@ -70,7 +70,7 @@ service.prototype.init = function(callback) {
 
 	//TODO: build the apiList array from config.schemas
 	_self.app.soajs.apiList = [];
-	core.getRegistry({
+	core.loadRegistry({
 		"serviceName": soajs.serviceName,
 		"designatedPort": param.config.servicePort || null,
 		"extKeyRequired": param.config.extKeyRequired || false,
@@ -111,8 +111,8 @@ service.prototype.init = function(callback) {
         }
 
         var soajs_mw = require("./../mw/soajs/index");
-        _self.app.use(soajs_mw({"registry": registry, "log": _self._log}));
-        _self.appMaintenance.use(soajs_mw({"registry": registry, "log": _self._log}));
+        _self.app.use(soajs_mw({"log": _self._log}));
+        _self.appMaintenance.use(soajs_mw({"log": _self._log}));
 
         var response_mw = require("./../mw/response/index");
         _self.app.use(response_mw({}));
@@ -184,7 +184,6 @@ service.prototype.init = function(callback) {
 			_self.app.use(awareness_mw({
 				"awareness": soajs.awareness,
 				"serviceName": soajs.serviceName,
-				"registry": registry,
 				"log": _self.log,
 				"apiList": _self.app.soajs.apiList,
 				"serviceIp": _self.app.soajs.serviceIp
