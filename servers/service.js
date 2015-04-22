@@ -54,12 +54,9 @@ service.prototype.init = function(callback) {
 	var param = soajs.param;
     soajs.serviceName = param.serviceName || param.config.serviceName;
     soajs.awareness = param.config.awareness || false;
-    soajs.serviceIp = process.env.SOAJS_SRVSIP || null;
-    //if (process.argv.length === 3)
-   // soajs.serviceIp = process.argv[2]; //TODO: arg to the service on startup
-    //else
-    //    soajs.serviceIp = null;
-    var fetchedHostIp = null;
+    soajs.serviceIp = process.env.SOAJS_SRVIP || null;
+
+	var fetchedHostIp = null;
     if (!soajs.serviceIp) {
          fetchedHostIp = core.getHostIp();
         if (fetchedHostIp && fetchedHostIp.result)
@@ -201,7 +198,6 @@ service.prototype.init = function(callback) {
  */
 service.prototype.start = function(cb) {
 	var _self = this;
-    //_self.init(function() {
 	if(_self.app && _self.app.soajs) {
 
 		_self.app.all('*', function(req, res) {
@@ -307,7 +303,6 @@ service.prototype.start = function(cb) {
 			throw new Error('Failed starting service');
 		}
 	}
-   // });
 };
 
 service.prototype.stop = function(cb) {

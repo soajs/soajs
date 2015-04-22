@@ -19,10 +19,7 @@ function controller(param) {
 	var _self = this;
 	_self.awareness = true;
 	_self.serviceName = "controller";
-    //if (process.argv.length === 3 && process.argv[2] !== "coverage" && process.argv[2] !== "test")
-        _self.serviceIp = process.env.SOAJS_SRVSIP || null;  //TODO: arg to the service on startup
-    //else
-    //    _self.serviceIp = null;
+  _self.serviceIp = process.env.SOAJS_SRVIP || null;
 }
 
 controller.prototype.init = function(callback) {
@@ -35,7 +32,6 @@ controller.prototype.init = function(callback) {
     }
 	core.loadRegistry({"serviceName": _self.serviceName, "apiList": null, "awareness": _self.awareness, "serviceIp": _self.serviceIp}, function(reg) {
 		_self.registry = reg;
-        //console.log(reg);
 		_self.log = core.getLogger(_self.serviceName, _self.registry.serviceConfig.logger);
 
         if (fetchedHostIp){
@@ -138,7 +134,6 @@ controller.prototype.init = function(callback) {
  */
 controller.prototype.start = function(cb) {
 	var _self = this;
-	//_self.init(function() {
 		var maintenancePort = _self.registry.services.controller.port + _self.registry.serviceConfig.ports.maintenanceInc;
 		_self.server.on('error', function(err) {
 			if(err.code === 'EADDRINUSE') {
@@ -175,7 +170,6 @@ controller.prototype.start = function(cb) {
 				_self.log.info(_self.serviceName + " service maintenance is listening on port: " + maintenancePort);
 			}
 		});
-	//});
 };
 
 
