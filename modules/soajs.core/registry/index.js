@@ -304,6 +304,7 @@ function loadRegistry(param, cb) {
 		var regFileObj = require(regFile);
 		if(regFileObj && typeof regFileObj === 'object') {
 			var registry = {
+                "timeLoaded" : new Date().getTime(),
 				"projectPath": projectPath,
 				"name": regFileObj.name,
 				"version": regFileObj.version,

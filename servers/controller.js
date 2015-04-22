@@ -16,25 +16,30 @@ var controller_mw = require('./../mw/controller/index');
  *
  */
 function controller(param) {
-	var _self = this;
-	_self.awareness = true;
-	_self.serviceName = "controller";
-  _self.serviceIp = process.env.SOAJS_SRVIP || null;
+    var _self = this;
+    _self.awareness = true;
+    _self.serviceName = "controller";
+    _self.serviceIp = process.env.SOAJS_SRVIP || null;
 }
 
-controller.prototype.init = function(callback) {
-	var _self = this;
+controller.prototype.init = function (callback) {
+    var _self = this;
     var fetchedHostIp = null;
     if (!_self.serviceIp) {
         fetchedHostIp = core.getHostIp();
         if (fetchedHostIp && fetchedHostIp.result)
             _self.serviceIp = fetchedHostIp.ip;
     }
-	core.loadRegistry({"serviceName": _self.serviceName, "apiList": null, "awareness": _self.awareness, "serviceIp": _self.serviceIp}, function(reg) {
-		_self.registry = reg;
-		_self.log = core.getLogger(_self.serviceName, _self.registry.serviceConfig.logger);
+    core.loadRegistry({
+        "serviceName": _self.serviceName,
+        "apiList": null,
+        "awareness": _self.awareness,
+        "serviceIp": _self.serviceIp
+    }, function (reg) {
+        _self.registry = reg;
+        _self.log = core.getLogger(_self.serviceName, _self.registry.serviceConfig.logger);
 
-        if (fetchedHostIp){
+        if (fetchedHostIp) {
             if (!fetchedHostIp.result) {
                 _self.log.warn("Unable to find the service host ip. The service will NOT be registered for awareness.");
                 _self.log.info("IPs found: ", ips);
@@ -43,65 +48,74 @@ controller.prototype.init = function(callback) {
                 _self.log.info("The IP registered for service awareness : ", fetchedHostIp.ip);
         }
 
-		var app = connect();
-		app.use(favicon_mw());
-		app.use(soajs_mw({
-			"serviceName": _self.serviceName,
-			"log": _self.log
-		}));
-		app.use(cors_mw());
-		app.use(response_mw({"controllerResponse": true}));
-		app.use(awareness_mw({
-			"awareness": _self.awareness,
-			"serviceName": _self.serviceName,
-			"log": _self.log,
-			"serviceIp": _self.serviceIp
-		}));
-		app.use(controller_mw());
-		app.use(function(req, res, next) {
-			var body = '';
+        var app = connect();
+        app.use(favicon_mw());
+        app.use(soajs_mw({
+            "serviceName": _self.serviceName,
+            "log": _self.log
+        }));
+        app.use(cors_mw());
+        app.use(response_mw({"controllerResponse": true}));
+        app.use(awareness_mw({
+            "awareness": _self.awareness,
+            "serviceName": _self.serviceName,
+            "log": _self.log,
+            "serviceIp": _self.serviceIp
+        }));
+        app.use(controller_mw());
+        app.use(function (req, res, next) {
+            var body = '';
 
-			req.on("data", function(chunk) {
-				body += chunk;
-			});
+            req.on("data", function (chunk) {
+                body += chunk;
+            });
 
-			/* Close the connection */
-			req.on("end", function() {
-				process.nextTick(function() {
-					try {
-						req.soajs.controller.gotoservice(req, res, body);
-					} catch(err) {
-						_self.log.error(err);
-						return req.soajs.controllerResponse(core.error.getError(136));
-					}
-				});
-			});
+            /* Close the connection */
+            req.on("end", function () {
+                process.nextTick(function () {
+                    try {
+                        req.soajs.controller.gotoservice(req, res, body);
+                    } catch (err) {
+                        _self.log.error(err);
+                        return req.soajs.controllerResponse(core.error.getError(136));
+                    }
+                });
+            });
 
-			req.on("error", function(error) {
-				req.soajs.log.error("Error @ controller:", error);
-				if(req.soajs.controller.redirectedRequest) {
-					req.soajs.controller.redirectedRequest.abort();
-				}
-			});
+            req.on("error", function (error) {
+                req.soajs.log.error("Error @ controller:", error);
+                if (req.soajs.controller.redirectedRequest) {
+                    req.soajs.controller.redirectedRequest.abort();
+                }
+            });
 
-			req.on("close", function() {
-				if(req.soajs.controller.redirectedRequest) {
-					req.soajs.log.info("Request aborted:", req.url);
-					req.soajs.controller.redirectedRequest.abort();
-				}
-			});
+            req.on("close", function () {
+                if (req.soajs.controller.redirectedRequest) {
+                    req.soajs.log.info("Request aborted:", req.url);
+                    req.soajs.controller.redirectedRequest.abort();
+                }
+            });
 
-			//next();
-		});
+            //next();
+        });
 
-		_self.server = http.createServer(app);
-		_self.serverMaintenance = http.createServer(function(req, res) {
-			if(req.url === '/reloadRegistry') {
-				core.reloadRegistry({"serviceName": _self.serviceName, "apiList": null, "awareness": _self.awareness, "serviceIp": _self.serviceIp}, function(reg) {
+        _self.server = http.createServer(app);
+        _self.serverMaintenance = http.createServer(function (req, res) {
+            if (req.url === '/reloadRegistry') {
+                core.reloadRegistry({
+                    "serviceName": _self.serviceName,
+                    "apiList": null,
+                    "awareness": _self.awareness,
+                    "serviceIp": _self.serviceIp
+                }, function (reg) {
                     res.writeHead(200, {'Content-Type': 'application/json'});
-					return res.end(JSON.stringify(reg));
-				});
-			}
+                    return res.end(JSON.stringify(reg));
+                });
+            }
+            else if (req.url === '/awarenessStat') {
+                res.writeHead(200, {'Content-Type': 'application/json'});
+                return res.end(JSON.stringify(core.getLoadedRegistry()));
+            }
             else {
                 var heartbeat = function (res) {
                     res.writeHead(200, {'Content-Type': 'application/json'});
@@ -123,66 +137,66 @@ controller.prototype.init = function(callback) {
 
                 return heartbeat(res);
             }
-		});
+        });
 
-		callback();
-	});
+        callback();
+    });
 };
 
 /**
  *
  */
-controller.prototype.start = function(cb) {
-	var _self = this;
-		var maintenancePort = _self.registry.services.controller.port + _self.registry.serviceConfig.ports.maintenanceInc;
-		_self.server.on('error', function(err) {
-			if(err.code === 'EADDRINUSE') {
-				_self.log.error('Address [port: ' + _self.registry.services.controller.port + '] in use by another service, exiting');
-			}
-			else {
-				_self.log.error(err);
-			}
-		});
-		_self.server.listen(_self.registry.services.controller.port, function(err) {
-			if(err) {
-				_self.log.error(err);
-			}
-			else {
-				_self.log.info(_self.serviceName + " service started on port: " + _self.registry.services.controller.port);
-			}
-			if(cb) {
-				cb(err);
-			}
-		});
-		_self.serverMaintenance.on('error', function(err) {
-			if(err.code === 'EADDRINUSE') {
-				_self.log.error('Address [port: ' + (maintenancePort) + '] in use by another service, exiting');
-			}
-			else {
-				_self.log.error(err);
-			}
-		});
-		_self.serverMaintenance.listen(maintenancePort, function(err) {
-			if(err) {
-				_self.log.error(err);
-			}
-			else {
-				_self.log.info(_self.serviceName + " service maintenance is listening on port: " + maintenancePort);
-			}
-		});
+controller.prototype.start = function (cb) {
+    var _self = this;
+    var maintenancePort = _self.registry.services.controller.port + _self.registry.serviceConfig.ports.maintenanceInc;
+    _self.server.on('error', function (err) {
+        if (err.code === 'EADDRINUSE') {
+            _self.log.error('Address [port: ' + _self.registry.services.controller.port + '] in use by another service, exiting');
+        }
+        else {
+            _self.log.error(err);
+        }
+    });
+    _self.server.listen(_self.registry.services.controller.port, function (err) {
+        if (err) {
+            _self.log.error(err);
+        }
+        else {
+            _self.log.info(_self.serviceName + " service started on port: " + _self.registry.services.controller.port);
+        }
+        if (cb) {
+            cb(err);
+        }
+    });
+    _self.serverMaintenance.on('error', function (err) {
+        if (err.code === 'EADDRINUSE') {
+            _self.log.error('Address [port: ' + (maintenancePort) + '] in use by another service, exiting');
+        }
+        else {
+            _self.log.error(err);
+        }
+    });
+    _self.serverMaintenance.listen(maintenancePort, function (err) {
+        if (err) {
+            _self.log.error(err);
+        }
+        else {
+            _self.log.info(_self.serviceName + " service maintenance is listening on port: " + maintenancePort);
+        }
+    });
 };
 
 
-controller.prototype.stop = function(cb) {
-	var _self = this;
-	_self.log.info('stopping controllerServer on port:', _self.registry.services.controller.port);
-	_self.server.close(function(err) {
-		_self.serverMaintenance.close(function(err) {
-			if(cb) {
-				cb(err);
-			}
-		});
-	});
+controller.prototype.stop = function (cb) {
+    var _self = this;
+    _self.log.info('stopping controllerServer on port:', _self.registry.services.controller.port);
+    _self.server.close(function (err) {
+        _self.serverMaintenance.close(function (err) {
+            if (cb) {
+                cb(err);
+            }
+        });
+    });
 };
 
 module.exports = controller;
