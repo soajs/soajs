@@ -362,7 +362,7 @@ module.exports = function (configuration) {
                         req.soajs.tenant = keyObj.tenant;
                         req.soajs.tenant.key = {
                             "iKey": keyObj.key,
-                            "eKEy": keyObj.extKey
+                            "eKey": keyObj.extKey
                         };
                         req.soajs.tenant.application = keyObj.application;
                         provision.getPackageData(keyObj.application.package, function (err, packObj) {
