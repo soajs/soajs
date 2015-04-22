@@ -317,10 +317,6 @@ function loadRegistry(param, cb) {
 					throw new Error('Unable to load Registry Db Info: ' + error.message);
 				}
 				else {
-					if(!RegistryFromDB.ENV_schema || !RegistryFromDB.services_schema){
-						throw new Error('Unable to load Registry Db Info. ');
-					}
-
 					build.buildRegistry(param, registry, RegistryFromDB, function() {
 						registry_struct[regEnvironment] = registry;
 						return cb();

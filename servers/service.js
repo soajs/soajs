@@ -47,6 +47,34 @@ function service(param) {
 	_self.app.soajs = soajs;
 }
 
+function extractAPIsList(schema){
+	var excluded = ['commonFields'];
+	var apiList =[];
+	for(var route in schema){
+		if(schema.hasOwnProperty(route)){
+			if(excluded.indexOf(route) !== -1){
+				continue;
+			}
+
+			var oneApi = {
+				'l': schema[route]._apiInfo.l,
+				'v': route
+			};
+
+			if(schema[route]._apiInfo.group){
+				oneApi.group = schema[route]._apiInfo.group;
+			}
+
+			if(schema[route]._apiInfo.groupMain){
+				oneApi.groupMain = schema[route]._apiInfo.groupMain;
+			}
+
+			apiList.push(oneApi);
+		}
+	}
+	return apiList;
+}
+
 service.prototype.init = function(callback) {
 	var _self = this;
 	var registry = null;
@@ -65,8 +93,7 @@ service.prototype.init = function(callback) {
             soajs.serviceIp = null;
     }
 
-	//TODO: build the apiList array from config.schemas
-	_self.app.soajs.apiList = [];
+	_self.app.soajs.apiList = extractAPIsList(param.config.schema);
 	core.loadRegistry({
 		"serviceName": soajs.serviceName,
 		"designatedPort": param.config.servicePort || null,
