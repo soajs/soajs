@@ -361,10 +361,10 @@ module.exports = function (configuration) {
                     if (keyObj && keyObj.application && keyObj.application.package) {
                         req.soajs.tenant = keyObj.tenant;
                         req.soajs.tenant.key = {
-                            "iKey" : keyObj.key,
-                            "eKEy" : keyObj.extKey,
-                            "application" : keyObj.application
+                            "iKey": keyObj.key,
+                            "eKEy": keyObj.extKey
                         };
+                        req.soajs.tenant.application = keyObj.application;
                         provision.getPackageData(keyObj.application.package, function (err, packObj) {
                             req.soajs.tenant.application.package_acl = packObj.acl;
                             if (packObj) {
