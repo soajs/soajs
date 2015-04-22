@@ -97,7 +97,7 @@ function getKeyFromDb(key, tId, oauth, cb) {
 											"product": tenants[i].applications[j].product,
 											"package": tenants[i].applications[j].package,
 											"appId": tenants[i].applications[j].appId.toString(),
-											"acl": tenants[i].applications[j].acl
+											"acl": tenants[i].applications[j].acl || null
 										},
 										"extKeys": tenants[i].applications[j].keys[k].extKeys,
 										"config": keyConfig,
