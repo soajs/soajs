@@ -34,7 +34,7 @@ function getPackagesFromDb(code, cb) {
 								struct = {};
 							}
 							struct[products[i].packages[j].code] = {
-								"acl": products[i].packages[j].acl,
+								"acl": products[i].packages[j].acl || null,
 								"_TTL": products[i].packages[j]._TTL,
 								"_TIME": new Date().getTime()
 							};
