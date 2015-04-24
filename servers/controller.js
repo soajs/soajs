@@ -114,7 +114,17 @@ controller.prototype.init = function (callback) {
             }
             else if (req.url === '/awarenessStat') {
                 res.writeHead(200, {'Content-Type': 'application/json'});
-                return res.end(JSON.stringify(core.getLoadedRegistry()));
+                var tmp = core.getLoadedRegistry();
+                var response = {};
+                if (tmp && tmp.services) {
+                    for (var s in tmp.services) {
+                        if (tmp.services.hasOwnProperty(s)) {
+                            if (tmp.services[s].awarenessStats)
+                                response[s] = tmp.services[s];
+                        }
+                    }
+                }
+                return res.end(JSON.stringify(response));
             }
             else {
                 var heartbeat = function (res) {
