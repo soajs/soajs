@@ -119,12 +119,15 @@ controller.prototype.init = function (callback) {
                         var tmp = core.getLoadedRegistry();
                         var response = {};
                         if (tmp && tmp.services) {
+                            response = tmp.services;
+                            /*
                             for (var s in tmp.services) {
                                 if (tmp.services.hasOwnProperty(s)) {
                                     if (tmp.services[s].awarenessStats)
                                         response[s] = tmp.services[s];
                                 }
                             }
+                            */
                         }
                         return res.end(JSON.stringify(response));
                     }
