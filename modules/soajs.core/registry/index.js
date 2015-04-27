@@ -5,7 +5,7 @@ var Mongo = require('../../soajs.mongo');
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
 var registryDir = (process.env.SOAJS_REGDIR || __dirname + "/../../../");//__dirname);
-var projectPath = registryDir + 'profiles/' + (process.env.SOAJS_PRJ || 'default/');
+var projectPath = registryDir + 'profiles/';
 var envPath = projectPath + 'environments/';
 var regFile = envPath + regEnvironment.toLowerCase() + '.js';
 
