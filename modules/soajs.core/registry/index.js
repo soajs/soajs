@@ -9,6 +9,8 @@ var projectPath = registryDir + 'profiles/';
 var envPath = projectPath + 'environments/';
 var regFile = envPath + regEnvironment.toLowerCase() + '.js';
 
+var regDbFailCount = 0;
+var mongo;
 var registry_struct = {};
 registry_struct[regEnvironment] = null;
 
@@ -72,7 +74,7 @@ var build = {
 	"allServices": function(STRUCT, servicesObj) {
 		if(STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
 			for(var i = 0; i < STRUCT.length; i++) {
-				if(STRUCT[i].name === 'controller'){
+				if(STRUCT[i].name === 'controller') {
 					continue;
 				}
 				servicesObj[STRUCT[i].name] = {
@@ -136,7 +138,9 @@ var build = {
 	},
 
 	"loadDBInformation": function(dbConfiguration, envCode, callback) {
-		var mongo = new Mongo(dbConfiguration);
+		if(!mongo) {
+			mongo = new Mongo(dbConfiguration);
+		}
 		mongo.findOne('environment', {'code': envCode.toUpperCase()}, function(error, envRecord) {
 			if(error) { return callback(error); }
 			mongo.find('hosts', {'env': envCode}, function(error, hostsRecords) {
@@ -145,7 +149,6 @@ var build = {
 				hostsRecords.forEach(function(oneHost) {
 					servicesNames.push(oneHost.name);
 				});
-				//mongo.find('services', {'name': {$in: servicesNames}}, function(error, servicesRecords) {
 				mongo.find('services', function(error, servicesRecords) {
 					if(error) { return callback(error); }
 					var obj = {};
@@ -166,7 +169,9 @@ var build = {
 	},
 
 	"registerNewService": function(dbConfiguration, serviceObj, ports, cb) {
-		var mongo = new Mongo(dbConfiguration);
+		if(!mongo) {
+			mongo = new Mongo(dbConfiguration);
+		}
 		mongo.findOne('services', {'port': serviceObj.port}, function(error, record) {
 			if(error) { return cb(error); }
 			if(!record) {
@@ -181,14 +186,16 @@ var build = {
 	},
 
 	"checkRegisterServiceIP": function(dbConfiguration, hostObj, cb) {
-		var mongo = new Mongo(dbConfiguration);
+		if(!mongo) {
+			mongo = new Mongo(dbConfiguration);
+		}
 		//check if this host has this ip in the env
 		mongo.findOne('hosts', hostObj, function(error, dbRecord) {
 			if(error || dbRecord) { return cb(error); }
 			if(!dbRecord) {
-				mongo.insert('hosts', hostObj, function(err, record){
-                    return cb();
-                });
+				mongo.insert('hosts', hostObj, function(err, record) {
+					return cb();
+				});
 			}
 		});
 	},
@@ -304,7 +311,7 @@ function loadRegistry(param, cb) {
 		var regFileObj = require(regFile);
 		if(regFileObj && typeof regFileObj === 'object') {
 			var registry = {
-                "timeLoaded" : new Date().getTime(),
+				"timeLoaded": new Date().getTime(),
 				"projectPath": projectPath,
 				"name": regFileObj.name,
 				"version": regFileObj.version,
@@ -315,7 +322,16 @@ function loadRegistry(param, cb) {
 			};
 			build.loadDBInformation(registry.coreDB.provision, registry.name, function(error, RegistryFromDB) {
 				if(error || !RegistryFromDB) {
-					throw new Error('Unable to load Registry Db Info: ' + error.message);
+					if(!param.reload) {
+						throw new Error('Unable to load Registry Db Info: ' + error.message);
+					}
+					else {
+						//todo: propagate error on reload in a better way
+						regDbFailCount++;
+						console.log("Unable to reload registry db info....");
+						console.log("error counter: " + regDbFailCount);
+						return cb();
+					}
 				}
 				else {
 					build.buildRegistry(param, registry, RegistryFromDB, function() {
@@ -349,6 +365,6 @@ exports.getRegistry = function(param, cb) {
 	}
 };
 
-exports.getLoadedRegistry = function(){
-    return registry_struct[regEnvironment];
+exports.getLoadedRegistry = function() {
+	return registry_struct[regEnvironment];
 };
