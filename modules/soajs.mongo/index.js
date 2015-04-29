@@ -312,6 +312,16 @@ MongoDriver.prototype.update = function(/*collectionName, criteria, record, [opt
 };
 
 /**
+ * Closes Mongo connection
+ */
+MongoDriver.prototype.closeDb = function() {
+	var self = this;
+	if(self.db) {
+		self.db.close();
+	}
+};
+
+/**
  * Ensure a connection to mongo without any race condition problem
  *
  * @param {Object} obj
@@ -345,16 +355,16 @@ function connect(obj, cb) {
 		}
 	});
 
-    /**
-     *constructMongoLink: is a function that takes the below param and return the URL need to by mongoskin.connect
-     *
-     * @param dbName
-     * @param prefix
-     * @param servers
-     * @param params
-     * @param credentials
-     * @returns {*}
-     */
+	/**
+	 *constructMongoLink: is a function that takes the below param and return the URL need to by mongoskin.connect
+	 *
+	 * @param dbName
+	 * @param prefix
+	 * @param servers
+	 * @param params
+	 * @param credentials
+	 * @returns {*}
+	 */
 	function constructMongoLink(dbName, prefix, servers, params, credentials) {
 		if(dbName && Array.isArray(servers)) {
 			var url = "mongodb://";
