@@ -103,8 +103,8 @@ function redirectToService(req, res, body) {
     var requestTO = restServiceParams.requestTimeout || config.requestTimeout;
 
     req.soajs.awareness.getHost(restServiceParams.name, function (host) {
-        if (!host){
-            req.soajs.log.error('Unable to find any healthy host for service ['+restServiceParams.name+']');
+        if (!host) {
+            req.soajs.log.error('Unable to find any healthy host for service [' + restServiceParams.name + ']');
             return req.soajs.controllerResponse(core.error.getError(133));
         }
         var requestOptions = {
@@ -115,6 +115,13 @@ function redirectToService(req, res, body) {
             'headers': req.headers,
             'jar': false
         };
+        req.soajs.log.info({
+            "serviceName": restServiceParams.name,
+            "host": host,
+            "url": restServiceParams.url,
+            "header": req.headers,
+            "body": body
+        });
 
         req.soajs.controller.renewalCount = 0;
         res.setTimeout(requestTO * 1000, function () {
