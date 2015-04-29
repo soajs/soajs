@@ -109,7 +109,9 @@ controller.prototype.init = function (callback) {
                             "apiList": null,
                             "awareness": _self.awareness,
                             "serviceIp": _self.serviceIp
-                        }, function (reg) {
+                        }, function (err, reg) {
+                            if (err)
+                                _self.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
                             res.writeHead(200, {'Content-Type': 'application/json'});
                             return res.end(JSON.stringify(reg));
                         });
@@ -120,14 +122,6 @@ controller.prototype.init = function (callback) {
                         var response = {};
                         if (tmp && tmp.services) {
                             response = tmp.services;
-                            /*
-                            for (var s in tmp.services) {
-                                if (tmp.services.hasOwnProperty(s)) {
-                                    if (tmp.services[s].awarenessStats)
-                                        response[s] = tmp.services[s];
-                                }
-                            }
-                            */
                         }
                         return res.end(JSON.stringify(response));
                     }

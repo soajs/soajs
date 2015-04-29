@@ -279,7 +279,9 @@ service.prototype.start = function(cb) {
 							"apiList": _self.app.soajs.apiList,
 							"awareness": _self.app.soajs.awareness,
 							"serviceIp": _self.app.soajs.serviceIp
-						}, function(reg) {
+						}, function(err, reg) {
+                            if (err)
+                                _self._log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
 							var response = maintenanceResponse(req);
 							response['result'] = true;
 							response['data'] = reg;

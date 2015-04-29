@@ -25,7 +25,9 @@ module.exports = function (param) {
                 "apiList": param.apiList,
                 "awareness": param.awareness,
                 "serviceIp": param.serviceIp
-            }, function (reg) {
+            }, function (err, reg) {
+                if (err)
+                    param.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
                 param.log.info("Self Awareness reloaded registry. next reload is in [" + registry.serviceConfig.awareness.autoRelaodRegistry + "] milliseconds");
                 setTimeout(awareness_reloadRegistry, registry.serviceConfig.awareness.autoRelaodRegistry);
             });

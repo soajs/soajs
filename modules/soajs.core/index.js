@@ -7,13 +7,17 @@ exports.getLoadedRegistry = function () {
 exports.loadRegistry = function (param, cb) {
     if (!param) param = {};
     param.reload = false;
-    return registry.getRegistry(param, cb);
+    return registry.getRegistry(param, function (err, reg) {
+        return cb(reg);
+    });
 };
 exports.reloadRegistry = function (param, cb) {
     if (!param) param = {};
     param.reload = true;
     param.designatedPort = null;
-    return registry.getRegistry(param, cb);
+    return registry.getRegistry(param, function (err, reg) {
+        return cb(err, reg);
+    });
 };
 exports.getLogger = require('./logger/index');
 exports.meta = require('./meta/index');
@@ -34,12 +38,12 @@ exports.getHostIp = function () {
                 // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
                 return;
             }
-            ips[ifname]=iface.address;
+            ips[ifname] = iface.address;
         });
     });
-    for (var i=0;i<ifnameLookupSequence.length;i++){
+    for (var i = 0; i < ifnameLookupSequence.length; i++) {
         if (ips[ifnameLookupSequence[i]])
-        return {"result":true,"ip":ips[ifnameLookupSequence[i]]};
+            return {"result": true, "ip": ips[ifnameLookupSequence[i]]};
     }
-    return {"result":false,"ips":ips,"n":ifnameLookupSequence};
+    return {"result": false, "ips": ips, "n": ifnameLookupSequence};
 };

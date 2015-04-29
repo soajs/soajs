@@ -9,7 +9,6 @@ var projectPath = registryDir + 'profiles/';
 var envPath = projectPath + 'environments/';
 var regFile = envPath + regEnvironment.toLowerCase() + '.js';
 
-var regDbFailCount = 0;
 var mongo;
 var registry_struct = {};
 registry_struct[regEnvironment] = null;
@@ -327,16 +326,13 @@ function loadRegistry(param, cb) {
 					}
 					else {
 						//todo: propagate error on reload in a better way
-						regDbFailCount++;
-						console.log("Unable to reload registry db info....");
-						console.log("error counter: " + regDbFailCount);
-						return cb();
+						return cb(error);
 					}
 				}
 				else {
 					build.buildRegistry(param, registry, RegistryFromDB, function() {
 						registry_struct[regEnvironment] = registry;
-						return cb();
+						return cb(null);
 					});
 				}
 			});
@@ -353,12 +349,12 @@ function loadRegistry(param, cb) {
 exports.getRegistry = function(param, cb) {
 	try {
 		if(param.reload || !registry_struct[regEnvironment]) {
-			loadRegistry(param, function() {
-				return cb(registry_struct[regEnvironment]);
+			loadRegistry(param, function(err) {
+				return cb(err, registry_struct[regEnvironment]);
 			});
 		}
 		else {
-			return cb(registry_struct[regEnvironment]);
+			return cb(null, registry_struct[regEnvironment]);
 		}
 	} catch(e) {
 		throw new Error('Failed to get registry: ' + e.message);
