@@ -19,7 +19,7 @@ function getKeyData(keyStruct, extKey) {
         var extKeysLen = keyStruct.extKeys.length;
         for (var i = 0; i < extKeysLen; i++) {
             if (keyStruct.extKeys[i].extKey === extKey) {
-                if (keyStruct.extKeys[i].expDate && (keyStruct.extKeys[i].expDate > new Date().getTime())) {
+                if (!keyStruct.extKeys[i].expDate || (keyStruct.extKeys[i].expDate && (keyStruct.extKeys[i].expDate > new Date().getTime()))) {
                     obj = {
                         "key": keyStruct.key,
                         "extKey": extKey,
