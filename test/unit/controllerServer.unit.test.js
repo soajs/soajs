@@ -12,10 +12,53 @@ var soajs = helper.requireModule('index.js');
 describe("testing controller", function() {
 
 	before(function(done) {
-		controllerApp.init(function() {
-			controllerApp.start(function(err) {
-				assert.ifError(err);
-				done();
+		var helloworld = new soajs.server.service({
+			"config": {
+				"serviceName": 'helloworld',
+				"servicePort": 4020,
+				"extKeyRequired": false,
+				errors: {},
+				schema: {
+					"/hello": {
+						"_apiInfo": {
+							"l": "Hello Wolrd"
+						},
+						"firstName": {
+							"source": ['query.firstName'],
+							"required": false,
+							"validation": {
+								"type": "string"
+							}
+						}
+
+					}
+				}
+			}
+		});
+		helloworld.init(function() {
+			helloworld.start(function() {
+				helloworld.stop(function() {
+					controllerApp.init(function() {
+						controllerApp.start(function(err) {
+							assert.ifError(err);
+
+							requester('get', {
+								uri: 'http://localhost:5000/reloadRegistry'
+							}, function(err, body, response) {
+								assert.ifError(err);
+								assert.equal(response.statusCode, 200);
+								assert.equal(response.headers['content-type'], 'application/json');
+								helloworld.init(function() {
+									helloworld.start(function() {
+										helloworld.stop(function() {
+											done();
+										});
+									});
+								});
+							});
+						});
+					});
+				});
 			});
 		});
 	});
@@ -281,6 +324,19 @@ describe("testing controller", function() {
 				assert.ifError(err);
 				assert.equal(response.statusCode, 200);
 				assert.deepEqual(body, {"result": true, "data": {"test": true}});
+				done();
+			});
+		});
+	});
+
+	describe("testing awareness controller", function() {
+		it('Testing /awarenessStat', function(done) {
+			requester('get', {
+				uri: 'http://localhost:5000/awarenessStat'
+			}, function(err, body, response) {
+				assert.ifError(err);
+				assert.equal(response.statusCode, 200);
+				assert.equal(response.headers['content-type'], 'application/json');
 				done();
 			});
 		});
