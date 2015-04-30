@@ -119,20 +119,6 @@ var build = {
         }
         return serviceObj;
     },
-	"services": function(STRUCT) {
-		var servicesObj = {};
-		if(STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
-			for(var i = 0; i < STRUCT.length; i++) {
-                servicesObj[STRUCT[i].name] = {
-						"extKeyRequired": STRUCT[i].extKeyRequired,
-						"port": STRUCT[i].port,
-						"requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
-						"requestTimeout": STRUCT[i].requestTimeoutRenewal || null
-					};
-			}
-		}
-		return servicesObj;
-	},
 
 	"controllerHosts": function(STRUCT, controllerObj) {
 		if(STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
@@ -263,14 +249,6 @@ var build = {
                 //todo: check the apis list if they are updated or removed
                 resume();
             }
-            /*
-			var servicesObj = build.services(registryDBInfo.services_schema);
-			if(servicesObj) {
-				registry["services"] = servicesObj;
-				//todo: check the apis list if they are updated or removed
-				resume();
-			}
-			*/
 			else {
 				//registering a new service
 				registry["services"][param.serviceName] = {
@@ -298,7 +276,7 @@ var build = {
 		}
 
 		function resume() {
-			if(param.serviceName !== 'controller' && param.awareness) {
+			if(param.awareness) {
 				build.controllerHosts(registryDBInfo.ENV_hosts, registry["services"].controller);
 			}
 			if(param.serviceIp) {
