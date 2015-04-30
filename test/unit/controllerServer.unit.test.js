@@ -210,22 +210,6 @@ describe("testing controller", function() {
 				done();
 			});
 		});
-		it('Testing /example01/reloadRegistry', function(done) {
-			requester('get', {
-				uri: 'http://localhost:5010/reloadRegistry'
-			}, function(err, body, response) {
-				assert.ifError(err);
-				assert.equal(response.statusCode, 200);
-				assert.equal(body.result, true);
-				assert.deepEqual(body.service, {
-					"service": "example01",
-					"type": "rest",
-					"route": "/reloadRegistry"
-				});
-				assert.equal(body.data.name, 'dev');
-				done();
-			});
-		});
 	});
 
 	describe('Testing example03 via controllerServer w/services', function() {

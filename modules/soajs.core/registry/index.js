@@ -102,7 +102,23 @@ var build = {
 			}
 		}
 	},
-
+    "service": function(STRUCT, serviceName) {
+        var serviceObj = null;
+        if(STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
+            for(var i = 0; i < STRUCT.length; i++) {
+                if(STRUCT[i].name === serviceName) {
+                    serviceObj = {
+                        "extKeyRequired": STRUCT[i].extKeyRequired,
+                        "port": STRUCT[i].port,
+                        "requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
+                        "requestTimeout": STRUCT[i].requestTimeoutRenewal || null
+                    };
+                    break;
+                }
+            }
+        }
+        return serviceObj;
+    },
 	"services": function(STRUCT) {
 		var servicesObj = {};
 		if(STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
@@ -241,12 +257,20 @@ var build = {
 			resume();
 		}
 		else {
+            var serviceObj = build.service(registryDBInfo.services_schema, param.serviceName);
+            if(serviceObj) {
+                registry["services"][param.serviceName] = serviceObj;
+                //todo: check the apis list if they are updated or removed
+                resume();
+            }
+            /*
 			var servicesObj = build.services(registryDBInfo.services_schema);
 			if(servicesObj) {
 				registry["services"] = servicesObj;
 				//todo: check the apis list if they are updated or removed
 				resume();
 			}
+			*/
 			else {
 				//registering a new service
 				registry["services"][param.serviceName] = {
