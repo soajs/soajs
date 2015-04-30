@@ -22,13 +22,6 @@ describe("testing controller", function() {
 
 	describe('Testing controllerServer', function() {
 
-		//after(function(done) {
-		//	//controllerApp.stop(function(err) {
-		//	//  assert.ifError(err);
-		//	done();
-		//	//});
-		//});
-
 		it('Testing /favicon.ico', function(done) {
 			requester('get', {
 				uri: 'http://localhost:4000/favicon.ico'
@@ -67,8 +60,6 @@ describe("testing controller", function() {
 				assert.ifError(err);
 				assert.equal(response.statusCode, 200);
 				assert.equal(body.result, true);
-				//assert.equal(body,"nothing to do!");
-				//assert.equal(response.headers['content-type'],'text/plain');
 				done();
 			});
 		});
@@ -142,108 +133,99 @@ describe("testing controller", function() {
 				}
 			}
 		});
-		//service.init(function() {
-		//	service.get("/validService", function(req, res) {
-		//		res.json(req.soajs.buildResponse(null, {test: true}));
-		//	});
-			//});
-			before(function(done) {
-				// controllerApp.start(function(err) {
-				service.init(function() {
-					service.get("/validService", function(req, res) {
-						res.json(req.soajs.buildResponse(null, {test: true}));
-					});
-					service.start(function(err) {
+
+		before(function(done) {
+			service.init(function() {
+				service.get("/validService", function(req, res) {
+					res.json(req.soajs.buildResponse(null, {test: true}));
+				});
+				service.start(function(err) {
+					assert.ifError(err);
+					setTimeout(function() {
 						assert.ifError(err);
-						setTimeout(function() {
-							assert.ifError(err);
-							//console.log(body);
-							done();
-						}, 500);
-					});
+						done();
+					}, 500);
 				});
 			});
-			after(function(done) {
-				//  controllerApp.stop(function(err) {
-				service.stop(function(err) {
-					assert.ifError(err);
-					done();
-				});
-				//  });
+		});
+		after(function(done) {
+			service.stop(function(err) {
+				assert.ifError(err);
+				done();
 			});
-			it('Testing /example01', function(done) {
-				requester('get', {
-					uri: 'http://localhost:4000/example01'
-				}, function(err, body, response) {
-					assert.ifError(err);
-					assert.equal(response.statusCode, 200);
-					assert.deepEqual(body, {
-						"result": false,
-						"errors": {
-							"codes": [151],
-							"details": [{"code": 151, "message": "You are trying to reach an unknown rest service!"}]
-						}
-					});
-					done();
+		});
+		it('Testing /example01', function(done) {
+			requester('get', {
+				uri: 'http://localhost:4000/example01'
+			}, function(err, body, response) {
+				assert.ifError(err);
+				assert.equal(response.statusCode, 200);
+				assert.deepEqual(body, {
+					"result": false,
+					"errors": {
+						"codes": [151],
+						"details": [{"code": 151, "message": "You are trying to reach an unknown rest service!"}]
+					}
 				});
+				done();
 			});
-			it('Testing /example01/wrongService', function(done) {
-				requester('get', {
-					uri: 'http://localhost:4000/example01/wrongService'
-				}, function(err, body, response) {
-					assert.ifError(err);
-					assert.equal(response.statusCode, 200);
-					assert.deepEqual(body, {
-						"result": false,
-						"errors": {
-							"codes": [151],
-							"details": [{"code": 151, "message": "You are trying to reach an unknown rest service!"}]
-						}
-					});
-					done();
+		});
+		it('Testing /example01/wrongService', function(done) {
+			requester('get', {
+				uri: 'http://localhost:4000/example01/wrongService'
+			}, function(err, body, response) {
+				assert.ifError(err);
+				assert.equal(response.statusCode, 200);
+				assert.deepEqual(body, {
+					"result": false,
+					"errors": {
+						"codes": [151],
+						"details": [{"code": 151, "message": "You are trying to reach an unknown rest service!"}]
+					}
 				});
+				done();
 			});
-			it('Testing /example01/validService', function(done) {
-				requester('get', {
-					uri: 'http://localhost:4010/validService'
-				}, function(err, body, response) {
-					assert.ifError(err);
-					assert.equal(response.statusCode, 200);
-					assert.deepEqual(body, {"result": true, "data": {"test": true}});
-					done();
+		});
+		it('Testing /example01/validService', function(done) {
+			requester('get', {
+				uri: 'http://localhost:4010/validService'
+			}, function(err, body, response) {
+				assert.ifError(err);
+				assert.equal(response.statusCode, 200);
+				assert.deepEqual(body, {"result": true, "data": {"test": true}});
+				done();
+			});
+		});
+		it('Testing /example01/heartbeat', function(done) {
+			requester('get', {
+				uri: 'http://localhost:5010/heartbeat'
+			}, function(err, body, response) {
+				assert.ifError(err);
+				assert.equal(response.statusCode, 200);
+				delete body.ts;
+				assert.deepEqual(body, {
+					"result": true,
+					"service": {"service": "example01", "type": "rest", "route": "/heartbeat"}
 				});
+				done();
 			});
-			it('Testing /example01/heartbeat', function(done) {
-				requester('get', {
-					uri: 'http://localhost:5010/heartbeat'
-				}, function(err, body, response) {
-					assert.ifError(err);
-					assert.equal(response.statusCode, 200);
-					delete body.ts;
-					assert.deepEqual(body, {
-						"result": true,
-						"service": {"service": "example01", "type": "rest", "route": "/heartbeat"}
-					});
-					done();
+		});
+		it('Testing /example01/reloadRegistry', function(done) {
+			requester('get', {
+				uri: 'http://localhost:5010/reloadRegistry'
+			}, function(err, body, response) {
+				assert.ifError(err);
+				assert.equal(response.statusCode, 200);
+				assert.equal(body.result, true);
+				assert.deepEqual(body.service, {
+					"service": "example01",
+					"type": "rest",
+					"route": "/reloadRegistry"
 				});
+				assert.equal(body.data.name, 'dev');
+				done();
 			});
-			it('Testing /example01/reloadRegistry', function(done) {
-				requester('get', {
-					uri: 'http://localhost:5010/reloadRegistry'
-				}, function(err, body, response) {
-					assert.ifError(err);
-					assert.equal(response.statusCode, 200);
-					assert.equal(body.result, true);
-					assert.deepEqual(body.service, {
-						"service": "example01",
-						"type": "rest",
-						"route": "/reloadRegistry"
-					});
-					assert.equal(body.data.name, 'dev');
-					done();
-				});
-			});
-		//});
+		});
 	});
 
 	describe('Testing example03 via controllerServer w/services', function() {
@@ -277,92 +259,47 @@ describe("testing controller", function() {
 			}
 		});
 
-		//service.init(function() {
-		//	service.get("/validService", function(req, res) {
-		//		res.json(req.soajs.buildResponse(null, {test: true}));
-		//	});
+		before(function(done) {
+			service.init(function() {
+				service.get("/validService", function(req, res) {
+					res.json(req.soajs.buildResponse(null, {test: true}));
+				});
 
-			before(function(done) {
-				service.init(function() {
-					service.get("/validService", function(req, res) {
-						res.json(req.soajs.buildResponse(null, {test: true}));
-					});
-
-					async.series([
-							//	function(cb){ controllerApp.start(cb);},
-							function(cb) {
-								service.start(function() {
-									setTimeout(function() {
-										cb();
-									}, 2000);
-								});
-							},
-							function(cb) {
-								requester('get', {
-									uri: 'http://localhost:5000/reloadRegistry'
-								}, function(err, body, response) {
-									assert.ifError(err);
-									setTimeout(function() {
-										cb();
-									}, 1000);
-								});
-							}
-						],
-						function(err) {
-							assert.ifError(err);
-							setTimeout(function() {
-								done();
-							}, 500);
-						});
-				});
-			});
-			after(function(done) {
-				//  controllerApp.stop(function(err) {
-				service.stop(function(err) {
+				service.start(function(err){
 					assert.ifError(err);
-					done();
-				});
-				//  });
-			});
-			it('Testing /example03/validService with valid key via direct in header', function(done) {
-				requester('get', {
-					uri: 'http://localhost:4000/example03/validService',
-					headers: {'key': 'aa39b5490c4a4ed0e56d7ec1232a428f7ad78ebb7347db3fc9875cb10c2bce39bbf8aabacf9e00420afb580b15698c04ce10d659d1972ebc53e76b6bbae0c113bee1e23062800bc830e4c329ca913fefebd1f1222295cf2eb5486224044b4d0c'}
-				}, function(err, body, response) {
-					assert.ifError(err);
-					assert.equal(response.statusCode, 200);
-					assert.deepEqual(body, {"result": true, "data": {"test": true}});
-					done();
+					setTimeout(function() {
+						done();
+					}, 500);
 				});
 			});
-			it('Testing /example03/validService with valid key via controller in qs', function(done) {
-				requester('get', {
-					uri: 'http://localhost:4000/example03/validService?key=aa39b5490c4a4ed0e56d7ec1232a428f7ad78ebb7347db3fc9875cb10c2bce39bbf8aabacf9e00420afb580b15698c04ce10d659d1972ebc53e76b6bbae0c113bee1e23062800bc830e4c329ca913fefebd1f1222295cf2eb5486224044b4d0c'
-				}, function(err, body, response) {
-					assert.ifError(err);
-					assert.equal(response.statusCode, 200);
-					assert.deepEqual(body, {"result": true, "data": {"test": true}});
-					done();
-				});
+		});
+		after(function(done) {
+			service.stop(function(err) {
+				assert.ifError(err);
+				done();
 			});
-			//it('Testing /example03/validService with bad key', function(done) {
-			//	requester('get', {
-			//		uri: 'http://localhost:4000/example03/validService',
-			//		"headers": {"key": "invalid"}
-			//	}, function(err, body, response) {
-			//		assert.ifError(err);
-			//		assert.equal(response.statusCode, 200);
-			//		assert.deepEqual(body, {
-			//			"result": false,
-			//			"errors": {
-			//				"codes": [132],
-			//				"details": [{"code": 132, "message": "A valid key is needed to access any API."}]
-			//			}
-			//		});
-			//		done();
-			//	});
-			//});
-		//});
+		});
+		it('Testing /example03/validService with valid key via direct in header', function(done) {
+			requester('get', {
+				uri: 'http://localhost:4000/example03/validService',
+				headers: {'key': 'aa39b5490c4a4ed0e56d7ec1232a428f7ad78ebb7347db3fc9875cb10c2bce39bbf8aabacf9e00420afb580b15698c04ce10d659d1972ebc53e76b6bbae0c113bee1e23062800bc830e4c329ca913fefebd1f1222295cf2eb5486224044b4d0c'}
+			}, function(err, body, response) {
+				assert.ifError(err);
+				assert.equal(response.statusCode, 200);
+				assert.deepEqual(body, {"result": true, "data": {"test": true}});
+				done();
+			});
+		});
+		it('Testing /example03/validService with valid key via controller in qs', function(done) {
+			requester('get', {
+				uri: 'http://localhost:4000/example03/validService?key=aa39b5490c4a4ed0e56d7ec1232a428f7ad78ebb7347db3fc9875cb10c2bce39bbf8aabacf9e00420afb580b15698c04ce10d659d1972ebc53e76b6bbae0c113bee1e23062800bc830e4c329ca913fefebd1f1222295cf2eb5486224044b4d0c'
+			}, function(err, body, response) {
+				assert.ifError(err);
+				assert.equal(response.statusCode, 200);
+				assert.deepEqual(body, {"result": true, "data": {"test": true}});
+				done();
+			});
+		});
 	});
 
 	describe('Testing services w/o serviceName via controllerServer ', function() {
@@ -411,21 +348,12 @@ describe("testing controller", function() {
 		});
 
 		before(function(done) {
-			//  controllerApp.start(function(err) {
-			//    assert.ifError(err);
 			done();
-			// });
 		});
-		//after(function(done) {
-		//	controllerApp.stop(function(err) {
-		//		assert.ifError(err);
-		//		done();
-		//	});
-		//});
+
 		it('Testing starting a services without a servicename and a dirname', function(done) {
 
 			service.init(function(err) {
-				//service.start(function (err2) {
 				err = err.toString();
 				console.log(err);
 				var ii = err.indexOf("Service shutdown due to failure!");
@@ -436,7 +364,6 @@ describe("testing controller", function() {
 				}
 				assert.equal(ii, true);
 				done();
-				// });
 			});
 		});
 	});
