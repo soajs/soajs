@@ -9,14 +9,19 @@ var requester = helper.requester;
 var controllerApp = new (helper.requireModule('./servers/controller.js'));
 var soajs = helper.requireModule('index.js');
 
-controllerApp.init(function() {
-	describe('Testing controllerServer', function() {
-		before(function(done) {
+describe("testing controller", function(){
+
+	before(function(done){
+		controllerApp.init(function() {
 			controllerApp.start(function(err) {
 				//assert.ifError(err);
 				done();
 			});
 		});
+	});
+
+	describe('Testing controllerServer', function() {
+
 		after(function(done) {
 			//controllerApp.stop(function(err) {
 			//  assert.ifError(err);
@@ -234,7 +239,6 @@ controllerApp.init(function() {
 					done();
 				});
 			});
-
 		});
 	});
 
@@ -402,12 +406,12 @@ controllerApp.init(function() {
 			done();
 			// });
 		});
-		after(function(done) {
-			controllerApp.stop(function(err) {
-				assert.ifError(err);
-				done();
-			});
-		});
+		//after(function(done) {
+		//	controllerApp.stop(function(err) {
+		//		assert.ifError(err);
+		//		done();
+		//	});
+		//});
 		it('Testing starting a services without a servicename and a dirname', function(done) {
 
 			service.init(function(err) {
@@ -427,5 +431,9 @@ controllerApp.init(function() {
 		});
 	});
 
+	after(function(done){
+		controllerApp.stop(function(){
+			done();
+		})
+	})
 });
-
