@@ -80,7 +80,10 @@ module.exports = function (param) {
                                 statusObj.downSince = statusObj.lastCheck;
                                 statusObj.downCount = 0;
                             }
-                            param.log.warn("Self Awareness health check for service [" + sObj.name + "] for host [" + sObj.host + "] is NOT healthy");
+                            //TODO: move this into registry service config
+                            var stopLoggingAfter = 5;
+                            if (statusObj.downCount <= stopLoggingAfter)
+                                param.log.warn("Self Awareness health check for service [" + sObj.name + "] for host [" + sObj.host + "] is NOT healthy");
                             if (serviceAwarenessObj[sObj.name].healthy.indexOf(sObj.host) !== -1) {
                                 //TODO: if we guarantee uniqueness we will not need the for loop
                                 for (var ii = 0; ii < serviceAwarenessObj[sObj.name].healthy.length; ii++) {
