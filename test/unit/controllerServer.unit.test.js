@@ -35,22 +35,30 @@ describe("testing controller", function() {
 				}
 			}
 		});
+        console.log ("********** controller before");
 		helloworld.init(function() {
+            console.log ("********** controller before - helloworld.init");
 			helloworld.start(function() {
+                console.log ("********** controller before - helloworld.start");
 				helloworld.stop(function() {
+                    console.log ("********** controller before - helloworld.stop");
 					controllerApp.init(function() {
+                        console.log ("********** controller before - controllerApp.init");
 						controllerApp.start(function(err) {
+                            console.log ("********** controller before - controllerApp.start");
 							assert.ifError(err);
 
 							requester('get', {
 								uri: 'http://localhost:5000/reloadRegistry'
 							}, function(err, body, response) {
+                                console.log ("********** controller before - reloadRegistry");
 								assert.ifError(err);
 								assert.equal(response.statusCode, 200);
 								assert.equal(response.headers['content-type'], 'application/json');
 								helloworld.init(function() {
 									helloworld.start(function() {
 										helloworld.stop(function() {
+                                            console.log ("********** controller before - DONE");
 											done();
 										});
 									});
