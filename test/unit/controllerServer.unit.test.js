@@ -9,12 +9,12 @@ var requester = helper.requester;
 var controllerApp = new (helper.requireModule('./servers/controller.js'));
 var soajs = helper.requireModule('index.js');
 
-describe("testing controller", function(){
+describe("testing controller", function() {
 
-	before(function(done){
+	before(function(done) {
 		controllerApp.init(function() {
 			controllerApp.start(function(err) {
-				//assert.ifError(err);
+				assert.ifError(err);
 				done();
 			});
 		});
@@ -22,12 +22,12 @@ describe("testing controller", function(){
 
 	describe('Testing controllerServer', function() {
 
-		after(function(done) {
-			//controllerApp.stop(function(err) {
-			//  assert.ifError(err);
-			done();
-			//});
-		});
+		//after(function(done) {
+		//	//controllerApp.stop(function(err) {
+		//	//  assert.ifError(err);
+		//	done();
+		//	//});
+		//});
 
 		it('Testing /favicon.ico', function(done) {
 			requester('get', {
@@ -142,22 +142,26 @@ describe("testing controller", function(){
 				}
 			}
 		});
-		service.init(function() {
-			service.get("/validService", function(req, res) {
-				res.json(req.soajs.buildResponse(null, {test: true}));
-			});
+		//service.init(function() {
+		//	service.get("/validService", function(req, res) {
+		//		res.json(req.soajs.buildResponse(null, {test: true}));
+		//	});
 			//});
 			before(function(done) {
 				// controllerApp.start(function(err) {
-				service.start(function(err) {
-					assert.ifError(err);
-					setTimeout(function() {
+				service.init(function() {
+					service.get("/validService", function(req, res) {
+						res.json(req.soajs.buildResponse(null, {test: true}));
+					});
+					service.start(function(err) {
 						assert.ifError(err);
-						//console.log(body);
-						done();
-					}, 500);
+						setTimeout(function() {
+							assert.ifError(err);
+							//console.log(body);
+							done();
+						}, 500);
+					});
 				});
-				// });
 			});
 			after(function(done) {
 				//  controllerApp.stop(function(err) {
@@ -239,7 +243,7 @@ describe("testing controller", function(){
 					done();
 				});
 			});
-		});
+		//});
 	});
 
 	describe('Testing example03 via controllerServer w/services', function() {
@@ -273,38 +277,44 @@ describe("testing controller", function(){
 			}
 		});
 
-		service.init(function() {
-			service.get("/validService", function(req, res) {
-				res.json(req.soajs.buildResponse(null, {test: true}));
-			});
+		//service.init(function() {
+		//	service.get("/validService", function(req, res) {
+		//		res.json(req.soajs.buildResponse(null, {test: true}));
+		//	});
 
 			before(function(done) {
-				async.series([
-						//	function(cb){ controllerApp.start(cb);},
-						function(cb) {
-							service.start(function() {
-								setTimeout(function() {
-									cb();
-								}, 2000);
-							});
-						},
-						function(cb) {
-							requester('get', {
-								uri: 'http://localhost:5000/reloadRegistry'
-							}, function(err, body, response) {
-								assert.ifError(err);
-								setTimeout(function() {
-									cb();
-								}, 1000);
-							});
-						}
-					],
-					function(err) {
-						assert.ifError(err);
-						setTimeout(function() {
-							done();
-						}, 500);
+				service.init(function() {
+					service.get("/validService", function(req, res) {
+						res.json(req.soajs.buildResponse(null, {test: true}));
 					});
+
+					async.series([
+							//	function(cb){ controllerApp.start(cb);},
+							function(cb) {
+								service.start(function() {
+									setTimeout(function() {
+										cb();
+									}, 2000);
+								});
+							},
+							function(cb) {
+								requester('get', {
+									uri: 'http://localhost:5000/reloadRegistry'
+								}, function(err, body, response) {
+									assert.ifError(err);
+									setTimeout(function() {
+										cb();
+									}, 1000);
+								});
+							}
+						],
+						function(err) {
+							assert.ifError(err);
+							setTimeout(function() {
+								done();
+							}, 500);
+						});
+				});
 			});
 			after(function(done) {
 				//  controllerApp.stop(function(err) {
@@ -352,7 +362,7 @@ describe("testing controller", function(){
 			//		done();
 			//	});
 			//});
-		});
+		//});
 	});
 
 	describe('Testing services w/o serviceName via controllerServer ', function() {
@@ -431,8 +441,8 @@ describe("testing controller", function(){
 		});
 	});
 
-	after(function(done){
-		controllerApp.stop(function(){
+	after(function(done) {
+		controllerApp.stop(function() {
 			done();
 		})
 	})
