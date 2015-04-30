@@ -265,7 +265,7 @@ describe("testing controller", function() {
 					res.json(req.soajs.buildResponse(null, {test: true}));
 				});
 
-				service.start(function(err){
+				service.start(function(err) {
 					assert.ifError(err);
 					setTimeout(function() {
 						done();
@@ -297,72 +297,6 @@ describe("testing controller", function() {
 				assert.ifError(err);
 				assert.equal(response.statusCode, 200);
 				assert.deepEqual(body, {"result": true, "data": {"test": true}});
-				done();
-			});
-		});
-	});
-
-	describe('Testing services w/o serviceName via controllerServer ', function() {
-		var service = new soajs.server.service({
-
-			"bodyParser": true,
-			"cookieParser": true,
-			"logger": true,
-			"inputmask": true,
-			"session": false,
-			"security": false,
-			"multitenant": false,
-			"acl": false,
-			"config": {
-				errors: {}, schema: {
-					"/validService": {
-						"_apiInfo": {
-							"l": "Valid Service"
-						},
-						"firstName": {
-							"source": ['query.firstName'],
-							"required": false,
-							"validation": {
-								"type": "string"
-							}
-						}
-					}
-				}
-			}
-		});
-
-		service.get("/validService", function(req, res) {
-			res.json(req.soajs.buildResponse(null, {test: true}));
-		});
-		service.post("/validService", function(req, res) {
-			res.json(req.soajs.buildResponse(null, {test: true}));
-		});
-		service.all("/validService", function(req, res) {
-			res.json(req.soajs.buildResponse(null, {test: true}));
-		});
-		service.put("/validService", function(req, res) {
-			res.json(req.soajs.buildResponse(null, {test: true}));
-		});
-		service.delete("/validService", function(req, res) {
-			res.json(req.soajs.buildResponse(null, {test: true}));
-		});
-
-		before(function(done) {
-			done();
-		});
-
-		it('Testing starting a services without a servicename and a dirname', function(done) {
-
-			service.init(function(err) {
-				err = err.toString();
-				console.log(err);
-				var ii = err.indexOf("Service shutdown due to failure!");
-				if(ii === -1) {
-					ii = false;
-				} else {
-					ii = true;
-				}
-				assert.equal(ii, true);
 				done();
 			});
 		});
