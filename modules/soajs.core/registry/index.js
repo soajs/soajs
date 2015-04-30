@@ -103,22 +103,19 @@ var build = {
 		}
 	},
 
-	"service": function(STRUCT, serviceName) {
-		var serviceObj = null;
+	"services": function(STRUCT) {
+		var servicesObj = {};
 		if(STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
 			for(var i = 0; i < STRUCT.length; i++) {
-				if(STRUCT[i].name === serviceName) {
-					serviceObj = {
+                servicesObj[STRUCT[i].name] = {
 						"extKeyRequired": STRUCT[i].extKeyRequired,
 						"port": STRUCT[i].port,
 						"requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
 						"requestTimeout": STRUCT[i].requestTimeoutRenewal || null
 					};
-					break;
-				}
 			}
 		}
-		return serviceObj;
+		return servicesObj;
 	},
 
 	"controllerHosts": function(STRUCT, controllerObj) {
@@ -238,17 +235,15 @@ var build = {
 			}
 		};
 
-		//console.log(param.serviceName);
-		//console.log(registryDBInfo)
 		if(param.serviceName === "controller") {
 			build.allServices(registryDBInfo.services_schema, registry["services"]);
 			build.servicesHosts(registryDBInfo.ENV_hosts, registry["services"]);
 			resume();
 		}
 		else {
-			var serviceObj = build.service(registryDBInfo.services_schema, param.serviceName);
-			if(serviceObj) {
-				registry["services"][param.serviceName] = serviceObj;
+			var servicesObj = build.services(registryDBInfo.services_schema);
+			if(servicesObj) {
+				registry["services"] = servicesObj;
 				//todo: check the apis list if they are updated or removed
 				resume();
 			}
