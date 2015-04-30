@@ -445,18 +445,23 @@ var holder = {
 };
 var lib = {
 	startController: function(cb) {
+        console.log("**** start controller");
 		holder.controller = new soajs.server.controller();
 		holder.controller.init(function() {
+            console.log("**** start controller init");
 			holder.controller.start(cb);
 		});
 	},
 	stopController: function(cb) {
+        console.log("**** stop controller");
 		holder.controller.stop(cb);
 	},
 	stopTestService: function(cb) {
+        console.log("**** stop service");
 		holder.service.stop(cb);
 	},
 	startTestService: function(cb) {
+        console.log("**** start service");
 		var config = {
 			"serviceName": serviceName,
 			"errors": {},
@@ -482,6 +487,7 @@ var lib = {
 		});
 
 		holder.service.init(function() {
+            console.log("**** start service init");
 			_.forEach(scenarios, function(scenario) {
 				holder.service[scenario.m](scenario.u, function(req, res) {
 					req.soajs.log.info('Test:' + scenario.u + ' ' + scenario.m);
@@ -494,6 +500,7 @@ var lib = {
 			});
 			holder.service.start(function() {
 				setTimeout(function() {
+                    console.log("**** start service finished waiting for awareness");
 					cb();
 				}, 500);
 			});
