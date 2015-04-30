@@ -182,9 +182,9 @@ var lib = {
 			});
 
 			holder.urac.start(function() {
-				setTimeout(function() {
+				//setTimeout(function() {
 					cb();
-				}, 500);
+				//}, 500);
 			});
 		});
 	},
@@ -261,9 +261,9 @@ var lib = {
 			});
 
 			holder.service.start(function() {
-				setTimeout(function() {
+				//setTimeout(function() {
 					cb();
-				}, 500);
+				//}, 500);
 			});
 		});
 	},
@@ -339,9 +339,9 @@ var lib = {
 			});
 
 			holder.service2.start(function() {
-				setTimeout(function() {
+				//setTimeout(function() {
 					cb();
-				}, 500);
+				//}, 500);
 			});
 		});
 	}

@@ -97,9 +97,9 @@ var lib = {
 				});
 
 				service.start(function() {
-					setTimeout(function() {
+					//setTimeout(function() {
 						cb();
-					}, 500);
+					//}, 500);
 				});
 			});
 		},
@@ -265,9 +265,9 @@ var lib = {
 				}, oauth.oauth.grant());
 
 				oauth.start(function() {
-					setTimeout(function() {
+					//setTimeout(function() {
 						cb();
-					}, 500);
+					//}, 500);
 				});
 			});
 		},

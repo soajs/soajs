@@ -499,10 +499,10 @@ var lib = {
 				});
 			});
 			holder.service.start(function() {
-				setTimeout(function() {
-                    console.log("**** start service finished waiting for awareness");
+				//setTimeout(function() {
+                //    console.log("**** start service finished waiting for awareness");
 					cb();
-				}, 500);
+				//}, 500);
 			});
 		});
 	}
