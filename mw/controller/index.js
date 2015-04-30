@@ -119,8 +119,8 @@ function redirectToService(req, res, body) {
             "serviceName": restServiceParams.name,
             "host": host,
             "url": restServiceParams.url,
-            "header": req.headers,
-            "body": body
+            "header": req.headers
+            //"body": body
         });
 
         req.soajs.controller.renewalCount = 0;
