@@ -85,12 +85,15 @@ service.prototype.init = function(callback) {
     soajs.serviceIp = process.env.SOAJS_SRVIP || null;
 
 	var fetchedHostIp = null;
+    var serviceIpNotDetected = false;
     if (!soajs.serviceIp) {
          fetchedHostIp = core.getHostIp();
         if (fetchedHostIp && fetchedHostIp.result)
             soajs.serviceIp = fetchedHostIp.ip;
-        else
-            soajs.serviceIp = null;
+        else {
+            serviceIpNotDetected = true;
+            soajs.serviceIp = "127.0.0.1";
+        }
     }
 
 	_self.app.soajs.apiList = extractAPIsList(param.config.schema);
@@ -111,7 +114,9 @@ service.prototype.init = function(callback) {
         if (fetchedHostIp){
             if (!fetchedHostIp.result) {
                 _self._log.warn("Unable to find the service host ip. The service will NOT be registered for awareness.");
-                _self._log.info("IPs found: ", ips);
+                _self._log.info("IPs found: ", fetchedHostIp.ips);
+                if (serviceIpNotDetected)
+                    _self.log.warn("The default service IP has been used ["+soajs.serviceIp+"]");
             }
             else
                 _self._log.info("The IP registered for service ["+soajs.serviceName+"] awareness : ", fetchedHostIp.ip);

@@ -25,10 +25,15 @@ function controller(param) {
 controller.prototype.init = function (callback) {
     var _self = this;
     var fetchedHostIp = null;
+    var serviceIpNotDetected = false;
     if (!_self.serviceIp) {
         fetchedHostIp = core.getHostIp();
         if (fetchedHostIp && fetchedHostIp.result)
             _self.serviceIp = fetchedHostIp.ip;
+        else {
+            serviceIpNotDetected = true;
+            _self.serviceIp = "127.0.0.1";
+        }
     }
     core.loadRegistry({
         "serviceName": _self.serviceName,
@@ -38,14 +43,15 @@ controller.prototype.init = function (callback) {
     }, function (reg) {
         _self.registry = reg;
         _self.log = core.getLogger(_self.serviceName, _self.registry.serviceConfig.logger);
-
         if (fetchedHostIp) {
             if (!fetchedHostIp.result) {
                 _self.log.warn("Unable to find the service host ip. The service will NOT be registered for awareness.");
-                _self.log.info("IPs found: ", ips);
+                _self.log.info("IPs found: ", fetchedHostIp.ips);
+                if (serviceIpNotDetected)
+                    _self.log.warn("The default service IP has been used [" + _self.serviceIp + "]");
             }
             else
-                _self.log.info("The IP registered for service awareness : ", fetchedHostIp.ip);
+                _self.log.info("The IP registered for service [" + _self.serviceName + "] awareness : ", fetchedHostIp.ip);
         }
 
         var app = connect();

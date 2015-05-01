@@ -296,6 +296,8 @@ var build = {
             if (param.awareness) {
                 build.controllerHosts(registryDBInfo.ENV_hosts, registry["services"].controller);
             }
+            if (param.reload)
+                return callback();
             if (param.serviceIp) {
                 var hostObj = {
                     'env': registry.name.toLowerCase(),
@@ -306,8 +308,12 @@ var build = {
                     if (error) {
                         throw new Error("Unable to register new host for service:" + error.message);
                     }
-                    callback();
+                    return callback();
                 });
+            }
+            else {
+                throw new Error("Unable to register new host ip ["+param.serviceIp+"] for service ["+param.serviceName+"]");
+                return callback();
             }
         }
     }
