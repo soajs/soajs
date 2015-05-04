@@ -3,6 +3,7 @@
 var connect = require('connect');
 var http = require('http');
 var request = require('request');
+var url = require('url');
 var core = require('./../modules/soajs.core/index.js');
 
 var favicon_mw = require('./../mw/favicon/index');
@@ -107,6 +108,11 @@ controller.prototype.init = function (callback) {
 
         _self.server = http.createServer(app);
         _self.serverMaintenance = http.createServer(function (req, res) {
+            if (req.url === '/favicon.ico') {
+                res.writeHead(200, {'Content-Type': 'image/x-icon'});
+                return res.end();
+            }
+            var parsedUrl = url.parse(req.url, true);
             var maintenanceResponse = function (req, route) {
                 var response = {
                     'result': false,
@@ -114,12 +120,12 @@ controller.prototype.init = function (callback) {
                     'service': {
                         'service': _self.serviceName.toUpperCase(),
                         'type': 'rest',
-                        'route': route || req.path
+                        'route': route || parsedUrl.pathname
                     }
                 };
                 return response;
             };
-            if (req.url === '/reloadRegistry') {
+            if (parsedUrl.pathname === '/reloadRegistry') {
                 core.registry.reload({
                     "serviceName": _self.serviceName,
                     "apiList": null,
@@ -137,7 +143,7 @@ controller.prototype.init = function (callback) {
                     return res.end(JSON.stringify(response));
                 });
             }
-            else if (req.url === '/awarenessStat') {
+            else if (parsedUrl.pathname === '/awarenessStat') {
                 res.writeHead(200, {'Content-Type': 'application/json'});
                 var tmp = core.registry.get();
                 var response = maintenanceResponse(req);
@@ -147,7 +153,7 @@ controller.prototype.init = function (callback) {
                 }
                 return res.end(JSON.stringify(response));
             }
-            else if (req.url === '/register') {
+            else if (parsedUrl.pathname === '/register') {
                 /**
                  * if type = service
                  *      name
@@ -162,17 +168,19 @@ controller.prototype.init = function (callback) {
                 var response = maintenanceResponse(req);
                 core.registry.register(
                     {
-                        "type": "",
-                        "name": "",
-                        "port": "",
-                        "ip": "",
-                        "extKeyRequired": ""
+                        "type": parsedUrl.query.type,
+                        "name": parsedUrl.query.name,
+                        "port": parsedUrl.query.port,
+                        "ip": parsedUrl.query.ip,
+                        "extKeyRequired": parsedUrl.query.extKeyRequired
                     },
                     function (err, data) {
                         if (!err) {
                             response['result'] = true;
                             response['data'] = data;
                         }
+                        else
+                            _self.log.warn("Failed to register ["+parsedUrl.query.type+"] for ["+parsedUrl.query.name+"] " + err.message);
                         return res.end(JSON.stringify(response));
                     });
             }

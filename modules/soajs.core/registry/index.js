@@ -231,11 +231,11 @@ var build = {
         var metaAndCoreDB = build.metaAndCoreDB(registryDBInfo.ENV_schema);
         registry["tenantMetaDB"] = metaAndCoreDB.metaDB;
         if (!registryDBInfo.ENV_schema || !registryDBInfo.ENV_schema.services || !registryDBInfo.ENV_schema.services.config) {
-            var err = new Error ('Unable to get [' + regEnvironment + '] environment services from db');
+            var err = new Error('Unable to get [' + regEnvironment + '] environment services from db');
             if (!param.reload)
                 throw err;
             else
-                return callback (err);
+                return callback(err);
         }
         registry["serviceConfig"] = registryDBInfo.ENV_schema.services.config;
         registry["coreDB"]["session"] = build.sessionDB(registryDBInfo.ENV_schema);
@@ -312,7 +312,7 @@ var build = {
                 });
             }
             else {
-                throw new Error("Unable to register new host ip ["+param.serviceIp+"] for service ["+param.serviceName+"]");
+                throw new Error("Unable to register new host ip [" + param.serviceIp + "] for service [" + param.serviceName + "]");
                 return callback();
             }
         }
@@ -383,8 +383,37 @@ var getRegistry = function (param, cb) {
 
 
 exports.register = function (param, cb) {
-
-    return cb();
+    if (param.type === "service") {
+        if (param.name && param.port && param.ip) {
+            if (!registry_struct[regEnvironment].services[param.name]) {
+                registry_struct[regEnvironment].services[param.name] = {
+                    "extKeyRequired": param.extKeyRequired || false,
+                    "port": param.port
+                };
+            }
+            if (!registry_struct[regEnvironment].services[param.name].hosts)
+                registry_struct[regEnvironment].services[param.name].hosts = [];
+            registry_struct[regEnvironment].services[param.name].hosts.push([param.ip]);
+            registry_struct[regEnvironment].timeLoaded = new Date().getTime();
+            return cb(null, registry_struct[regEnvironment].services[param.name]);
+        }
+        return cb(new Error("unable to register service. missing params"));
+    }
+    else if (param.type === "host") {
+        if (param.ip && param.name) {
+            if (registry_struct[regEnvironment].services[param.name]) {
+                if (!registry_struct[regEnvironment].services[param.name].hosts)
+                    registry_struct[regEnvironment].services[param.name].hosts = [];
+                registry_struct[regEnvironment].services[param.name].hosts.push([param.ip]);
+                registry_struct[regEnvironment].timeLoaded = new Date().getTime();
+                return cb(null, registry_struct[regEnvironment].services[param.name].hosts);
+            }
+            return cb(new Error("unable to register service host. service is not in registry"));
+        }
+        return cb(new Error("unable to register service host. missing params"));
+    }
+    else
+        return cb(new Error('unrecognized type [' + param.type + ']'));
 };
 exports.get = function () {
     return registry_struct[regEnvironment];
