@@ -141,14 +141,9 @@ service.prototype.init = function(callback) {
 
         var soajs_mw = require("./../mw/soajs/index");
         _self.app.use(soajs_mw({"log": _self._log}));
-       // _self.appMaintenance.use(soajs_mw({"log": _self._log}));
-
-        //var cors_mw = require("./../mw/cors/index");
-        //_self.appMaintenance.use(cors_mw());
 
         var response_mw = require("./../mw/response/index");
         _self.app.use(response_mw({}));
-        //_self.appMaintenance.use(response_mw({}));
 
         if(param.bodyParser) {
             var bodyParser = require('body-parser');
@@ -265,7 +260,7 @@ service.prototype.start = function(cb) {
 							'result': false,
 							'ts': Date.now(),
 							'service': {
-								'service': _self.app.soajs.serviceName,
+								'service': _self.app.soajs.serviceName.toUpperCase(),
 								'type': 'rest',
 								'route': route || req.path
 							}
@@ -300,30 +295,7 @@ service.prototype.start = function(cb) {
 							response['result'] = loaded;
 							res.jsonp(response);
 						});
-					});/*
-					_self.appMaintenance.get("/generateExtKey/:iKey", function(req, res) {
-						var key = req.params.iKey;//"d1eaaf5fdc35c11119330a8a0273fee9";
-						provision.generateExtKey(key, req.soajs.registry.serviceConfig.key, function(err, data) {
-							var response = maintenanceResponse(req);
-							if(!err) {
-								response['result'] = true;
-								response['data'] = data;
-							}
-							res.jsonp(response);
-						});
 					});
-					_self.appMaintenance.get("/getTenantKeys/:tId", function(req, res) {
-						var tId = req.params.tId;//"10d2cb5fc04ce51e06000001";
-						provision.getTenantKeys(tId, function(err, data) {
-							var response = maintenanceResponse(req);
-							if(!err) {
-								response['result'] = true;
-								response['data'] = data;
-							}
-							res.jsonp(response);
-						});
-					});
-					*/
 					_self.appMaintenance.all('*', function(req, res) {
 						var response = maintenanceResponse(req, "heartbeat");
 						response['result'] = true;

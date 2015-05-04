@@ -107,53 +107,64 @@ controller.prototype.init = function (callback) {
 
         _self.server = http.createServer(app);
         _self.serverMaintenance = http.createServer(function (req, res) {
-            //soajs_mw({"serviceName": _self.serviceName, "log": _self.log})(req, res, function () {
-                //cors_mw()(req, res, function () {
-                    if (req.url === '/reloadRegistry') {
-                        core.reloadRegistry({
-                            "serviceName": _self.serviceName,
-                            "apiList": null,
-                            "awareness": _self.awareness,
-                            "serviceIp": _self.serviceIp
-                        }, function (err, reg) {
-                            if (err)
-                                _self.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
-                            res.writeHead(200, {'Content-Type': 'application/json'});
-                            return res.end(JSON.stringify(reg));
-                        });
+            var maintenanceResponse = function (req, route) {
+                var response = {
+                    'result': false,
+                    'ts': Date.now(),
+                    'service': {
+                        'service': _self.serviceName.toUpperCase(),
+                        'type': 'rest',
+                        'route': route || req.path
                     }
-                    else if (req.url === '/awarenessStat') {
-                        res.writeHead(200, {'Content-Type': 'application/json'});
-                        var tmp = core.getLoadedRegistry();
-                        var response = {};
-                        if (tmp && tmp.services) {
-                            response = tmp.services;
-                        }
-                        return res.end(JSON.stringify(response));
-                    }
+                };
+                return response;
+            };
+            if (req.url === '/reloadRegistry') {
+                core.reloadRegistry({
+                    "serviceName": _self.serviceName,
+                    "apiList": null,
+                    "awareness": _self.awareness,
+                    "serviceIp": _self.serviceIp
+                }, function (err, reg) {
+                    res.writeHead(200, {'Content-Type': 'application/json'});
+                    var response = maintenanceResponse(req);
+                    if (err)
+                        _self.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
                     else {
-                        var heartbeat = function (res) {
-                            res.writeHead(200, {'Content-Type': 'application/json'});
-                            var response = {
-                                'result': true,
-                                'ts': Date.now(),
-                                'service': {
-                                    'service': _self.serviceName.toUpperCase(),
-                                    'type': 'rest',
-                                    'route': '/heartbeat'
-                                }
-                            };
-                            res.end(JSON.stringify(response));
-                        };
-
-                        if (req.url === '/heartbeat') {
-                            return heartbeat(res);
-                        }
-
-                        return heartbeat(res);
+                        response['result'] = true;
+                        response['data'] = reg;
                     }
-                //});
-            //});
+                    return res.end(JSON.stringify(response));
+                });
+            }
+            else if (req.url === '/awarenessStat') {
+                res.writeHead(200, {'Content-Type': 'application/json'});
+                var tmp = core.getLoadedRegistry();
+                var response = maintenanceResponse(req);
+                if (tmp && tmp.services) {
+                    response['result'] = true;
+                    response['data'] = tmp.services;
+                }
+                return res.end(JSON.stringify(response));
+            }
+            else if (req.url === '/register') {
+                res.writeHead(200, {'Content-Type': 'application/json'});
+                var response = maintenanceResponse(req);
+                response['result'] = true;
+                return res.end(JSON.stringify(response));
+            }
+            else {
+                var heartbeat = function (res) {
+                    res.writeHead(200, {'Content-Type': 'application/json'});
+                    var response = maintenanceResponse(req);
+                    response['result'] = true;
+                    res.end(JSON.stringify(response));
+                };
+                if (req.url === '/heartbeat') {
+                    return heartbeat(res);
+                }
+                return heartbeat(res);
+            }
         });
         callback();
     });
