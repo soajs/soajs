@@ -366,7 +366,7 @@ function loadRegistry(param, cb) {
     }
 }
 
-exports.getRegistry = function (param, cb) {
+var getRegistry = function (param, cb) {
     try {
         if (param.reload || !registry_struct[regEnvironment]) {
             loadRegistry(param, function (err) {
@@ -381,6 +381,26 @@ exports.getRegistry = function (param, cb) {
     }
 };
 
-exports.getLoadedRegistry = function () {
+
+exports.register = function (param, cb) {
+
+    return cb();
+};
+exports.get = function () {
     return registry_struct[regEnvironment];
+};
+exports.load = function (param, cb) {
+    if (!param) param = {};
+    param.reload = false;
+    return getRegistry(param, function (err, reg) {
+        return cb(reg);
+    });
+};
+exports.reload = function (param, cb) {
+    if (!param) param = {};
+    param.reload = true;
+    param.designatedPort = null;
+    return getRegistry(param, function (err, reg) {
+        return cb(err, reg);
+    });
 };

@@ -97,7 +97,7 @@ service.prototype.init = function(callback) {
     }
 
 	_self.app.soajs.apiList = extractAPIsList(param.config.schema);
-	core.loadRegistry({
+	core.registry.load({
 		"serviceName": soajs.serviceName,
 		"designatedPort": param.config.servicePort || null,
 		"extKeyRequired": param.config.extKeyRequired || false,
@@ -274,7 +274,7 @@ service.prototype.start = function(cb) {
 					});
 
 					_self.appMaintenance.get("/reloadRegistry", function(req, res) {
-						core.reloadRegistry({
+						core.registry.reload({
 							"serviceName": _self.app.soajs.serviceName,
 							"apiList": _self.app.soajs.apiList,
 							"awareness": _self.app.soajs.awareness,

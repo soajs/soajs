@@ -256,7 +256,7 @@ describe("testing controller", function() {
 				delete body.ts;
 				assert.deepEqual(body, {
 					"result": true,
-					"service": {"service": "example01", "type": "rest", "route": "/heartbeat"}
+					"service": {"service": "EXAMPLE01", "type": "rest", "route": "/heartbeat"}
 				});
 				done();
 			});

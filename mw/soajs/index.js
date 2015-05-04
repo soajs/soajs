@@ -16,7 +16,7 @@ module.exports = function (configuration) {
             req.soajs = {};
 
         req.soajs.log = log;
-        req.soajs.registry = core.getLoadedRegistry();
+        req.soajs.registry = core.registry.get();
         req.soajs.meta = core.meta;
         req.soajs.validator = core.validator;
         next();

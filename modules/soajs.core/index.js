@@ -1,24 +1,7 @@
 'use strict';
 
-var registry = require('./registry/index');
-exports.getLoadedRegistry = function () {
-    return registry.getLoadedRegistry();
-}
-exports.loadRegistry = function (param, cb) {
-    if (!param) param = {};
-    param.reload = false;
-    return registry.getRegistry(param, function (err, reg) {
-        return cb(reg);
-    });
-};
-exports.reloadRegistry = function (param, cb) {
-    if (!param) param = {};
-    param.reload = true;
-    param.designatedPort = null;
-    return registry.getRegistry(param, function (err, reg) {
-        return cb(err, reg);
-    });
-};
+exports.registry = require('./registry/index');
+
 exports.getLogger = require('./logger/index');
 exports.meta = require('./meta/index');
 exports.error = require('./error/index');

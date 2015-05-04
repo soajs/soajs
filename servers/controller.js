@@ -35,7 +35,7 @@ controller.prototype.init = function (callback) {
             _self.serviceIp = "127.0.0.1";
         }
     }
-    core.loadRegistry({
+    core.registry.load({
         "serviceName": _self.serviceName,
         "apiList": null,
         "awareness": _self.awareness,
@@ -120,7 +120,7 @@ controller.prototype.init = function (callback) {
                 return response;
             };
             if (req.url === '/reloadRegistry') {
-                core.reloadRegistry({
+                core.registry.reload({
                     "serviceName": _self.serviceName,
                     "apiList": null,
                     "awareness": _self.awareness,
@@ -139,7 +139,7 @@ controller.prototype.init = function (callback) {
             }
             else if (req.url === '/awarenessStat') {
                 res.writeHead(200, {'Content-Type': 'application/json'});
-                var tmp = core.getLoadedRegistry();
+                var tmp = core.registry.get();
                 var response = maintenanceResponse(req);
                 if (tmp && tmp.services) {
                     response['result'] = true;
@@ -148,10 +148,33 @@ controller.prototype.init = function (callback) {
                 return res.end(JSON.stringify(response));
             }
             else if (req.url === '/register') {
+                /**
+                 * if type = service
+                 *      name
+                 *      port
+                 *      ip
+                 *      extKeyRequired
+                 * if type = host
+                 *      name
+                 *      ip
+                 */
                 res.writeHead(200, {'Content-Type': 'application/json'});
                 var response = maintenanceResponse(req);
-                response['result'] = true;
-                return res.end(JSON.stringify(response));
+                core.registry.register(
+                    {
+                        "type": "",
+                        "name": "",
+                        "port": "",
+                        "ip": "",
+                        "extKeyRequired": ""
+                    },
+                    function (err, data) {
+                        if (!err) {
+                            response['result'] = true;
+                            response['data'] = data;
+                        }
+                        return res.end(JSON.stringify(response));
+                    });
             }
             else {
                 var heartbeat = function (res) {

@@ -12,15 +12,15 @@ var core = require('../../modules/soajs.core');
 module.exports = function (param) {
     if (param.awareness) {
         var serviceAwarenessObj = {};
-        var registry = core.getLoadedRegistry();
+        var registry = core.registry.get();
         var awarenessHosts = {
             "registryLoadedTime": 0,
             "servicesArr": []
         };
 
         var awareness_reloadRegistry = function () {
-            registry = core.getLoadedRegistry();
-            core.reloadRegistry({
+            registry = core.registry.get();
+            core.registry.reload({
                 "serviceName": param.serviceName,
                 "apiList": param.apiList,
                 "awareness": param.awareness,
@@ -33,7 +33,7 @@ module.exports = function (param) {
             });
         };
         var awareness_healthCheck = function () {
-            registry = core.getLoadedRegistry();
+            registry = core.registry.get();
             if (awarenessHosts.registryLoadedTime !== registry.timeLoaded) {
                 awarenessHosts = {
                     "registryLoadedTime": registry.timeLoaded,
