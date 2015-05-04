@@ -143,8 +143,8 @@ service.prototype.init = function(callback) {
         _self.app.use(soajs_mw({"log": _self._log}));
         _self.appMaintenance.use(soajs_mw({"log": _self._log}));
 
-        var cors_mw = require("./../mw/cors/index");
-        _self.appMaintenance.use(cors_mw());
+        //var cors_mw = require("./../mw/cors/index");
+        //_self.appMaintenance.use(cors_mw());
 
         var response_mw = require("./../mw/response/index");
         _self.app.use(response_mw({}));

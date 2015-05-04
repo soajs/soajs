@@ -108,7 +108,7 @@ controller.prototype.init = function (callback) {
         _self.server = http.createServer(app);
         _self.serverMaintenance = http.createServer(function (req, res) {
             soajs_mw({"serviceName": _self.serviceName, "log": _self.log})(req, res, function () {
-                cors_mw()(req, res, function () {
+                //cors_mw()(req, res, function () {
                     if (req.url === '/reloadRegistry') {
                         core.reloadRegistry({
                             "serviceName": _self.serviceName,
@@ -152,7 +152,7 @@ controller.prototype.init = function (callback) {
 
                         return heartbeat(res);
                     }
-                });
+                //});
             });
         });
         callback();
