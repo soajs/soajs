@@ -198,11 +198,11 @@ var build = {
         //check if this host has this ip in the env
         mongo.findOne('hosts', hostObj, function (error, dbRecord) {
             if (error || dbRecord) {
-                return cb(error);
+                return cb(error, false);
             }
             if (!dbRecord) {
                 mongo.insert('hosts', hostObj, function (err, record) {
-                    return cb();
+                    return cb(null, true);
                 });
             }
         });
@@ -293,9 +293,9 @@ var build = {
         }
 
         function resume() {
-            if (param.awareness) {
-                build.controllerHosts(registryDBInfo.ENV_hosts, registry["services"].controller);
-            }
+            //if (param.awareness) {
+            build.controllerHosts(registryDBInfo.ENV_hosts, registry["services"].controller);
+            //}
             if (param.reload)
                 return callback();
             if (param.serviceIp) {
@@ -304,9 +304,11 @@ var build = {
                     'name': param.serviceName,
                     'ip': param.serviceIp
                 };
-                build.checkRegisterServiceIP(registry.coreDB.provision, hostObj, function (error) {
-                    if (error) {
+                build.checkRegisterServiceIP(registry.coreDB.provision, hostObj, function (error, registered) {
+                    if (error)
                         throw new Error("Unable to register new host for service:" + error.message);
+                    if (registered && registry.serviceConfig.awareness.autoRegisterService) {
+                        registry.services[param.serviceName].newServiceOrHost = true;
                     }
                     return callback();
                 });
@@ -345,7 +347,6 @@ function loadRegistry(param, cb) {
                         throw new Error('Unable to load Registry Db Info: ' + error.message);
                     }
                     else {
-                        //todo: propagate error on reload in a better way
                         return cb(error);
                     }
                 }
@@ -383,37 +384,22 @@ var getRegistry = function (param, cb) {
 
 
 exports.register = function (param, cb) {
-    if (param.type === "service") {
-        if (param.name && param.port && param.ip) {
-            if (!registry_struct[regEnvironment].services[param.name]) {
-                registry_struct[regEnvironment].services[param.name] = {
-                    "extKeyRequired": param.extKeyRequired || false,
-                    "port": param.port
-                };
-            }
-            if (!registry_struct[regEnvironment].services[param.name].hosts)
-                registry_struct[regEnvironment].services[param.name].hosts = [];
-            registry_struct[regEnvironment].services[param.name].hosts.push([param.ip]);
-            registry_struct[regEnvironment].timeLoaded = new Date().getTime();
-            return cb(null, registry_struct[regEnvironment].services[param.name]);
+    if (param.ip && param.name) {
+        if (!registry_struct[regEnvironment].services[param.name]) {
+            if (!param.port)
+                return cb(new Error("unable to register service. missing params"));
+            registry_struct[regEnvironment].services[param.name] = {
+                "extKeyRequired": param.extKeyRequired || false,
+                "port": param.port
+            };
         }
-        return cb(new Error("unable to register service. missing params"));
+        if (!registry_struct[regEnvironment].services[param.name].hosts)
+            registry_struct[regEnvironment].services[param.name].hosts = [];
+        registry_struct[regEnvironment].services[param.name].hosts.push([param.ip]);
+        registry_struct[regEnvironment].timeLoaded = new Date().getTime();
+        return cb(null, registry_struct[regEnvironment].services[param.name]);
     }
-    else if (param.type === "host") {
-        if (param.ip && param.name) {
-            if (registry_struct[regEnvironment].services[param.name]) {
-                if (!registry_struct[regEnvironment].services[param.name].hosts)
-                    registry_struct[regEnvironment].services[param.name].hosts = [];
-                registry_struct[regEnvironment].services[param.name].hosts.push([param.ip]);
-                registry_struct[regEnvironment].timeLoaded = new Date().getTime();
-                return cb(null, registry_struct[regEnvironment].services[param.name].hosts);
-            }
-            return cb(new Error("unable to register service host. service is not in registry"));
-        }
-        return cb(new Error("unable to register service host. missing params"));
-    }
-    else
-        return cb(new Error('unrecognized type [' + param.type + ']'));
+    return cb(new Error("unable to register service. missing params"));
 };
 exports.get = function () {
     return registry_struct[regEnvironment];
@@ -432,4 +418,12 @@ exports.reload = function (param, cb) {
     return getRegistry(param, function (err, reg) {
         return cb(err, reg);
     });
+};
+exports.autoRegisterService = function (name, ip) {
+    console.log ("call all controller service maintenace register route.")
+    //TODO loop over controller hosts and call maintenance route register
+    //registry_struct[regEnvironment].services[name].port
+    //registry_struct[regEnvironment].services[name].extKeyRequired
+
+    //registry_struct[regEnvironment].controller.hosts
 };

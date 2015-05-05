@@ -155,12 +155,12 @@ controller.prototype.init = function (callback) {
             }
             else if (parsedUrl.pathname === '/register') {
                 /**
-                 * if type = service
+                 * if service
                  *      name
                  *      port
                  *      ip
                  *      extKeyRequired
-                 * if type = host
+                 * if host
                  *      name
                  *      ip
                  */
