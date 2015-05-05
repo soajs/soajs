@@ -1,5 +1,7 @@
 'use strict';
 var fs = require('fs');
+var request = require('request');
+var async = require('async');
 var Mongo = require('../../soajs.mongo');
 
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
@@ -419,11 +421,30 @@ exports.reload = function (param, cb) {
         return cb(err, reg);
     });
 };
-exports.autoRegisterService = function (name, ip) {
-    console.log ("call all controller service maintenace register route.")
-    //TODO loop over controller hosts and call maintenance route register
-    //registry_struct[regEnvironment].services[name].port
-    //registry_struct[regEnvironment].services[name].extKeyRequired
-
-    //registry_struct[regEnvironment].controller.hosts
+exports.autoRegisterService = function (name, ip, cb) {
+    var controllerSRV = registry_struct[regEnvironment].services.controller;
+    var serviceSRV = registry_struct[regEnvironment].services[name];
+    if (!serviceSRV.newServiceOrHost)
+        return cb(null, false);
+    if (controllerSRV && controllerSRV.hosts) {
+        async.each(controllerSRV.hosts,
+            function (ip, callback) {
+                request({
+                    'uri': 'http://' + ip + ':' + (controllerSRV.port + registry_struct[regEnvironment].serviceConfig.ports.maintenanceInc) + '/register',
+                    'qs': {"name": name, "port": serviceSRV.port, "ip": ip, "extKeyRequired": serviceSRV.extKeyRequired}
+                }, function (error, response, body) {
+                    if (error)
+                        callback(error);
+                    else
+                        callback(null);
+                });
+            }, function (err) {
+                if (err)
+                    return cb(err, false);
+                else
+                    return cb(null, true);
+            });
+    }
+    else
+        return cb(new Error ("Unable to find any controller host"), false);
 };

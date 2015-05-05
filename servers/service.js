@@ -245,7 +245,12 @@ service.prototype.start = function (cb) {
             if (loaded) {
                 _self.app.httpServer = _self.app.listen(_self.app.soajs.serviceConf.info.port, function (err) {
                     _self._log.info(_self.app.soajs.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
-                    core.registry.autoRegisterService(_self.app.soajs.serviceName, _self.app.soajs.serviceIp);
+                    core.registry.autoRegisterService(_self.app.soajs.serviceName, _self.app.soajs.serviceIp, function (err, registered){
+                        if (err)
+                            _self._log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
+                        else if (registered)
+                            _self._log.info('The autoRegisterService @ controllers for ['+_self.app.soajs.serviceName+'@'+_self.app.soajs.serviceIp+'] successfully finished.');
+                    });
                     if (cb) {
                         cb(err);
                     }

@@ -168,7 +168,6 @@ controller.prototype.init = function (callback) {
                 var response = maintenanceResponse(req);
                 core.registry.register(
                     {
-                        "type": parsedUrl.query.type,
                         "name": parsedUrl.query.name,
                         "port": parsedUrl.query.port,
                         "ip": parsedUrl.query.ip,
@@ -180,7 +179,7 @@ controller.prototype.init = function (callback) {
                             response['data'] = data;
                         }
                         else
-                            _self.log.warn("Failed to register ["+parsedUrl.query.type+"] for ["+parsedUrl.query.name+"] " + err.message);
+                            _self.log.warn("Failed to register service for ["+parsedUrl.query.name+"] " + err.message);
                         return res.end(JSON.stringify(response));
                     });
             }
