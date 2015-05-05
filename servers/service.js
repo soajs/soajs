@@ -116,7 +116,7 @@ service.prototype.init = function (callback) {
                 _self._log.warn("Unable to find the service host ip. The service will NOT be registered for awareness.");
                 _self._log.info("IPs found: ", fetchedHostIp.ips);
                 if (serviceIpNotDetected)
-                    _self.log.warn("The default service IP has been used [" + soajs.serviceIp + "]");
+                    _self._log.warn("The default service IP has been used [" + soajs.serviceIp + "]");
             }
             else
                 _self._log.info("The IP registered for service [" + soajs.serviceName + "] awareness : ", fetchedHostIp.ip);
@@ -212,7 +212,7 @@ service.prototype.init = function (callback) {
             _self.app.use(awareness_mw({
                 "awareness": soajs.awareness,
                 "serviceName": soajs.serviceName,
-                "log": _self.log,
+                "log": _self._log,
                 "apiList": _self.app.soajs.apiList,
                 "serviceIp": _self.app.soajs.serviceIp
             }));
