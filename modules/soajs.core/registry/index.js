@@ -311,6 +311,10 @@ var build = {
                         throw new Error("Unable to register new host for service:" + error.message);
                     if (registered && registry.serviceConfig.awareness.autoRegisterService) {
                         registry.services[param.serviceName].newServiceOrHost = true;
+                        if(!registry.services[param.serviceName].hosts){
+                            registry.services[param.serviceName].hosts =[];
+                        }
+                        registry.services[param.serviceName].hosts.push(param.serviceIp);
                     }
                     return callback();
                 });
@@ -397,7 +401,7 @@ exports.register = function (param, cb) {
         }
         if (!registry_struct[regEnvironment].services[param.name].hosts)
             registry_struct[regEnvironment].services[param.name].hosts = [];
-        registry_struct[regEnvironment].services[param.name].hosts.push([param.ip]);
+        registry_struct[regEnvironment].services[param.name].hosts.push(param.ip);
         registry_struct[regEnvironment].timeLoaded = new Date().getTime();
         return cb(null, registry_struct[regEnvironment].services[param.name]);
     }
@@ -421,7 +425,7 @@ exports.reload = function (param, cb) {
         return cb(err, reg);
     });
 };
-exports.autoRegisterService = function (name, ip, cb) {
+exports.autoRegisterService = function (name, serviceIp, cb) {
     var controllerSRV = registry_struct[regEnvironment].services.controller;
     var serviceSRV = registry_struct[regEnvironment].services[name];
     if (!serviceSRV.newServiceOrHost)
@@ -431,7 +435,7 @@ exports.autoRegisterService = function (name, ip, cb) {
             function (ip, callback) {
                 request({
                     'uri': 'http://' + ip + ':' + (controllerSRV.port + registry_struct[regEnvironment].serviceConfig.ports.maintenanceInc) + '/register',
-                    'qs': {"name": name, "port": serviceSRV.port, "ip": ip, "extKeyRequired": serviceSRV.extKeyRequired}
+                    'qs': {"name": name, "port": serviceSRV.port, "ip": serviceIp, "extKeyRequired": serviceSRV.extKeyRequired}
                 }, function (error, response, body) {
                     if (error)
                         callback(error);
