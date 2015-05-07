@@ -353,6 +353,6 @@ describe("testing controller", function() {
 	after(function(done) {
 		controllerApp.stop(function() {
 			done();
-		})
-	})
+		});
+	});
 });

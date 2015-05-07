@@ -115,6 +115,7 @@ controller.prototype.init = function(callback) {
 				return res.end();
 			}
 			var parsedUrl = url.parse(req.url, true);
+			var response;
 			var maintenanceResponse = function(req, route) {
 				var response = {
 					'result': false,
@@ -135,7 +136,7 @@ controller.prototype.init = function(callback) {
 					"serviceIp": _self.serviceIp
 				}, function(err, reg) {
 					res.writeHead(200, {'Content-Type': 'application/json'});
-					var response = maintenanceResponse(req);
+					response = maintenanceResponse(req);
             if(err) {
                 _self.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
             } else {
@@ -148,7 +149,7 @@ controller.prototype.init = function(callback) {
 			else if(parsedUrl.pathname === '/awarenessStat') {
 				res.writeHead(200, {'Content-Type': 'application/json'});
 				var tmp = core.registry.get();
-				var response = maintenanceResponse(req);
+				response = maintenanceResponse(req);
 				if(tmp && tmp.services) {
 					response['result'] = true;
 					response['data'] = tmp.services;
@@ -167,7 +168,7 @@ controller.prototype.init = function(callback) {
 				 *      ip
 				 */
 				res.writeHead(200, {'Content-Type': 'application/json'});
-				var response = maintenanceResponse(req);
+				response = maintenanceResponse(req);
 				core.registry.register(
 					{
 						"name": parsedUrl.query.name,
@@ -191,7 +192,7 @@ controller.prototype.init = function(callback) {
 			else {
 				var heartbeat = function(res) {
 					res.writeHead(200, {'Content-Type': 'application/json'});
-					var response = maintenanceResponse(req);
+					response = maintenanceResponse(req);
 					response['result'] = true;
 					res.end(JSON.stringify(response));
 				};

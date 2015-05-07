@@ -97,7 +97,7 @@ var build = {
 							servicesObj[STRUCT[i].name].hosts = [];
 						}
 						if(servicesObj[STRUCT[i].name].hosts.indexOf(STRUCT[i].ip) === -1) {
-							servicesObj[STRUCT[i].name].hosts.push(STRUCT[i].ip)
+							servicesObj[STRUCT[i].name].hosts.push(STRUCT[i].ip);
 						}
 					}
 				}
@@ -130,7 +130,7 @@ var build = {
 						controllerObj.hosts = [];
 					}
 					if(controllerObj.hosts.indexOf(STRUCT[i].ip) === -1) {
-						controllerObj.hosts.push(STRUCT[i].ip)
+						controllerObj.hosts.push(STRUCT[i].ip);
 					}
 				}
 			}
@@ -186,11 +186,10 @@ var build = {
 				mongo.insert('services', serviceObj, cb);
 			}
 			else {
-				var newPort = randomInt(ports.controller + ports.randomInc, ports.controller + ports.maintenanceInc);
-				serviceObj.port = newPort;
+				serviceObj.port = randomInt(ports.controller + ports.randomInc, ports.controller + ports.maintenanceInc);
 				build.registerNewService(dbConfiguration, serviceObj, ports, cb);
 			}
-		})
+		});
 	},
 
 	"checkRegisterServiceIP": function(dbConfiguration, hostObj, cb) {
@@ -203,7 +202,8 @@ var build = {
 				return cb(error, false);
 			}
 			if(!dbRecord) {
-				mongo.insert('hosts', hostObj, function(err, record) {
+				mongo.insert('hosts', hostObj, function(err) {
+					if(err){ return cb(err, false); }
 					return cb(null, true);
 				});
 			}
@@ -453,7 +453,7 @@ exports.autoRegisterService = function(name, serviceIp, cb) {
 						"requestTimeout": serviceSRV.requestTimeout,
 						"requestTimeoutRenewal": serviceSRV.requestTimeoutRenewal
 					}
-				}, function(error, response, body) {
+				}, function(error) {
 					return (error) ? callback(error) : callback(null);
 				});
 			}, function(err) {

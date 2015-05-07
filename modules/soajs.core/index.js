@@ -14,7 +14,7 @@ exports.getHostIp = function () {
     var os = require('os');
     var ifaces = os.networkInterfaces();
     var ifnameLookupSequence = ["eth0", "en0", "eth1", "en1"];
-    var ips = []
+    var ips = [];
     Object.keys(ifaces).forEach(function (ifname) {
         ifaces[ifname].forEach(function (iface) {
             if ('IPv4' !== iface.family || iface.internal !== false) {

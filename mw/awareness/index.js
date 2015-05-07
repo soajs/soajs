@@ -51,7 +51,7 @@ module.exports = function (param) {
                                     "name": s,
                                     "port": registry.services[s].port,
                                     "host": registry.services[s].hosts[i]
-                                }
+                                };
                                 awarenessHosts.servicesArr.push(sObj);
                             }
                         }
@@ -134,5 +134,5 @@ module.exports = function (param) {
             };
         }
         next();
-    }
+    };
 };
