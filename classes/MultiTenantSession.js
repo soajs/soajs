@@ -371,6 +371,7 @@ MultiTenantSession.prototype.getUrac = function () {
             "email": this.session.sessions[tId].urac.email,
             "groups" : this.session.sessions[tId].urac.groups,
             "profile": this.session.sessions[tId].urac.profile,
+            "tenant" : this.session.sessions[tId].urac.tenant,
             "oauthRefreshToken" : this.session.sessions[tId].urac.oauthRefreshToken,
             "oauthAccessToken" : this.session.sessions[tId].urac.oauthAccessToken
         };
