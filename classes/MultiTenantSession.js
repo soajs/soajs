@@ -334,6 +334,22 @@ MultiTenantSession.prototype.getAcl = function () {
 
     return acl;
 };
+/**
+ *
+ *
+ * @returns {*}
+ */
+MultiTenantSession.prototype.getPackageAcl = function (packageCode) {
+    var tId = this.session.persistSession.holder.tenant.id;
+    if (!this.session.sessions[tId].urac) {
+        return null;
+    }
+    var acl = null;
+    if(!acl && this.session.sessions[tId].urac.config.packages[packageCode] && this.session.sessions[tId].urac.config.packages[packageCode].acl)
+        acl = this.session.sessions[tId].urac.config.packages[packageCode].acl;
+
+    return acl;
+};
 
 /**
  *
