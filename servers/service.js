@@ -212,7 +212,7 @@ service.prototype.init = function(callback) {
 			soajs.oauth = _self.oauth.authorise();
 		}
 		if(soajs.awareness) {
-			var awareness_mw = require("./../mw/service/index");
+			var awareness_mw = require("./../mw/awareness/index");
 			_self.app.use(awareness_mw({
 				"awareness": soajs.awareness,
 				"serviceName": soajs.serviceName,
