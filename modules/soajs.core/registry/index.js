@@ -6,9 +6,7 @@ var Mongo = require('../../soajs.mongo');
 
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
-var registryDir = (process.env.SOAJS_REGDIR || __dirname + "/../../../");//__dirname);
-var projectPath = registryDir + 'profiles/';
-var regFile = projectPath + 'profile.js';
+var regFile = (process.env.SOAJS_PROFILE || __dirname + "/../../../profiles/single.js");
 
 var mongo;
 var registry_struct = {};
@@ -344,12 +342,11 @@ function loadProfile() {
         if (regFileObj && typeof regFileObj === 'object') {
             var registry = {
                 "timeLoaded": new Date().getTime(),
-                "projectPath": projectPath,
-                "name": regEnvironment,//regFileObj.name,
-                //"version": regFileObj.version,
-                "environment": regEnvironment,//regFileObj.environment,
+                "projectPath": regFile.substr(0,regFile.lastIndexOf("/")),
+                "name": regEnvironment,
+                "environment": regEnvironment,
                 "coreDB": {
-                    "provision": regFileObj//regFileObj.provisionDB
+                    "provision": regFileObj
                 }
             };
             return registry;
