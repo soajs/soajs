@@ -39,14 +39,33 @@ function MongoDriver(config) {
  */
 MongoDriver.prototype.insert = function(collectionName, docs, cb) {
 	var self = this;
-	if(!collectionName || !docs) {
-		return cb(generateError(191));
+	var versioning = false;
+
+	if(!collectionName || !docs) { return cb(generateError(191)); }
+
+	if(arguments.length === 4) {
+		versioning = arguments[2];
+		cb = arguments[3];
 	}
+
 	connect(self, function(err) {
-		if(err) {
-			return cb(err);
+		if(err) { return cb(err); }
+		if(versioning) {
+			if(Array.isArray(docs)) {
+				docs.forEach(function(oneDoc) {
+					oneDoc.v = 1;
+					oneDoc.ts = new Date().getTime();
+				});
+			}
+			else {
+				docs.v = 1;
+				docs.ts = new Date().getTime();
+			}
+			self.db.collection(collectionName).insert(docs, {'safe': true}, cb);
 		}
-		self.db.collection(collectionName).insert(docs, {'safe': true}, cb);
+		else {
+			self.db.collection(collectionName).insert(docs, {'safe': true}, cb);
+		}
 	});
 };
 
@@ -76,7 +95,7 @@ MongoDriver.prototype.save = function(collectionName, docs, cb) {
 			MongoDriver.addVersionToRecords.call(self, collectionName, docs, function(error, versionedDocument) {
 				if(error) { return cb(error); }
 
-				docs.v = versionedDocument.v + 1;
+				docs.v = versionedDocument[0].v + 1;
 				docs.ts = new Date().getTime();
 				self.db.collection(collectionName).save(docs, cb);
 			});
@@ -101,33 +120,38 @@ MongoDriver.prototype.update = function(/*collectionName, criteria, record, [opt
 	var collectionName = arguments[0]
 		, criteria = arguments[1]
 		, updateOptions = arguments[2]
-		, extra = arguments[3] || {'safe': true, 'multi': true, 'upsert': false}
-		, versioning = arguments.length === 6 ? arguments[4]: false
+		, extra = arguments[3]
+		, versioning = arguments.length === 6 ? arguments[4] : arguments[3]
 		, cb = arguments[arguments.length - 1];
+
+	if(typeof(extra) === 'boolean') { extra = {'safe': true, 'multi': true, 'upsert': false}; }
+	if(typeof(versioning) !== 'boolean') { versioning = false; }
+
 	var self = this;
 
 	if(!collectionName) { return cb(generateError(191)); }
 	connect(self, function(err) {
 		if(err) { return cb(err); }
 
-		if(versioning){
-			self.findOne(collectionName, criteria, function(error, originalRecord){
+		if(versioning) {
+			self.findOne(collectionName, criteria, function(error, originalRecord) {
 				if(error) { return cb(error); }
 
-				MongoDriver.addVersionToRecords.call(self, collectionName, originalRecord, function(error, versionedRecord){
+				MongoDriver.addVersionToRecords.call(self, collectionName, originalRecord, function(error, versionedRecord) {
 					if(error) { return cb(error); }
 
-					if (!updateOptions['$inc']) {updateOptions['$inc'] = {};}
+					if(!updateOptions['$inc']) {updateOptions['$inc'] = {};}
 					updateOptions['$inc'].v = 1;
 
 					if(!updateOptions['$set']) {updateOptions['$set'] = {};}
 					updateOptions['$set'].ts = new Date().getTime();
 
+
 					self.db.collection(collectionName).update(criteria, updateOptions, extra, cb);
 				});
 			});
 		}
-		else{
+		else {
 			self.db.collection(collectionName).update(criteria, updateOptions, extra, cb);
 		}
 	});
@@ -158,36 +182,13 @@ MongoDriver.addVersionToRecords = function(collection, oneRecord, cb) {
 };
 
 /**
- * restores a record from a previous version if found
- * @param {String} collection
- * @param {ObjectId} oneRecordId
- * @param {Number} version
- * @param {Function} cb
- * @returns {*}
- */
-MongoDriver.restorRecordFromVersion = function(collection, oneRecordId, version, cb) {
-	var self = this;
-	if(!collection) { return cb(generateError(191)); }
-	if(typeof v !== 'number' || v % 1 !== 0) { return cb(generateError(194)); }
-
-	this.findOne(collection + '_versioning', {'refId': oneRecordId, 'v': v}, function(error, versionedRecord) {
-		if(error) { return cb(error); }
-		if(!versionedRecord) { return cb(null, null); }
-
-		versionedRecord._id = versionedRecord.refId;
-		delete versionedRecord.refId;
-		self.save(collection, versionedRecord, cb);
-	});
-};
-
-/**
  * Removes all the version of a record
  * @param {String} collection
  * @param {ObjectId} recordId
  * @param {Function} cb
  * @returns {*}
  */
-MongoDriver.clearVersioning = function(collection, recordId, cb) {
+MongoDriver.prototype.clearVersions = function(collection, recordId, cb) {
 	if(!collection) { return cb(generateError(191)); }
 	this.remove(collection + '_versioning', {'refId': recordId}, cb);
 };
@@ -199,14 +200,9 @@ MongoDriver.clearVersioning = function(collection, recordId, cb) {
  * @param {Function} cb
  * @returns {*}
  */
-MongoDriver.getVersioning = function(collection, oneRecordId, cb) {
-	var options = {'$sort': {'v': -1}};
+MongoDriver.prototype.getVersions = function(collection, oneRecordId, cb) {
 	if(!collection) { return cb(generateError(191)); }
-	if(arguments.length === 4) {
-		options = arguments[3];
-		cb = arguments[arguments.length - 1];
-	}
-	this.find(collection + '_versioning', {'refId': oneRecordId}, options, cb);
+	this.find(collection + '_versioning', {'refId': oneRecordId}, cb);
 };
 
 /**
