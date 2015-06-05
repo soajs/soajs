@@ -152,11 +152,13 @@ module.exports = {
 		var errors = [];
 
 		for(var param in params) {
+			var force = false;
 			if(params.hasOwnProperty(param)) {
 				var fetched;
 				var paramConfig = params[param];
 				if(params[param].source && params[param].source.some(function(source) {
 						var path = source.split("."), pathLength = path.length, traversed = sources;
+						if(path[0] === 'query'){ force = true; }
 						var next = path.shift();
 						while(next) {
 							if(traversed.hasOwnProperty(next)) {
@@ -183,7 +185,7 @@ module.exports = {
 					var type = paramConfig.validation.type;
 
 					//apply type casting if headers content-type is not JSON, otherwise inputs are received as strings
-					if(!obj.req.headers['content-type'] || obj.req.headers['content-type'].indexOf('application/json') === -1) {
+					if(force || !obj.req.headers['content-type'] || obj.req.headers['content-type'].indexOf('application/json') === -1) {
 						data[param] = castType(data[param], type, paramConfig.validation);
 					}
 
