@@ -146,7 +146,6 @@ MongoDriver.prototype.update = function(/*collectionName, criteria, record, [opt
 					if(!updateOptions['$set']) {updateOptions['$set'] = {};}
 					updateOptions['$set'].ts = new Date().getTime();
 
-
 					self.db.collection(collectionName).update(criteria, updateOptions, extra, cb);
 				});
 			});
@@ -177,7 +176,7 @@ MongoDriver.addVersionToRecords = function(collection, oneRecord, cb) {
 		originalRecord.refId = originalRecord._id;
 		delete originalRecord._id;
 
-		self.insert(collection + '_versioning', originalRecord, {'safe': true}, cb);
+		self.insert(collection + '_versioning', originalRecord, cb);
 	});
 };
 
