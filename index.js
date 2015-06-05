@@ -12,6 +12,7 @@ module.exports = {
 		"controller": require("./servers/controller.js")
 	},
 	"mail": require("./modules/soajs.mail"),
-	"mongo": require("./modules/soajs.mongo")
+	"mongo": require("./modules/soajs.mongo"),
+    "contentBuilder": require("./modules/soajs.contentBuilder")
 };
 
