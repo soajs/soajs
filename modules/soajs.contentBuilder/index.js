@@ -1,6 +1,7 @@
 'use strict';
 var core = require("../soajs.core");
 var Mongo = require("../soajs.mongo");
+var async = require("async");
 var mongo;
 
 var config = require("./config");
@@ -13,11 +14,11 @@ function generateError(errorCode) {
 
 function ContentBuilder(config, callback) {
 
-	if(!config.name){
+	if(!config.name) {
 		return callback(generateError(190));
 	}
 
-	if(!config.version || typeof(config.version) !== 'number'){
+	if(!config.version || typeof(config.version) !== 'number') {
 		return callback(generateError(191));
 	}
 
@@ -30,7 +31,24 @@ function ContentBuilder(config, callback) {
 		mongo = new Mongo(registry.coreDB.provision);
 
 		//get the gc schema
-		mongo.findOne("gc", {"name": config.name, "v": config.version}, callback);
+		mongo.findOne("gc", {"name": config.name, "v": config.version}, function(error, config) {
+			if(error) { return callback(error); }
+
+			var envs = Object.keys(config.soajsService.db.config);
+			async.mapLimit(envs, envs.length, addDbinEnv, function(error) {
+				if(error){ return callback(error); }
+				return callback(null, config);
+			});
+
+			function addDbinEnv(envCode, cb) {
+				var dbName = Object.keys(config.soajsService.db.config[envCode])[0];
+				var updateOptions = {
+					'$set': {}
+				};
+				updateOptions['$set']["dbs.databases." + dbName] = config.soajsService.db.config[envCode][dbName];
+				mongo.update("environment", {"code": envCode}, updateOptions, {"safe": true}, cb);
+			}
+		});
 	});
 }
 
