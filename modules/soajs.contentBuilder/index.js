@@ -31,27 +31,27 @@ function ContentBuilder(config, callback) {
 		mongo = new Mongo(registry.coreDB.provision);
 
 		//get the gc schema
-		mongo.findOne("gc", {"name": config.name, "v": config.version}, function(error, config) {
+		mongo.findOne("gc", {"name": config.name, "v": config.version}, function(error, Schema) {
 			if(error) { return callback(error); }
 
-			mongo.find("hosts",{"name": config.name},function(error, hosts){
+			mongo.findOne("hosts",{"name": config.name},function(error, hosts){
 				if(error){ return callback(error); }
 
-				config.hosts = hosts;
+				Schema.hosts = hosts;
 
-				var envs = Object.keys(config.soajsService.db.config);
+				var envs = Object.keys(Schema.soajsService.db.config);
 				async.mapLimit(envs, envs.length, addDbinEnv, function(error) {
 					if(error){ return callback(error); }
-					return callback(null, config);
+					return callback(null, Schema);
 				});
 			});
 
 			function addDbinEnv(envCode, cb) {
-				var dbName = Object.keys(config.soajsService.db.config[envCode])[0];
+				var dbName = Object.keys(Schema.soajsService.db.config[envCode])[0];
 				var updateOptions = {
 					'$set': {}
 				};
-				updateOptions['$set']["dbs.databases." + dbName] = config.soajsService.db.config[envCode][dbName];
+				updateOptions['$set']["dbs.databases." + dbName] = Schema.soajsService.db.config[envCode][dbName];
 				mongo.update("environment", {"code": envCode}, updateOptions, {"safe": true}, cb);
 			}
 		});
