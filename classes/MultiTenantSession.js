@@ -284,6 +284,7 @@ MultiTenantSession.prototype.setSERVICE = function (obj, cb) {
     var key = this.session.persistSession.holder.tenant.key;
     var service = this.session.persistSession.holder.request.service;
     this.session.sessions[tId].keys[key].services[service] = obj;
+    this.setPersistSessionSTATE("SERVICE");
     if (cb && (typeof cb === "function")) {
         this.req.sessionStore.set(this.req.sessionID, this.session, cb);
     }
