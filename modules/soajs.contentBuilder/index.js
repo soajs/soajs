@@ -34,7 +34,7 @@ function ContentBuilder(config, callback) {
 		mongo.findOne("gc", {"name": config.name, "v": config.version}, function(error, Schema) {
 			if(error) { return callback(error); }
 
-			mongo.findOne("hosts",{"name": config.name},function(error, hosts){
+			mongo.find("hosts",{"name": config.name},function(error, hosts){
 				if(error){ return callback(error); }
 
 				Schema.hosts = hosts;
