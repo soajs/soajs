@@ -34,10 +34,16 @@ function ContentBuilder(config, callback) {
 		mongo.findOne("gc", {"name": config.name, "v": config.version}, function(error, config) {
 			if(error) { return callback(error); }
 
-			var envs = Object.keys(config.soajsService.db.config);
-			async.mapLimit(envs, envs.length, addDbinEnv, function(error) {
+			mongo.find("hosts",{"name": config.name},function(error, hosts){
 				if(error){ return callback(error); }
-				return callback(null, config);
+
+				config.hosts = hosts;
+
+				var envs = Object.keys(config.soajsService.db.config);
+				async.mapLimit(envs, envs.length, addDbinEnv, function(error) {
+					if(error){ return callback(error); }
+					return callback(null, config);
+				});
 			});
 
 			function addDbinEnv(envCode, cb) {
@@ -49,6 +55,7 @@ function ContentBuilder(config, callback) {
 				mongo.update("environment", {"code": envCode}, updateOptions, {"safe": true}, cb);
 			}
 		});
+
 	});
 }
 
