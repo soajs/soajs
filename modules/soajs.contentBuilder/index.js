@@ -32,10 +32,10 @@ function ContentBuilder(config, callback) {
 
 		//get the gc schema
 		mongo.findOne("gc", {"name": config.name, "v": config.version}, function(error, Schema) {
-			if(error) { return callback(error); }
+			if(error || !Schema) { return callback(error); }
 
 			mongo.find("hosts",{"name": config.name},function(error, hosts){
-				if(error){ return callback(error); }
+				if(error || !hosts){ return callback(error); }
 
 				Schema.hosts = hosts;
 
