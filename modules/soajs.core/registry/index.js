@@ -1,5 +1,6 @@
 'use strict';
 var fs = require('fs');
+var os = require("os");
 var request = require('request');
 var async = require('async');
 var Mongo = require('../../soajs.mongo');
@@ -307,7 +308,8 @@ var build = {
                 var hostObj = {
                     'env': registry.name.toLowerCase(),
                     'name': param.serviceName,
-                    'ip': param.serviceIp
+                    'ip': param.serviceIp,
+                    'hostname': os.hostname()
                 };
                 build.checkRegisterServiceIP(registry.coreDB.provision, hostObj, function (error, registered) {
                     if (error) {
