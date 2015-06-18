@@ -309,7 +309,7 @@ var build = {
                     'env': registry.name.toLowerCase(),
                     'name': param.serviceName,
                     'ip': param.serviceIp,
-                    'hostname': os.hostname()
+                    'hostname': os.hostname().toLowerCase()
                 };
                 build.checkRegisterServiceIP(registry.coreDB.provision, hostObj, function (error, registered) {
                     if (error) {
