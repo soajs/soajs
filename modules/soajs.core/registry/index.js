@@ -207,6 +207,15 @@ var build = {
 					return cb(null, true);
 				});
 			}
+			else{
+				dbRecord.ip = hostObj.ip;
+				mongo.save('hosts', dbRecord, function(err) {
+					if(err) {
+						return cb(err, false);
+					}
+					return cb(null, true);
+				});
+			}
 		});
 	},
 
