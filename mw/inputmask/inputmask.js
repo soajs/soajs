@@ -122,17 +122,19 @@ module.exports = {
 		if(!obj.req || typeof obj.req !== "object") {
 			sourceProblem = true;
 		}
-		for(var i = 0; i < obj.inputmaskSrc.length; i++) {
-			if(obj.req.hasOwnProperty(obj.inputmaskSrc[i])) {
-				sources[obj.inputmaskSrc[i]] = utils.cloneObj(obj.req[obj.inputmaskSrc[i]]);
-				if(typeof sources[obj.inputmaskSrc[i]] !== "object") {
-					sourceProblem = true;
-				}
-			}
-			else {
-				sourceProblem = true;
-			}
-		}
+        else {
+            for (var i = 0; i < obj.inputmaskSrc.length; i++) {
+                if (obj.req.hasOwnProperty(obj.inputmaskSrc[i])) {
+                    sources[obj.inputmaskSrc[i]] = utils.cloneObj(obj.req[obj.inputmaskSrc[i]]);
+                    if (typeof sources[obj.inputmaskSrc[i]] !== "object") {
+                        sourceProblem = true;
+                    }
+                }
+                else {
+                    sourceProblem = true;
+                }
+            }
+        }
 		if(sourceProblem) {
 			return cb({"code": 171, "msg": "request does not have all the sources needed: " + obj.inputmaskSrc});
 		}
