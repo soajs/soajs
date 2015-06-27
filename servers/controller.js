@@ -73,23 +73,27 @@ controller.prototype.init = function(callback) {
 		}));
 		app.use(controller_mw());
 		app.use(function(req, res, next) {
-			var body = '';
+            if(req.headers.stream) {
+                setImmediate(function() {req.soajs.controller.gotoservice(req, res, null);});
+            } else {
+                var body = '';
 
-			req.on("data", function(chunk) {
-				body += chunk;
-			});
+                req.on("data", function (chunk) {
+                    body += chunk;
+                });
 
-			/* Close the connection */
-			req.on("end", function() {
-				process.nextTick(function() {
-					try {
-						req.soajs.controller.gotoservice(req, res, body);
-					} catch(err) {
-						_self.log.error(err);
-						return req.soajs.controllerResponse(core.error.getError(136));
-					}
-				});
-			});
+                /* Close the connection */
+                req.on("end", function () {
+                    process.nextTick(function () {
+                        try {
+                            req.soajs.controller.gotoservice(req, res, body);
+                        } catch (err) {
+                            _self.log.error(err);
+                            return req.soajs.controllerResponse(core.error.getError(136));
+                        }
+                    });
+                });
+            }
 
 			req.on("error", function(error) {
 				req.soajs.log.error("Error @ controller:", error);
@@ -104,8 +108,6 @@ controller.prototype.init = function(callback) {
 					req.soajs.controller.redirectedRequest.abort();
 				}
 			});
-
-			//next();
 		});
 
 		_self.server = http.createServer(app);
