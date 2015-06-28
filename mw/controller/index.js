@@ -111,7 +111,7 @@ function redirectToService(req, res, body) {
             'method': req.method,
             'uri': 'http://' + host + ':' + restServiceParams.port + restServiceParams.url,
             'timeout': 1000 * 3600,
-            'pool': config.maxPoolSize,
+            //'pool': 'controller',
             'headers': req.headers,
             'jar': false
         };
@@ -147,7 +147,7 @@ function redirectToService(req, res, body) {
             }
         });
 
-        if (req.method === 'POST' || req.method === 'PUT') {
+        if (!req.headers.stream && (req.method === 'POST' || req.method === 'PUT')) {
             requestOptions.body = body || "{}";
             if (requestOptions.headers['content-length'] === '0') {
                 requestOptions.headers['content-length'] = requestOptions.body.length;
@@ -155,7 +155,7 @@ function redirectToService(req, res, body) {
         }
 
         if (config.authorization) {
-            isRequestAuthorized(req, requestOptions, body);
+            isRequestAuthorized(req, requestOptions);
         }
 
         req.soajs.controller.redirectedRequest = request(requestOptions);
@@ -175,10 +175,9 @@ function redirectToService(req, res, body) {
  *
  * @param req
  * @param requestOptions
- * @param body
  * @returns {boolean}
  */
-function isRequestAuthorized(req, requestOptions, body) {
+function isRequestAuthorized(req, requestOptions) {
     requestOptions.headers.cookie = requestOptions.headers.cookie || '';
     var cookies = requestOptions.headers.cookie.split(';');
     cookies.some(function (cookie, idx, arr) {

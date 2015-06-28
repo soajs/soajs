@@ -174,11 +174,11 @@ controller.prototype.init = function(callback) {
 				core.registry.register(
 					{
 						"name": parsedUrl.query.name,
-						"port": parsedUrl.query.port,
+						"port": parseInt(parsedUrl.query.port),
 						"ip": parsedUrl.query.ip,
-						"extKeyRequired": parsedUrl.query.extKeyRequired,
-						"requestTimeout": parsedUrl.query.requestTimeout,
-						"requestTimeoutRenewal": parsedUrl.query.requestTimeoutRenewal
+						"extKeyRequired": (parsedUrl.query.extKeyRequired === "true"? true: false),
+						"requestTimeout": parseInt(parsedUrl.query.requestTimeout),
+						"requestTimeoutRenewal": parseInt(parsedUrl.query.requestTimeoutRenewal)
 					},
 					function(err, data) {
               if(!err) {
