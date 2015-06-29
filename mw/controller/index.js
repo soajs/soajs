@@ -90,10 +90,9 @@ function extractBuildParameters(req, service, url) {
  *
  * @param req
  * @param res
- * @param body
  * @returns {*}
  */
-function redirectToService(req, res, body) {
+function redirectToService(req, res) {
     var restServiceParams = req.soajs.controller.serviceParams;
     var config = req.soajs.registry.services.controller;
     if (!config) {
@@ -120,7 +119,6 @@ function redirectToService(req, res, body) {
             "host": host,
             "url": restServiceParams.url,
             "header": req.headers
-            //"body": body
         });
 
         req.soajs.controller.renewalCount = 0;
@@ -132,7 +130,7 @@ function redirectToService(req, res, body) {
                 request({
                     'uri': 'http://' + host + ':' + (restServiceParams.port + req.soajs.registry.serviceConfig.ports.maintenanceInc) + '/heartbeat',
                     'headers': req.headers
-                }, function (error, response, body) {
+                }, function (error, response) {
                     if (!error && response.statusCode === 200) {
                         req.soajs.log.info('... able to renew request for ', requestTO, 'seconds');
                         res.setTimeout(requestTO * 1000);
@@ -146,14 +144,14 @@ function redirectToService(req, res, body) {
                 return req.soajs.controllerResponse(core.error.getError(134));
             }
         });
-
+        /*
         if (!req.headers.stream && (req.method === 'POST' || req.method === 'PUT')) {
             requestOptions.body = body || "{}";
             if (requestOptions.headers['content-length'] === '0') {
                 requestOptions.headers['content-length'] = requestOptions.body.length;
             }
         }
-
+        */
         if (config.authorization) {
             isRequestAuthorized(req, requestOptions);
         }
