@@ -283,7 +283,7 @@ var build = {
 				var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
 				registry["services"][param.serviceName] = {
 					"extKeyRequired": param.extKeyRequired || false,
-					"port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.ports.controller + schemaPorts.maintenanceInc),
+					"port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc),
 					"requestTimeout": param.requestTimeout,
 					"requestTimeoutRenewal": param.requestTimeoutRenewal
 				};
