@@ -195,24 +195,13 @@ var build = {
 			mongo = new Mongo(dbConfiguration);
 		}
 		//check if this host has this ip in the env
-		mongo.findOne('hosts', {"env": hostObj.env, "name": hostObj.name, "hostname": hostObj.hostname}, function(error, dbRecord) {
+		mongo.findOne('hosts', hostObj, function(error, dbRecord) {
 			if(error || dbRecord) {
 				return cb(error, false);
 			}
 			if(!dbRecord) {
 				mongo.insert('hosts', hostObj, function(err) {
-					if(err) {
-						return cb(err, false);
-					}
-					return cb(null, true);
-				});
-			}
-			else{
-				dbRecord.ip = hostObj.ip;
-				mongo.save('hosts', dbRecord, function(err) {
-					if(err) {
-						return cb(err, false);
-					}
+					if(err){ return cb(err, false); }
 					return cb(null, true);
 				});
 			}
