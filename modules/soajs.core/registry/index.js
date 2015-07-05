@@ -5,6 +5,7 @@ var request = require('request');
 var async = require('async');
 var Mongo = require('../../soajs.mongo');
 
+var autoRegService = process.env.SOAJS_SRV_AUTOREGISTER || false;
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
 var regFile = (process.env.SOAJS_PROFILE || __dirname + "/../../../profiles/single.js");
@@ -302,7 +303,7 @@ var build = {
 			if(param.reload) {
 				return callback();
 			}
-			if(param.serviceIp) {
+			if(param.serviceIp && autoRegService) {
 				var hostObj = {
 					'env': registry.name.toLowerCase(),
 					'name': param.serviceName,
@@ -324,7 +325,9 @@ var build = {
 				});
 			}
 			else {
-				throw new Error("Unable to register new host ip [" + param.serviceIp + "] for service [" + param.serviceName + "]");
+                if(!param.serviceIp){
+				    throw new Error("Unable to register new host ip [" + param.serviceIp + "] for service [" + param.serviceName + "]");
+                }
 				return callback();
 			}
 		}
@@ -446,7 +449,10 @@ exports.reload = function(param, cb) {
 	});
 };
 exports.autoRegisterService = function(name, serviceIp, cb) {
-	var controllerSRV = registry_struct[regEnvironment].services.controller;
+	if(!autoRegService){
+        return cb(null, false);
+    }
+    var controllerSRV = registry_struct[regEnvironment].services.controller;
 	var serviceSRV = registry_struct[regEnvironment].services[name];
 	if(!serviceSRV.newServiceOrHost) {
 		return cb(null, false);
