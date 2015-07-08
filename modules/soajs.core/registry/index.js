@@ -275,7 +275,8 @@ var build = {
 					"extKeyRequired": param.extKeyRequired || false,
 					"port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc),
 					"requestTimeout": param.requestTimeout,
-					"requestTimeoutRenewal": param.requestTimeoutRenewal
+					"requestTimeoutRenewal": param.requestTimeoutRenewal,
+					"awareness": param.awareness
 				};
 
 				//adding service for the first time to services collection
