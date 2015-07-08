@@ -285,6 +285,7 @@ var build = {
 					'port': registry["services"][param.serviceName].port,
 					'requestTimeout': registry["services"][param.serviceName].requestTimeout,
 					'requestTimeoutRenewal': registry["services"][param.serviceName].requestTimeoutRenewal,
+					'awareness': param.awareness,
 					'apis': param.apiList
 				};
 				build.registerNewService(registry.coreDB.provision, newServiceObj, registryDBInfo.ENV_schema.services.config.ports, function(error) {
