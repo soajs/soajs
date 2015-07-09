@@ -57,8 +57,8 @@ module.exports = function (connect) {
         options = options || {};
 
         for (var property in defaultOptions) {
-            if (defaultOptions.hasOwnProperty(property)) {
-                if (!options.hasOwnProperty(property) || (typeof defaultOptions[property] !== typeof options[property])) {
+            if (Object.hasOwnProperty.call(defaultOptions,property)) {
+                if (!Object.hasOwnProperty.call(options, property) || (typeof defaultOptions[property] !== typeof options[property])) {
                     options[property] = defaultOptions[property];
                 }
             }

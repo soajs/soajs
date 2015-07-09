@@ -41,7 +41,7 @@ module.exports = function(config, inputmaskSrc) {
 		var apiName = req.route.path;
 		req.soajs.inputmaskData = {};
 
-		if(!config.schema.hasOwnProperty(apiName) && !( config.schema.hasOwnProperty('commonFields') && config.schema.commonFields.hasOwnProperty(apiName) )) {
+		if(!Object.hasOwnProperty.call(config.schema, apiName) && !( Object.hasOwnProperty.call(config.schema,'commonFields') && Object.hasOwnProperty.call(config.schema.commonFields, apiName) )) {
 			return next();
 		}
 

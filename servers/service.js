@@ -34,7 +34,7 @@ function service(param) {
 	var defaultParam = ["bodyParser", "methodOverride", "cookieParser", "logger", "inputmask"];
 	var len = defaultParam.length;
 	for(var i = 0; i < len; i++) {
-		if(!param.hasOwnProperty(defaultParam[i])) {
+		if(!Object.hasOwnProperty.call(param, defaultParam[i])) {
 			param[defaultParam[i]] = true;
 		}
 	}
@@ -51,7 +51,7 @@ function extractAPIsList(schema) {
 	var excluded = ['commonFields'];
 	var apiList = [];
 	for(var route in schema) {
-		if(schema.hasOwnProperty(route)) {
+		if(Object.hasOwnProperty.call(schema, route)) {
 			if(excluded.indexOf(route) !== -1) {
 				continue;
 			}
@@ -172,7 +172,7 @@ service.prototype.init = function(callback) {
 			var store = new MongoStore(registry.coreDB.session);
 			var sessConf = {};
 			for(var key in soajs.serviceConf._conf.session) {
-				if(soajs.serviceConf._conf.session.hasOwnProperty(key)) {
+				if(Object.hasOwnProperty.call(soajs.serviceConf._conf.session, key)) {
 					sessConf[key] = soajs.serviceConf._conf.session[key];
 				}
 			}

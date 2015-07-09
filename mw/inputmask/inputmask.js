@@ -56,7 +56,7 @@ function castType(value, type, cfg) {
 		if(cfg && (cfg.properties || (cfg.additionalProperties && typeof(cfg.additionalProperties) === 'object') )) {
 			objCfg = cfg.properties || cfg.additionalProperties;
 			for(var key in obj) {
-				if(obj.hasOwnProperty(key)) {
+				if(Object.hasOwnProperty.call(obj,key)) {
 					if(objCfg[key].type === 'array') {
 						doArray(obj[key], objCfg[key].items);
 					}
@@ -75,7 +75,7 @@ function castType(value, type, cfg) {
 			for(var i =0; i < patterns.length; i++){
 				var regexp = new RegExp(patterns[i]);
 				for(var key2 in obj){
-					if(obj.hasOwnProperty(key2)){
+					if(Object.hasOwnProperty.call(obj, key2)){
 						if(regexp.test(key2)){
 							doObject(obj[key2], objCfg[patterns[i]]);
 						}
@@ -124,7 +124,7 @@ module.exports = {
 		}
         else {
             for (var i = 0; i < obj.inputmaskSrc.length; i++) {
-                if (obj.req.hasOwnProperty(obj.inputmaskSrc[i])) {
+                if (Object.hasOwnProperty.call(obj.req, obj.inputmaskSrc[i])) {
                     sources[obj.inputmaskSrc[i]] = utils.cloneObj(obj.req[obj.inputmaskSrc[i]]);
                     if (typeof sources[obj.inputmaskSrc[i]] !== "object") {
                         sourceProblem = true;
@@ -154,8 +154,8 @@ module.exports = {
 		var errors = [];
 
 		for(var param in params) {
-			var force = false;
-			if(params.hasOwnProperty(param)) {
+			if(Object.hasOwnProperty.call(params, param)) {
+				var force = false;
 				var fetched;
 				var paramConfig = params[param];
 				if(params[param].source && params[param].source.some(function(source) {
@@ -163,7 +163,7 @@ module.exports = {
 						if(path[0] === 'query'){ force = true; }
 						var next = path.shift();
 						while(next) {
-							if(traversed.hasOwnProperty(next)) {
+							if(Object.hasOwnProperty.call(traversed, next)) {
 								traversed = traversed[next];
 								next = path.shift();
 							}
@@ -172,7 +172,7 @@ module.exports = {
 							}
 						}
 						if(pathLength === 1) {
-							if(traversed.hasOwnProperty(param)) {
+							if(Object.hasOwnProperty.call(traversed, param)) {
 								traversed = traversed[param];
 							} else {
 								return;
@@ -208,7 +208,7 @@ module.exports = {
 					}
 				}
 				else {
-					if(paramConfig.hasOwnProperty("default")) {
+					if(Object.hasOwnProperty.call(paramConfig, "default")) {
 						data[param] = paramConfig.default;
 					} else {
 						if(!utils.validProperty(paramConfig, "required") || !paramConfig.required) {
@@ -228,7 +228,7 @@ module.exports = {
 		}
 		if(err) {
 			for(var e in err) {
-				if(err.hasOwnProperty(e)) {
+				if(Object.hasOwnProperty.call(err, e)) {
 					errors.push({"code": Number(e), "msg": err[e]});
 				}
 			}

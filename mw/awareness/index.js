@@ -40,7 +40,7 @@ module.exports = function (param) {
                     "servicesArr": []
                 };
                 for (var s in registry.services) {
-                    if (registry.services.hasOwnProperty(s) && s !== param.serviceName) {
+                    if (Object.hasOwnProperty.call(registry.services,s) && s !== param.serviceName) {
                         if (!serviceAwarenessObj[s])
                             serviceAwarenessObj[s] = {"healthy": [], "index": 0};
                         if (!serviceAwarenessObj[s].healthy)

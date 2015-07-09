@@ -20,7 +20,7 @@ var build = {
 
 		if(STRUCT && STRUCT.dbs && STRUCT.dbs.databases) {
 			for(var dbName in STRUCT.dbs.databases) {
-				if(STRUCT.dbs.databases.hasOwnProperty(dbName)) {
+				if(Object.hasOwnProperty.call(STRUCT.dbs.databases,dbName)) {
 					var dbRec = STRUCT.dbs.databases[dbName];
 					var dbObj = null;
 					if(dbRec.cluster && STRUCT.dbs.clusters[dbRec.cluster]) {
@@ -242,7 +242,7 @@ var build = {
 		registry["serviceConfig"] = registryDBInfo.ENV_schema.services.config;
 		registry["coreDB"]["session"] = build.sessionDB(registryDBInfo.ENV_schema);
 		for(var coreDBName in metaAndCoreDB.coreDB) {
-			if(metaAndCoreDB.coreDB.hasOwnProperty(coreDBName)) {
+			if(Object.hasOwnProperty.call(metaAndCoreDB.coreDB, coreDBName)) {
 				registry["coreDB"][coreDBName] = metaAndCoreDB.coreDB[coreDBName];
 			}
 		}
