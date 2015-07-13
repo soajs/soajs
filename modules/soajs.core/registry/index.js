@@ -6,6 +6,10 @@ var async = require('async');
 var Mongo = require('../../soajs.mongo');
 
 var autoRegService = process.env.SOAJS_SRV_AUTOREGISTER || false;
+if(autoRegService && typeof(autoRegService) !== 'boolean'){
+	autoRegService = (autoRegService === 'true');
+}
+
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
 var regFile = (process.env.SOAJS_PROFILE || __dirname + "/../../../profiles/single.js");
@@ -302,10 +306,10 @@ var build = {
 			//if (param.awareness) {
 			build.controllerHosts(registryDBInfo.ENV_hosts, registry["services"].controller);
 			//}
-			if(param.reload) {
+			if(!autoRegService || param.reload) {
 				return callback();
 			}
-			if(param.serviceIp && autoRegService) {
+			else if(param.serviceIp) {
 				var hostObj = {
 					'env': registry.name.toLowerCase(),
 					'name': param.serviceName,
