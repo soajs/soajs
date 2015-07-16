@@ -39,6 +39,7 @@
     "async": "*",
     "body-parser": "*",
     "bunyan": "*",
+    "bunyan-format": "*",
     "connect" : "*",
     "cookie-parser": "*",
     "express": "*",

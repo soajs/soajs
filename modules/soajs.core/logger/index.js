@@ -25,6 +25,14 @@ module.exports = function getLogger(name, config) {
     if(!_log) {
         var configClone = lib.utils.cloneObj(config);
         configClone["name"] = name;
+
+        if(config.formatter && Object.keys(config.formatter).length > 0){
+            var bformat = require('bunyan-format');
+            var formatOut = bformat(config.formatter);
+            configClone['stream'] = formatOut;
+            delete configClone.formatter;
+        }
+
         _log = new bunyan.createLogger(configClone);
     }
     return _log;
