@@ -5,9 +5,9 @@ var request = require('request');
 var async = require('async');
 var Mongo = require('../../soajs.mongo');
 
-var autoRegService = process.env.SOAJS_SRV_AUTOREGISTER || false;
-if(autoRegService && typeof(autoRegService) !== 'boolean'){
-	autoRegService = (autoRegService === 'true');
+var autoRegHost = process.env.SOAJS_SRV_AUTOREGISTERHOST || true;
+if(autoRegHost && typeof(autoRegHost) !== 'boolean'){
+	autoRegHost = (autoRegHost === 'true');
 }
 
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
@@ -293,6 +293,7 @@ var build = {
 					'awareness': param.awareness,
 					'apis': param.apiList
 				};
+
 				build.registerNewService(registry.coreDB.provision, newServiceObj, registryDBInfo.ENV_schema.services.config.ports, function(error) {
 					if(error) {
 						throw new Error('Unable to register new service ' + param.serviceName + ' : ' + error.message);
@@ -306,7 +307,7 @@ var build = {
 			//if (param.awareness) {
 			build.controllerHosts(registryDBInfo.ENV_hosts, registry["services"].controller);
 			//}
-			if(!autoRegService || param.reload) {
+			if(!autoRegHost || param.reload) {
 				return callback();
 			}
 			else if(param.serviceIp) {
@@ -455,7 +456,7 @@ exports.reload = function(param, cb) {
 	});
 };
 exports.autoRegisterService = function(name, serviceIp, cb) {
-	if(!autoRegService){
+	if(!autoRegHost){
         return cb(null, false);
     }
     var controllerSRV = registry_struct[regEnvironment].services.controller;
