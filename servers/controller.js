@@ -13,6 +13,11 @@ var response_mw = require('./../mw/response/index');
 var awareness_mw = require('./../mw/awareness/index');
 var controller_mw = require('./../mw/controller/index');
 
+var autoRegHost = process.env.SOAJS_SRV_AUTOREGISTERHOST || true;
+if(autoRegHost && typeof(autoRegHost) !== 'boolean'){
+	autoRegHost = (autoRegHost === 'true');
+}
+
 /**
  *
  */
@@ -27,6 +32,9 @@ controller.prototype.init = function(callback) {
 	var _self = this;
 	var fetchedHostIp = null;
 	var serviceIpNotDetected = false;
+	if(!autoRegHost){
+		_self.serviceIp = '127.0.0.1';
+	}
 	if(!_self.serviceIp) {
 		fetchedHostIp = core.getHostIp();
       if(fetchedHostIp && fetchedHostIp.result) {

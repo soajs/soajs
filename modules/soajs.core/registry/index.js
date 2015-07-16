@@ -456,9 +456,6 @@ exports.reload = function(param, cb) {
 	});
 };
 exports.autoRegisterService = function(name, serviceIp, cb) {
-	if(!autoRegHost){
-        return cb(null, false);
-    }
     var controllerSRV = registry_struct[regEnvironment].services.controller;
 	var serviceSRV = registry_struct[regEnvironment].services[name];
 	if(!serviceSRV.newServiceOrHost) {

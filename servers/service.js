@@ -9,6 +9,11 @@ var lib = require("./../lib/index");
 
 var express = require("./../classes/express");
 
+var autoRegHost = process.env.SOAJS_SRV_AUTOREGISTERHOST || true;
+if(autoRegHost && typeof(autoRegHost) !== 'boolean'){
+	autoRegHost = (autoRegHost === 'true');
+}
+
 /*
  * param = {
  *           logger : boolean
@@ -86,6 +91,9 @@ service.prototype.init = function(callback) {
 
 	var fetchedHostIp = null;
 	var serviceIpNotDetected = false;
+	if(!autoRegHost){
+		_self.serviceIp = '127.0.0.1';
+	}
 	if(!soajs.serviceIp) {
 		fetchedHostIp = core.getHostIp();
       if(fetchedHostIp && fetchedHostIp.result) {
@@ -112,18 +120,19 @@ service.prototype.init = function(callback) {
 		soajs.provision = registry.coreDB.provision;
 
 		_self._log = core.getLogger(soajs.serviceName, registry.serviceConfig.logger);
+		_self._log.info("Registry has been loaded successfully from environment: " + registry.environment);
 
 		if(fetchedHostIp) {
-        if(!fetchedHostIp.result) {
-            _self._log.warn("Unable to find the service host ip. The service will NOT be registered for awareness.");
-            _self._log.info("IPs found: ", fetchedHostIp.ips);
-            if(serviceIpNotDetected) {
-                _self._log.warn("The default service IP has been used [" + soajs.serviceIp + "]");
-            }
-        }
-        else {
-            _self._log.info("The IP registered for service [" + soajs.serviceName + "] awareness : ", fetchedHostIp.ip);
-        }
+			if(!fetchedHostIp.result) {
+				_self._log.warn("Unable to find the service host ip. The service will NOT be registered for awareness.");
+				_self._log.info("IPs found: ", fetchedHostIp.ips);
+				if(serviceIpNotDetected) {
+					_self._log.warn("The default service IP has been used [" + soajs.serviceIp + "]");
+				}
+			}
+			else {
+				_self._log.info("The IP registered for service [" + soajs.serviceName + "] awareness : ", fetchedHostIp.ip);
+			}
 		}
 
 		if(!soajs.serviceName || !soajs.serviceConf) {
@@ -135,13 +144,20 @@ service.prototype.init = function(callback) {
 			return callback(new Error("Service shutdown due to failure!"));
 		}
 
+		_self._log.info("Service middleware initialization started...");
+
 		var favicon_mw = require("./../mw/favicon/index");
 		_self.app.use(favicon_mw());
 		_self.appMaintenance.use(favicon_mw());
+		_self._log.info("Favicon middleware initialization done.");
 
 		if(param.logger) {
 			var logger = require('morgan');
 			_self.app.use(logger('combined'));
+			_self._log.info("Morgan Logger middleware initialization done.");
+		}
+		else{
+			_self._log.info("Morgan Logger middleware initialization skipped.");
 		}
 
 		var soajs_mw = require("./../mw/soajs/index");
@@ -154,16 +170,28 @@ service.prototype.init = function(callback) {
 			var bodyParser = require('body-parser');
 			_self.app.use(bodyParser.json());
 			_self.app.use(bodyParser.urlencoded({extended: true}));
+			_self._log.info("Body-Parse middleware initialization done.");
+		}
+		else{
+			_self._log.info("Body-Parser middleware initialization skipped.");
 		}
 
 		if(param.methodOverride) {
 			var methodOverride = require('method-override');
 			_self.app.use(methodOverride());
+			_self._log.info("Method-Override middleware initialization done.");
+		}
+		else{
+			_self._log.info("Method-Override middleware initialization skipped.");
 		}
 
 		if(param.cookieParser) {
 			var cookieParser = require('cookie-parser');
 			_self.app.use(cookieParser(soajs.serviceConf._conf.cookie.secret));
+			_self._log.info("CookieParser middleware initialization done.");
+		}
+		else{
+			_self._log.info("CookieParser middleware initialization skipped.");
 		}
 
 		if(param.session) {
@@ -178,6 +206,10 @@ service.prototype.init = function(callback) {
 			}
 			sessConf.store = store;
 			_self.app.use(session(sessConf));
+			_self._log.info("Express-Session middleware initialization done.");
+		}
+		else{
+			_self._log.info("Express-Session middleware initialization skipped.");
 		}
 
 		if(param.inputmask && param.config.schema) {
@@ -191,6 +223,10 @@ service.prototype.init = function(callback) {
 			}
 
 			soajs.inputmask = inputmask_mw(param.config, inputmaskSrc);
+			_self._log.info("IMFV middleware initialization done.");
+		}
+		else{
+			_self._log.info("IMFV middleware initialization skipped.");
 		}
 
 		if(param.bodyParser && param.oauth) {
@@ -210,7 +246,12 @@ service.prototype.init = function(callback) {
 			}
 
 			soajs.oauth = _self.oauth.authorise();
+			_self._log.info("oAuth middleware initialization done.");
 		}
+		else{
+			_self._log.info("oAuth middleware initialization skipped.");
+		}
+
 		if(soajs.awareness) {
 			var awareness_mw = require("./../mw/awareness/index");
 			_self.app.use(awareness_mw({
@@ -220,10 +261,15 @@ service.prototype.init = function(callback) {
 				"apiList": _self.app.soajs.apiList,
 				"serviceIp": _self.app.soajs.serviceIp
 			}));
+			_self._log.info("Awareness middleware initialization done.");
 		}
+		else{
+			_self._log.info("Awareness middleware initialization skipped.");
+		}
+
 		var service_mw = require("./../mw/service/index");
 		_self.app.use(service_mw({"soajs": soajs, "app": _self.app, "param": param}));
-
+		_self._log.info("SOAJS Service middleware initialization done.");
 		callback();
 	});
 };
@@ -234,6 +280,7 @@ service.prototype.init = function(callback) {
 service.prototype.start = function(cb) {
 	var _self = this;
 	if(_self.app && _self.app.soajs) {
+		_self._log.info("Service about to start ...");
 
 		_self.app.all('*', function(req, res) {
 			req.soajs.log.error(151, 'Unknown API : ' + req.path);
@@ -244,24 +291,34 @@ service.prototype.start = function(cb) {
 		_self.app.use(clientErrorHandler);
 		_self.app.use(errorHandler);
 
+		_self._log.info("Loading Service Provision ...");
 		provision.init(_self.app.soajs.provision, _self._log);
 		provision.loadProvision(function(loaded) {
 			if(loaded) {
+				_self._log.info("Service provision loaded.");
+				_self._log.info("Starting Service ...");
 				_self.app.httpServer = _self.app.listen(_self.app.soajs.serviceConf.info.port, function(err) {
 					_self._log.info(_self.app.soajs.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
-					core.registry.autoRegisterService(_self.app.soajs.serviceName, _self.app.soajs.serviceIp, function(err, registered) {
-					  if(err) {
-						  _self._log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
-					  } else if(registered) {
-						  _self._log.info('The autoRegisterService @ controllers for [' + _self.app.soajs.serviceName + '@' + _self.app.soajs.serviceIp + '] successfully finished.');
-					  }
-					});
+					if(autoRegHost){
+						_self._log.info("Initiating service auto register for awareness ...");
+						core.registry.autoRegisterService(_self.app.soajs.serviceName, _self.app.soajs.serviceIp, function(err, registered) {
+						  if(err) {
+							  _self._log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
+						  } else if(registered) {
+							  _self._log.info('The autoRegisterService @ controllers for [' + _self.app.soajs.serviceName + '@' + _self.app.soajs.serviceIp + '] successfully finished.');
+						  }
+						});
+					}
+					else{
+						_self._log.info("Service auto register for awareness, skipped.");
+					}
 					if(cb) {
 						cb(err);
 					}
 				});
 
 				//MAINTENANCE Service Routes
+				_self._log.info("Adding Service Maintenance Routes ...");
 				var maintenancePort = _self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
 				var maintenanceResponse = function(req, route) {
 					var response = {
