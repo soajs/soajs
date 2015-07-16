@@ -80,8 +80,8 @@ module.exports = function (param) {
                                 statusObj.downSince = statusObj.lastCheck;
                                 statusObj.downCount = 0;
                             }
-                            //TODO: move this into registry service config
-                            var stopLoggingAfter = 5;
+
+                            var stopLoggingAfter = registry.serviceConfig.awareness.maxLogCount;
                             if (statusObj.downCount <= stopLoggingAfter)
                                 param.log.warn("Self Awareness health check for service [" + sObj.name + "] for host [" + sObj.host + "] is NOT healthy");
                             if (serviceAwarenessObj[sObj.name].healthy.indexOf(sObj.host) !== -1) {
