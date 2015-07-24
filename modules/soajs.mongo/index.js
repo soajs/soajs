@@ -28,6 +28,7 @@ function MongoDriver(config) {
 	this.db = null;
 	this.pending = false;
 	this.ObjectId = mongoSkin.ObjectID;
+    this.mongoSkin = mongoSkin;
 }
 
 /**
@@ -425,6 +426,20 @@ MongoDriver.prototype.closeDb = function() {
 	}
 };
 
+MongoDriver.prototype.getMongoSkinDB = function(cb){
+    function buildDB(obj, cb){
+        var url = constructMongoLink(obj.config.name, obj.config.prefix, obj.config.servers, obj.config.URLParam, obj.config.credentials);
+        if(!url) {
+            return cb(generateError(190));
+        }
+
+        var db = mongoSkin.db(url, obj.config.extraParam);
+        return cb(null, db);
+    }
+
+    buildDB(this, cb);
+};
+
 /**
  * Ensure a connection to mongo without any race condition problem
  *
@@ -458,42 +473,42 @@ function connect(obj, cb) {
 			return cb();
 		}
 	});
+}
 
-	/**
-	 *constructMongoLink: is a function that takes the below param and return the URL need to by mongoskin.connect
-	 *
-	 * @param dbName
-	 * @param prefix
-	 * @param servers
-	 * @param params
-	 * @param credentials
-	 * @returns {*}
-	 */
-	function constructMongoLink(dbName, prefix, servers, params, credentials) {
-		if(dbName && Array.isArray(servers)) {
-			var url = "mongodb://";
-			if(credentials && Object.hasOwnProperty.call(credentials, 'username') && credentials.hasOwnProperty.call(credentials, 'password')) {
-				url = url.concat(credentials.username, ':', credentials.password, '@');
-			}
+/**
+ *constructMongoLink: is a function that takes the below param and return the URL need to by mongoskin.connect
+ *
+ * @param dbName
+ * @param prefix
+ * @param servers
+ * @param params
+ * @param credentials
+ * @returns {*}
+ */
+function constructMongoLink(dbName, prefix, servers, params, credentials) {
+    if(dbName && Array.isArray(servers)) {
+        var url = "mongodb://";
+        if(credentials && Object.hasOwnProperty.call(credentials, 'username') && credentials.hasOwnProperty.call(credentials, 'password')) {
+            url = url.concat(credentials.username, ':', credentials.password, '@');
+        }
 
-			servers.forEach(function(element, index, array) {
-				url = url.concat(element.host, ':', element.port, (index === array.length - 1 ? '' : ','));
-			});
+        servers.forEach(function(element, index, array) {
+            url = url.concat(element.host, ':', element.port, (index === array.length - 1 ? '' : ','));
+        });
 
-			url = url.concat('/');
-			if(prefix) url = url.concat(prefix);
-			url = url.concat(dbName);
+        url = url.concat('/');
+        if(prefix) url = url.concat(prefix);
+        url = url.concat(dbName);
 
-			if(params && 'object' === typeof params && Object.keys(params).length) {
-				url = url.concat('?');
-				for(var i = 0; i < Object.keys(params).length; i++) {
-					url = url.concat(Object.keys(params)[i], '=', params[Object.keys(params)[i]], i === Object.keys(params).length - 1 ? '' : "&");
-				}
-			}
-			return url;
-		}
-		return null;
-	}
+        if(params && 'object' === typeof params && Object.keys(params).length) {
+            url = url.concat('?');
+            for(var i = 0; i < Object.keys(params).length; i++) {
+                url = url.concat(Object.keys(params)[i], '=', params[Object.keys(params)[i]], i === Object.keys(params).length - 1 ? '' : "&");
+            }
+        }
+        return url;
+    }
+    return null;
 }
 
 module.exports = MongoDriver;
