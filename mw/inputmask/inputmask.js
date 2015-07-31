@@ -201,7 +201,7 @@ module.exports = {
 							} else {
 								err[173] = "Validation failed for field: " + param;
 								validation.errors.forEach(function(validationErr) {
-									err[173] += " -> The parameter '" + param + "' " + validationErr.message;
+									err[173] += " -> The parameter '" + param + "' failed due to: " + validationErr.stack;
 								});
 							}
 						}
