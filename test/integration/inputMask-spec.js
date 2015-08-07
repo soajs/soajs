@@ -144,7 +144,7 @@ scenarios.push({
 			only: true,
 			u: '/pingPostObject',
 			p: {user: {name: [1]}},
-			r: {"result": false, "errors": {"codes": [173], "details": [{"code": 173, "message": "Validation failed for field: name -> The parameter 'name' is not of a type(s) string"}]}}
+			r: {"result": false, "errors": {"codes": [173], "details": [{"code": 173, "message": "Validation failed for field: name -> The parameter 'name' failed due to: instance is not of a type(s) string"}]}}
 		},
 		{u: '/pingPostObject', p: {}, r: {"result": false, "errors": {"codes": [172], "details": [{"code": 172, "message": "Missing required field: name"}]}}},
 	]
