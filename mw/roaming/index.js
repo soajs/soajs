@@ -11,7 +11,6 @@ var async = require("async");
  * @returns {Function}
  */
 module.exports = function (configuration) {
-    var param = configuration.param;
     var app = configuration.app;
 
     /**
@@ -65,11 +64,11 @@ module.exports = function (configuration) {
 
     return function (req, res, next) {
         req.soajs.roaming = {};
-        req.soajs.roaming.roamExtKey = function (extKey, param, cb) {
+        req.soajs.roaming.roamExtKey = function (extKey, config, cb) {
             try {
                 provision.getExternalKeyData(extKey, req.soajs.registry.serviceConfig.key, function (err, keyObj) {
                     if (keyObj && keyObj.application && keyObj.application.package) {
-                        //TODO: verify if keyObj.application.package is a package in param (ie: to check if it is a dashboard package)
+                        //TODO: verify if keyObj.application.package is a package in config (ie: to check if it is a dashboard package)
                         provision.getPackageData(keyObj.application.package, function (err, packObj) {
                             if (packObj) {
                                 var serviceCheckArray = [function (cb) {

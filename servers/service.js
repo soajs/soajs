@@ -273,7 +273,7 @@ service.prototype.init = function(callback) {
 
         if (param.roaming) {
             var roaming_mw = require("./../mw/roaming/index");
-            _self.app.use(roaming_mw({"soajs": soajs, "app": _self.app, "param": param}));
+            _self.app.use(roaming_mw({"app": _self.app}));
             _self._log.info("SOAJS Roaming middleware initialization done.");
         }
 		callback();
