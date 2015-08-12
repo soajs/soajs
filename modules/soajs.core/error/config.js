@@ -17,7 +17,7 @@ module.exports = {
 		'136': "Controller catched an error while redirecting to service.",
 
 		'15x': "SERVICE CORE",
-		'150': "Something blew up @ rest core!",
+		'150': "Something blew up @ service core!",
 		'151': "You are trying to reach an unknown rest service!",
 		'152': "Unable to load you product package information. Check provision configuration for this key.",
 		'153': "Unable to load provision information for the provided key.",
@@ -32,7 +32,10 @@ module.exports = {
 		'162': "Unable to initialize the multi tenant session.",
 		'163': "Error in persisting the session",
 		'164': "Unknown error @ rest core!",
-		'165': "Unable to login roamed user!",
+		'165': "Roaming: Unable to login roamed user!",
+        '166': "Roaming: Something blew up @ service core!",
+        '167': "Roaming: Unable to load you product package information. Check provision configuration for this key.",
+        '168': "Roaming: Unable to load provision information for the provided key.",
 
 		'170': "INPUTMASK",
 

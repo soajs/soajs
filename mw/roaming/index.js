@@ -89,15 +89,15 @@ module.exports = function (configuration) {
                                 });
                             }
                             else
-                                return next(152);
+                                return next(167);
                         });
                     }
                     else
-                        return next(153);
+                        return next(168);
                 });
             } catch (err) {
-                req.soajs.log.error(150, err.stack);
-                res.jsonp(req.soajs.buildResponse(core.error.getError(150)));
+                req.soajs.log.error(166, err.stack);
+                res.jsonp(req.soajs.buildResponse(core.error.getError(166)));
             }
         }
     };
