@@ -32,7 +32,7 @@ module.exports = {
 		'162': "Unable to initialize the multi tenant session.",
 		'163': "Error in persisting the session",
 		'164': "Unknown error @ rest core!",
-		'165': "",
+		'165': "Unable to login roamed user!",
 
 		'170': "INPUTMASK",
 
