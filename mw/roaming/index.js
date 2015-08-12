@@ -54,7 +54,7 @@ module.exports = function (configuration) {
         obj.req.sessionStore.set(obj.req.sessionID, obj.req.session, function (err, data) {
             if (err) {
                 obj.req.soajs.log.error(err);
-                return cb(163);
+                return cb(core.error.getError(163));
             }
             return cb(null, obj);
         });
@@ -62,7 +62,7 @@ module.exports = function (configuration) {
 
     return function (req, res, next) {
         req.soajs.roaming = {};
-        req.soajs.roaming.roamExtKey = function (extKey, param) {
+        req.soajs.roaming.roamExtKey = function (extKey, param, cb) {
             try {
                 provision.getExternalKeyData(extKey, req.soajs.registry.serviceConfig.key, function (err, keyObj) {
                     if (keyObj && keyObj.application && keyObj.application.package) {
@@ -83,21 +83,21 @@ module.exports = function (configuration) {
 
                                 async.waterfall(serviceCheckArray, function (err, data) {
                                     if (err)
-                                        return next(err);
+                                        return cb(err);
                                     else
-                                        return next();
+                                        return cb();
                                 });
                             }
                             else
-                                return next(167);
+                                return cb(core.error.getError(167));
                         });
                     }
                     else
-                        return next(168);
+                        return cb(core.error.getError(168));
                 });
             } catch (err) {
                 req.soajs.log.error(166, err.stack);
-                res.jsonp(req.soajs.buildResponse(core.error.getError(166)));
+                return cb(core.error.getError(166));
             }
         }
     };
