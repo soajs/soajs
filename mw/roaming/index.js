@@ -39,8 +39,8 @@ module.exports = function (configuration) {
         }
         var mtSession = new MultiTenantSession(mtSessionParam);
         obj.req.soajs.session = mtSession;
-        obj.req.soajs.session.setURAC(uracRecord, function (err){
-            if(err) {
+        obj.req.soajs.session.setURAC(uracRecord, function (err) {
+            if (err) {
                 obj.res.jsonp(obj.req.soajs.buildResponse(core.error.getError(165)));
             }
             return cb(null, obj);
@@ -101,6 +101,7 @@ module.exports = function (configuration) {
                 req.soajs.log.error(166, err.stack);
                 return cb(core.error.getError(166));
             }
-        }
+        };
+        return next();
     };
 };
