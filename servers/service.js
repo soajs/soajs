@@ -92,7 +92,7 @@ service.prototype.init = function(callback) {
 	var fetchedHostIp = null;
 	var serviceIpNotDetected = false;
 	if(!autoRegHost){
-		_self.serviceIp = '127.0.0.1';
+        soajs.serviceIp = '127.0.0.1';
 	}
 	if(!soajs.serviceIp) {
 		fetchedHostIp = core.getHostIp();
