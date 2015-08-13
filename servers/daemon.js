@@ -140,6 +140,7 @@ daemon.prototype.start = function (cb) {
 
                 _self.appMaintenance.get("/reloadRegistry", function (req, res) {
                     core.registry.reload({
+                        "type": "daemon",
                         "daemonServiceName": _self.soajs.daemonServiceName,
                         "daemonServiceIp": _self.soajs.daemonServiceIp
                     }, function (err, reg) {
