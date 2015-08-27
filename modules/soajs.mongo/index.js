@@ -138,17 +138,24 @@ MongoDriver.prototype.update = function(/*collectionName, criteria, record, [opt
 			self.findOne(collectionName, criteria, function(error, originalRecord) {
 				if(error) { return cb(error); }
 
-				MongoDriver.addVersionToRecords.call(self, collectionName, originalRecord, function(error, versionedRecord) {
-					if(error) { return cb(error); }
-
-					if(!updateOptions['$inc']) {updateOptions['$inc'] = {};}
-					updateOptions['$inc'].v = 1;
-
-					if(!updateOptions['$set']) {updateOptions['$set'] = {};}
+				if(!originalRecord && extra.upsert){
+					updateOptions['$set'].v = 1;
 					updateOptions['$set'].ts = new Date().getTime();
-
 					self.db.collection(collectionName).update(criteria, updateOptions, extra, cb);
-				});
+				}
+				else{
+					MongoDriver.addVersionToRecords.call(self, collectionName, originalRecord, function(error, versionedRecord) {
+						if(error) { return cb(error); }
+
+						if(!updateOptions['$inc']) {updateOptions['$inc'] = {};}
+						updateOptions['$inc'].v = 1;
+
+						if(!updateOptions['$set']) {updateOptions['$set'] = {};}
+						updateOptions['$set'].ts = new Date().getTime();
+
+						self.db.collection(collectionName).update(criteria, updateOptions, extra, cb);
+					});
+				}
 			});
 		}
 		else {
