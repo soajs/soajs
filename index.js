@@ -9,7 +9,8 @@ require("./classes/http");
 module.exports = {
 	"server": {
 		"service": require("./servers/service.js"),
-		"controller": require("./servers/controller.js")
+		"controller": require("./servers/controller.js"),
+        "daemon": require("./servers/daemon.js")
 	},
 	"mail": require("./modules/soajs.mail"),
 	"mongo": require("./modules/soajs.mongo"),

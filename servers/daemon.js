@@ -1,6 +1,7 @@
 'use strict';
 
 var path = require('path');
+var async = require('async');
 
 var provision = require("./../modules/soajs.provision/index.js");
 var core = require("./../modules/soajs.core/index.js");
@@ -8,6 +9,8 @@ var core = require("./../modules/soajs.core/index.js");
 var lib = require("./../lib/index");
 
 var express = require("./../classes/express");
+
+var struct_jobs = {};
 
 var autoRegHost = process.env.SOAJS_SRV_AUTOREGISTERHOST || true;
 if (autoRegHost && typeof(autoRegHost) !== 'boolean') {
@@ -31,42 +34,45 @@ function daemon(param) {
     var _self = this;
     _self.soajs = {};
     _self.soajs.param = param;
-
+    _self.daemonStats = {
+        "jobs": {}
+    };
     _self.appMaintenance = express();
 }
 
 daemon.prototype.init = function (callback) {
     var _self = this;
     var registry = null;
-    _self.soajs.daemonServiceName = _self.param.daemonServiceName || _self.param.config.daemonServiceName;
-    _self.soajs.daemonServiceIp = process.env.SOAJS_SRVIP || null;
+    _self.soajs.serviceName = _self.soajs.param.serviceName || _self.soajs.param.config.serviceName;
+    _self.soajs.serviceIp = process.env.SOAJS_SRVIP || null;
 
     var fetchedHostIp = null;
     var serviceIpNotDetected = false;
     if (!autoRegHost) {
-        _self.soajs.daemonServiceIp = '127.0.0.1';
+        _self.soajs.serviceIp = '127.0.0.1';
     }
-    if (!_self.soajs.daemonServiceIp) {
+    if (!_self.soajs.serviceIp) {
         fetchedHostIp = core.getHostIp();
         if (fetchedHostIp && fetchedHostIp.result) {
-            _self.soajs.daemonServiceIp = fetchedHostIp.ip;
+            _self.soajs.serviceIp = fetchedHostIp.ip;
         } else {
             serviceIpNotDetected = true;
-            _self.soajs.daemonServiceIp = "127.0.0.1";
+            _self.soajs.serviceIp = "127.0.0.1";
         }
     }
 
     core.registry.load({
         "type": "daemon",
-        "daemonServiceName": _self.soajs.daemonServiceName,
-        "designatedPort": _self.param.config.daemonServicePort || null,
-        "daemonServiceIp": _self.soajs.daemonServiceIp
+        "serviceName": _self.soajs.serviceName,
+        "designatedPort": _self.soajs.param.config.servicePort || null,
+        "serviceIp": _self.soajs.serviceIp,
+        "jobList": {}
     }, function (reg) {
         registry = reg;
-        _self.soajs.daemonServiceConf = lib.registry.getDaemonServiceConf(_self.soajs.daemonServiceName, registry);
+        _self.soajs.daemonServiceConf = lib.registry.getDaemonServiceConf(_self.soajs.serviceName, registry);
         _self.soajs.provision = registry.coreDB.provision;
 
-        _self.soajs.log = core.getLogger(_self.soajs.daemonServiceName, registry.serviceConfig.logger);
+        _self.soajs.log = core.getLogger(_self.soajs.serviceName, registry.serviceConfig.logger);
         _self.soajs.log.info("Registry has been loaded successfully from environment: " + registry.environment);
 
         if (fetchedHostIp) {
@@ -74,19 +80,19 @@ daemon.prototype.init = function (callback) {
                 _self.soajs.log.warn("Unable to find the daemon service host ip. The daemon service will NOT be registered for awareness.");
                 _self.soajs.log.info("IPs found: ", fetchedHostIp.ips);
                 if (serviceIpNotDetected) {
-                    _self.soajs.log.warn("The default daemon service IP has been used [" + _self.soajs.daemonServiceIp + "]");
+                    _self.soajs.log.warn("The default daemon service IP has been used [" + _self.soajs.serviceIp + "]");
                 }
             }
             else {
-                _self.soajs.log.info("The IP registered for daemon service [" + _self.soajs.daemonServiceName + "] awareness : ", fetchedHostIp.ip);
+                _self.soajs.log.info("The IP registered for daemon service [" + _self.soajs.serviceName + "] awareness : ", fetchedHostIp.ip);
             }
         }
 
-        if (!_self.soajs.daemonServiceName || !_self.soajs.daemonServiceConf) {
-            if (!_self.soajs.daemonServiceName) {
-                _self.soajs.log.error('Daemon Service failed to start, daemonServiceName is empty [' + _self.soajs.daemonServiceName + ']');
+        if (!_self.soajs.serviceName || !_self.soajs.daemonServiceConf) {
+            if (!_self.soajs.serviceName) {
+                _self.soajs.log.error('Daemon Service failed to start, serviceName is empty [' + _self.soajs.serviceName + ']');
             } else {
-                _self.soajs.log.error('Daemon Service [' + _self.soajs.daemonServiceName + '] failed to start. Unable to find the daemon service entry in registry');
+                _self.soajs.log.error('Daemon Service [' + _self.soajs.serviceName + '] failed to start. Unable to find the daemon service entry in registry');
             }
             return callback(new Error("Daemon Service shutdown due to failure!"));
         }
@@ -94,7 +100,6 @@ daemon.prototype.init = function (callback) {
         _self.soajs.log.info("Daemon Service middleware initialization started...");
 
         var favicon_mw = require("./../mw/favicon/index");
-        //_self.app.use(favicon_mw());
         _self.appMaintenance.use(favicon_mw());
         _self.soajs.log.info("Favicon middleware initialization done.");
 
@@ -125,7 +130,7 @@ daemon.prototype.start = function (cb) {
                         'result': false,
                         'ts': Date.now(),
                         'service': {
-                            'service': _self.soajs.daemonServiceName.toUpperCase(),
+                            'service': _self.soajs.serviceName.toUpperCase(),
                             'type': 'daemon',
                             'route': route || req.path
                         }
@@ -137,12 +142,12 @@ daemon.prototype.start = function (cb) {
                     response['result'] = true;
                     res.jsonp(response);
                 });
-
                 _self.appMaintenance.get("/reloadRegistry", function (req, res) {
                     core.registry.reload({
                         "type": "daemon",
-                        "daemonServiceName": _self.soajs.daemonServiceName,
-                        "daemonServiceIp": _self.soajs.daemonServiceIp
+                        "serviceName": _self.soajs.serviceName,
+                        "serviceIp": _self.soajs.serviceIp,
+                        "jobList": {}
                     }, function (err, reg) {
                         if (err) {
                             _self.soajs.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
@@ -161,14 +166,130 @@ daemon.prototype.start = function (cb) {
                         res.jsonp(response);
                     });
                 });
+                _self.appMaintenance.get("/daemonStats", function (req, res) {
+                    var response = maintenanceResponse(req);
+                    response['result'] = true;
+                    response['data'] = _self.daemonStats;
+                    res.jsonp(response);
+                });
                 _self.appMaintenance.all('*', function (req, res) {
                     var response = maintenanceResponse(req, "heartbeat");
                     response['result'] = true;
                     res.jsonp(response);
                 });
                 _self.appMaintenance.httpServer = _self.appMaintenance.listen(maintenancePort, function (err) {
-                    _self.soajs.log.info(_self.soajs.daemonServiceName + " daemon service maintenance is listening on port: " + maintenancePort);
+                    _self.soajs.log.info(_self.soajs.serviceName + " daemon service maintenance is listening on port: " + maintenancePort);
                 });
+
+                var defaultInterval = 1800000; //30 minutes
+                //TODO: get daemon group config
+                var daemonConf = {
+                    "daemonConfigGroup": "group1",
+                    "daemon": "order",
+                    "status": 1,
+                    "interval": 5000, //30 minutes
+                    "jobs": {
+                        "hello": {
+                            "type": "global", // "tenant" || "global"
+                            "serviceConfig": {"mike":"tormoss"}, //if global
+                            "tenantExtKeys": [] //if tenant
+                        }
+                    }
+                };
+                var executeDaemon = function () {
+                    _self.daemonStats.daemonConfigGroup = daemonConf.daemonConfigGroup;
+                    _self.daemonStats.daemon = daemonConf.daemon;
+                    _self.daemonStats.status = daemonConf.status;
+                    _self.daemonStats.interval = daemonConf.interval;
+                    _self.daemonStats.ts = new Date().getTime();
+                    if (daemonConf && daemonConf.status && daemonConf.jobs) {
+                        var jobs_array = [];
+                        for (var job in daemonConf.jobs) {
+                            if ((Object.hasOwnProperty.call(daemonConf.jobs, job)) && struct_jobs[job]) {
+                                if (daemonConf.jobs[job].type === "global") {
+                                    var jobObj = {
+                                        "soajs": {
+                                            "servicesConfig": daemonConf.jobs[job].serviceConfig
+                                        },
+                                        "job": job,
+                                        "thread": "global"
+                                    };
+                                    jobs_array.push(jobObj);
+                                }
+                                else if (daemonConf.jobs[job].tenantExtKeys) { //type === "tenant"
+                                    for (var tCount = 0; tCount < daemonConf.jobs[job].tenantExtKeys.length; tCount++) {
+                                        var jobObj = {
+                                            "soajs": {},
+                                            "job": job
+                                        };
+                                        var tExtKey = daemonConf.jobs[job].tenantExtKeys[tCount];
+                                        jobObj.thread = tExtKey;
+                                        provision.getExternalKeyData(tExtKey, _self.soajs.daemonServiceConf._conf.key, function (err, keyObj) {
+                                            if (keyObj && keyObj.application && keyObj.application.package) {
+                                                provision.getPackageData(keyObj.application.package, function (err, packObj) {
+                                                    if (packObj) {
+                                                        jobObj.soajs.tenant = keyObj.tenant;
+                                                        jobObj.soajs.tenant.key = {
+                                                            "iKey": keyObj.key,
+                                                            "eKey": keyObj.extKey
+                                                        };
+                                                        jobObj.soajs.tenant.application = keyObj.application;
+                                                        jobObj.soajs.tenant.application.package_acl = packObj.acl;
+                                                        jobObj.soajs.servicesConfig = keyObj.config;
+                                                        jobs_array.push(jobObj);
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        if (jobs_array.length > 0) {
+                            async.each(jobs_array,
+                                function (jobThread, callback) {
+                                    var threadStartTs = new Date().getTime();
+                                    jobThread.soajs.registry = core.registry.get();
+                                    jobThread.soajs.log = _self.soajs.log;
+                                    struct_jobs[jobThread.job](jobThread.soajs, function (err) {
+                                        if (err) {
+                                            callback(err);
+                                        }
+                                        else {
+                                            var threadEndTs = new Date().getTime();
+                                            if (!_self.daemonStats.jobs[job])
+                                                _self.daemonStats.jobs[job] = {};
+                                            _self.daemonStats.jobs[job].ts = threadStartTs;
+                                            if (_self.daemonStats.jobs[job].fastest) {
+                                                if (_self.daemonStats.jobs[job].fastest > (threadEndTs - threadStartTs))
+                                                    _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
+                                            }
+                                            else
+                                                _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
+                                            if (_self.daemonStats.jobs[job].slowest) {
+                                                if (_self.daemonStats.jobs[job].slowest < (threadEndTs - threadStartTs))
+                                                    _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
+                                            }
+                                            else
+                                                _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
+
+                                            callback();
+                                        }
+                                    });
+                                }, function (err) {
+                                    if (err)
+                                        _self.soajs.log.warn('Unable to complete daemon execution: ' + err);
+                                    setTimeout(executeDaemon, (daemonConf.interval || defaultInterval)); //30 minutes default if not set
+                                }
+                            );
+                        }
+                        else
+                            setTimeout(executeDaemon, (daemonConf.interval || defaultInterval)); //30 minutes default if not set
+                    }
+                    else
+                        setTimeout(executeDaemon, (daemonConf.interval || defaultInterval)); //30 minutes default if not set
+                };
+                executeDaemon();
             }
         });
     } else {
@@ -182,12 +303,25 @@ daemon.prototype.start = function (cb) {
 
 daemon.prototype.stop = function (cb) {
     var _self = this;
-    _self.soajs.log.info('stopping daemon service[' + _self.soajs.daemonServiceName + '] on port:', _self.soajs.daemonServiceConf.info.port);
+    _self.soajs.log.info('stopping daemon service[' + _self.soajs.serviceName + '] on port:', _self.soajs.daemonServiceConf.info.port);
     _self.appMaintenance.httpServer.close(function (err) {
         if (cb) {
             cb(err);
         }
     });
+};
+
+/**
+ *
+ */
+daemon.prototype.job = function (jobName, cb) {
+    var _self = this;
+    if (struct_jobs[jobName])
+        _self.soajs.log.warn("Job [" + jobName + "] already exist, overwriting its callback");
+    if (cb && typeof cb === "function")
+        struct_jobs[jobName] = cb;
+    else
+        _self.soajs.log.warn("Failed to registry job [" + jobName + "]. the second argument of daemon.job must be a function.");
 };
 
 module.exports = daemon;
