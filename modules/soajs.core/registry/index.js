@@ -91,6 +91,19 @@ var build = {
         }
     },
 
+    "allDaemons": function (STRUCT, servicesObj) {
+        if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
+            for (var i = 0; i < STRUCT.length; i++) {
+                if (STRUCT[i].name === 'controller') {
+                    continue;
+                }
+                servicesObj[STRUCT[i].name] = {
+                    "port": STRUCT[i].port
+                };
+            }
+        }
+    },
+
     "servicesHosts": function (STRUCT, servicesObj) {
         if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
             for (var i = 0; i < STRUCT.length; i++) {
@@ -286,6 +299,8 @@ var build = {
         if (param.serviceName === "controller") {
             build.allServices(registryDBInfo.services_schema, registry["services"]);
             build.servicesHosts(registryDBInfo.ENV_hosts, registry["services"]);
+            build.allDaemons(registryDBInfo.daemons_schema, registry["daemons"]);
+            build.servicesHosts(registryDBInfo.ENV_hosts, registry["daemons"]);
             resume("services");
         }
         else {

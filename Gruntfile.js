@@ -98,11 +98,13 @@ module.exports = function (grunt) {
 
     env: {
       mochaTest: {
-        APP_DIR_FOR_CODE_COVERAGE: '../'
+        APP_DIR_FOR_CODE_COVERAGE: '../',
+          SOAJS_DAEMON_GRP_CONF: 'group1'
           //SOAJS_SRVIP: '127.0.0.1'
       },
       coverage: {
-        APP_DIR_FOR_CODE_COVERAGE: '../test/coverage/instrument/'
+        APP_DIR_FOR_CODE_COVERAGE: '../test/coverage/instrument/',
+          SOAJS_DAEMON_GRP_CONF: 'group1'
           //SOAJS_SRVIP: '127.0.0.1'
       }
     },

@@ -37,6 +37,7 @@ function daemon(param) {
     _self.daemonStats = {
         "jobs": {}
     };
+    _self.daemonTimeout = null;
     _self.appMaintenance = express();
 }
 
@@ -280,16 +281,16 @@ daemon.prototype.start = function (cb) {
                                     }, function (err) {
                                         if (err)
                                             _self.soajs.log.warn('Unable to complete daemon execution: ' + err);
-                                        setTimeout(executeDaemon, (daemonConf.interval || defaultInterval)); //30 minutes default if not set
+                                        _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf.interval || defaultInterval)); //30 minutes default if not set
                                     }
                                 );
                             }
                             else
                                 _self.soajs.log.info('Jobs stack is empty for daemon [' + daemonConf.daemon + '] and group [' + daemonConf.daemonConfigGroup + ']');
-                            setTimeout(executeDaemon, (daemonConf.interval || defaultInterval));
+                            _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf.interval || defaultInterval));
                         }
                         else
-                            setTimeout(executeDaemon, (daemonConf ? daemonConf.interval : defaultInterval));
+                            _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf ? daemonConf.interval : defaultInterval));
                     });
                 };
                 executeDaemon();
@@ -307,6 +308,8 @@ daemon.prototype.start = function (cb) {
 daemon.prototype.stop = function (cb) {
     var _self = this;
     _self.soajs.log.info('stopping daemon service[' + _self.soajs.serviceName + '] on port:', _self.soajs.daemonServiceConf.info.port);
+    if (_self.daemonTimeout)
+        clearTimeout(_self.daemonTimeout);
     _self.appMaintenance.httpServer.close(function (err) {
         if (cb) {
             cb(err);

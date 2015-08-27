@@ -30,6 +30,7 @@ describe("importing sample data", function() {
       require ("./core.validator.test.js");
       require ("./lib.utils.test.js");
       require ("./mw-cors.test.js");
+            require ("./servers.daemon.js");
       require ("./soajs.mongo.test.js");
       require ("./soajs.contentbuilder.test.js");
       require ("./soajs.mongoStore.test.js");
