@@ -276,6 +276,33 @@ MongoDriver.prototype.find = MongoDriver.prototype.findFields = function() {
 };
 
 /**
+ * Returns a stream for querying records.
+ *
+ * @method findStream
+ * @param {String} collectionName
+ * @param {Object} criteria
+ * @param {Object} options
+ * @param {Function} callback
+ */
+MongoDriver.prototype.findStream = MongoDriver.prototype.findFieldsStream = function() {
+	var args = Array.prototype.slice.call(arguments)
+		, collectionName = args.shift()
+		, cb = args[args.length - 1]
+		, self = this;
+	args.pop();
+
+	if (!collectionName) {
+		return cb(generateError(191));
+	}
+	connect(self, function(err) {
+		if (err) {
+			return cb(err);
+		}
+		return cb(null, self.db.collection(collectionName).find.apply(self.db.collection(collectionName), args).stream());
+	});
+};
+
+/**
  *
  * @returns {*}
  */
