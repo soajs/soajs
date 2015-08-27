@@ -182,8 +182,7 @@ daemon.prototype.start = function (cb) {
                 });
 
                 var defaultInterval = 1800000; //30 minutes
-                //TODO: get daemon group config
-                var daemonConf = {
+                var daemonConf_tpl = {
                     "daemonConfigGroup": "group1",
                     "daemon": "order",
                     "status": 1,
@@ -191,103 +190,107 @@ daemon.prototype.start = function (cb) {
                     "jobs": {
                         "hello": {
                             "type": "global", // "tenant" || "global"
-                            "serviceConfig": {"mike":"tormoss"}, //if global
+                            "serviceConfig": {"mike": "tormoss"}, //if global
                             "tenantExtKeys": [] //if tenant
                         }
                     }
                 };
+
                 var executeDaemon = function () {
-                    _self.daemonStats.daemonConfigGroup = daemonConf.daemonConfigGroup;
-                    _self.daemonStats.daemon = daemonConf.daemon;
-                    _self.daemonStats.status = daemonConf.status;
-                    _self.daemonStats.interval = daemonConf.interval;
-                    _self.daemonStats.ts = new Date().getTime();
-                    if (daemonConf && daemonConf.status && daemonConf.jobs) {
-                        var jobs_array = [];
-                        for (var job in daemonConf.jobs) {
-                            if ((Object.hasOwnProperty.call(daemonConf.jobs, job)) && struct_jobs[job]) {
-                                if (daemonConf.jobs[job].type === "global") {
-                                    var jobObj = {
-                                        "soajs": {
-                                            "servicesConfig": daemonConf.jobs[job].serviceConfig
-                                        },
-                                        "job": job,
-                                        "thread": "global"
-                                    };
-                                    jobs_array.push(jobObj);
-                                }
-                                else if (daemonConf.jobs[job].tenantExtKeys) { //type === "tenant"
-                                    for (var tCount = 0; tCount < daemonConf.jobs[job].tenantExtKeys.length; tCount++) {
+                    provision.loadDaemonGrpConf(process.env.SOAJS_DAEMON_GRP_CONF, _self.soajs.serviceName, function (err, daemonConf) {
+                        if (daemonConf && daemonConf.status && daemonConf.jobs) {
+                            _self.daemonStats.daemonConfigGroup = daemonConf.daemonConfigGroup;
+                            _self.daemonStats.daemon = daemonConf.daemon;
+                            _self.daemonStats.status = daemonConf.status;
+                            _self.daemonStats.interval = daemonConf.interval;
+                            _self.daemonStats.ts = new Date().getTime();
+                            var jobs_array = [];
+                            for (var job in daemonConf.jobs) {
+                                if ((Object.hasOwnProperty.call(daemonConf.jobs, job)) && struct_jobs[job]) {
+                                    if (daemonConf.jobs[job].type === "global") {
                                         var jobObj = {
-                                            "soajs": {},
-                                            "job": job
+                                            "soajs": {
+                                                "servicesConfig": daemonConf.jobs[job].serviceConfig
+                                            },
+                                            "job": job,
+                                            "thread": "global"
                                         };
-                                        var tExtKey = daemonConf.jobs[job].tenantExtKeys[tCount];
-                                        jobObj.thread = tExtKey;
-                                        provision.getExternalKeyData(tExtKey, _self.soajs.daemonServiceConf._conf.key, function (err, keyObj) {
-                                            if (keyObj && keyObj.application && keyObj.application.package) {
-                                                provision.getPackageData(keyObj.application.package, function (err, packObj) {
-                                                    if (packObj) {
-                                                        jobObj.soajs.tenant = keyObj.tenant;
-                                                        jobObj.soajs.tenant.key = {
-                                                            "iKey": keyObj.key,
-                                                            "eKey": keyObj.extKey
-                                                        };
-                                                        jobObj.soajs.tenant.application = keyObj.application;
-                                                        jobObj.soajs.tenant.application.package_acl = packObj.acl;
-                                                        jobObj.soajs.servicesConfig = keyObj.config;
-                                                        jobs_array.push(jobObj);
-                                                    }
-                                                });
-                                            }
-                                        });
+                                        jobs_array.push(jobObj);
+                                    }
+                                    else if (daemonConf.jobs[job].tenantExtKeys) { //type === "tenant"
+                                        for (var tCount = 0; tCount < daemonConf.jobs[job].tenantExtKeys.length; tCount++) {
+                                            var jobObj = {
+                                                "soajs": {},
+                                                "job": job
+                                            };
+                                            var tExtKey = daemonConf.jobs[job].tenantExtKeys[tCount];
+                                            jobObj.thread = tExtKey;
+                                            provision.getExternalKeyData(tExtKey, _self.soajs.daemonServiceConf._conf.key, function (err, keyObj) {
+                                                if (keyObj && keyObj.application && keyObj.application.package) {
+                                                    provision.getPackageData(keyObj.application.package, function (err, packObj) {
+                                                        if (packObj) {
+                                                            jobObj.soajs.tenant = keyObj.tenant;
+                                                            jobObj.soajs.tenant.key = {
+                                                                "iKey": keyObj.key,
+                                                                "eKey": keyObj.extKey
+                                                            };
+                                                            jobObj.soajs.tenant.application = keyObj.application;
+                                                            jobObj.soajs.tenant.application.package_acl = packObj.acl;
+                                                            jobObj.soajs.servicesConfig = keyObj.config;
+                                                            jobs_array.push(jobObj);
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        }
                                     }
                                 }
                             }
-                        }
-                        if (jobs_array.length > 0) {
-                            async.each(jobs_array,
-                                function (jobThread, callback) {
-                                    var threadStartTs = new Date().getTime();
-                                    jobThread.soajs.registry = core.registry.get();
-                                    jobThread.soajs.log = _self.soajs.log;
-                                    struct_jobs[jobThread.job](jobThread.soajs, function (err) {
-                                        if (err) {
-                                            callback(err);
-                                        }
-                                        else {
-                                            var threadEndTs = new Date().getTime();
-                                            if (!_self.daemonStats.jobs[job])
-                                                _self.daemonStats.jobs[job] = {};
-                                            _self.daemonStats.jobs[job].ts = threadStartTs;
-                                            if (_self.daemonStats.jobs[job].fastest) {
-                                                if (_self.daemonStats.jobs[job].fastest > (threadEndTs - threadStartTs))
+                            if (jobs_array.length > 0) {
+                                async.each(jobs_array,
+                                    function (jobThread, callback) {
+                                        var threadStartTs = new Date().getTime();
+                                        jobThread.soajs.registry = core.registry.get();
+                                        jobThread.soajs.log = _self.soajs.log;
+                                        struct_jobs[jobThread.job](jobThread.soajs, function (err) {
+                                            if (err) {
+                                                callback(err);
+                                            }
+                                            else {
+                                                var threadEndTs = new Date().getTime();
+                                                if (!_self.daemonStats.jobs[job])
+                                                    _self.daemonStats.jobs[job] = {};
+                                                _self.daemonStats.jobs[job].ts = threadStartTs;
+                                                if (_self.daemonStats.jobs[job].fastest) {
+                                                    if (_self.daemonStats.jobs[job].fastest > (threadEndTs - threadStartTs))
+                                                        _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
+                                                }
+                                                else
                                                     _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
-                                            }
-                                            else
-                                                _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
-                                            if (_self.daemonStats.jobs[job].slowest) {
-                                                if (_self.daemonStats.jobs[job].slowest < (threadEndTs - threadStartTs))
+                                                if (_self.daemonStats.jobs[job].slowest) {
+                                                    if (_self.daemonStats.jobs[job].slowest < (threadEndTs - threadStartTs))
+                                                        _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
+                                                }
+                                                else
                                                     _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
-                                            }
-                                            else
-                                                _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
 
-                                            callback();
-                                        }
-                                    });
-                                }, function (err) {
-                                    if (err)
-                                        _self.soajs.log.warn('Unable to complete daemon execution: ' + err);
-                                    setTimeout(executeDaemon, (daemonConf.interval || defaultInterval)); //30 minutes default if not set
-                                }
-                            );
+                                                callback();
+                                            }
+                                        });
+                                    }, function (err) {
+                                        if (err)
+                                            _self.soajs.log.warn('Unable to complete daemon execution: ' + err);
+                                        setTimeout(executeDaemon, (daemonConf.interval || defaultInterval)); //30 minutes default if not set
+                                    }
+                                );
+                            }
+                            else
+                                _self.soajs.log.info('Jobs stack is empty for daemon [' + daemonConf.daemon + '] and group [' + daemonConf.daemonConfigGroup + ']');
+                            setTimeout(executeDaemon, (daemonConf.interval || defaultInterval));
                         }
                         else
-                            setTimeout(executeDaemon, (daemonConf.interval || defaultInterval)); //30 minutes default if not set
-                    }
-                    else
-                        setTimeout(executeDaemon, (daemonConf.interval || defaultInterval)); //30 minutes default if not set
+                            setTimeout(executeDaemon, (daemonConf ? daemonConf.interval : defaultInterval));
+                    });
                 };
                 executeDaemon();
             }

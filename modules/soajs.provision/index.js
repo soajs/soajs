@@ -121,6 +121,21 @@ var provision = {
         //NOTE: for now we just do the callback. we should use async parallel
         //return cb(true);
     },
+    "loadDaemonGrpConf": function (grp, name, cb) {
+        if (grp && name) {
+            core.provision.getDaemonGrpConf(grp, name, function (err, grpConf) {
+                if (err) {
+                    log.error("unable to load daemon group config for daemon [" + name + "] and group [" + grp + "] : ", err);
+                    return cb(false);
+                }
+                return cb(null, grpConf);
+            });
+        }
+        else {
+            log.error("unable to load daemon group config for daemon [" + name + "] and group [" + grp + "]");
+            return cb(false, null);
+        }
+    },
     "getTenantKeys": function (tId, cb) {
         core.provision.getTenantKeys(tId, function (err, data) {
             if (err) {
@@ -130,17 +145,17 @@ var provision = {
             return cb(null, data);
         });
     },
-		"generateInternalKey": function(cb){
-			core.key.generateInternalKey(function(err, intKey){
-				if(err){
-					log.error(err);
-					return cb(core.error.generate(204));
-				}
-				return cb(null, intKey);
-			});
-		},
+    "generateInternalKey": function (cb) {
+        core.key.generateInternalKey(function (err, intKey) {
+            if (err) {
+                log.error(err);
+                return cb(core.error.generate(204));
+            }
+            return cb(null, intKey);
+        });
+    },
     "generateExtKey": function (key, keyConfig, cb) {
-        if (!key){
+        if (!key) {
             var err = core.error.generate(203);
             log.error(err);
             return cb(err);
@@ -159,7 +174,7 @@ var provision = {
             });
         });
     },
-    "getOauthToken" : function (access_token, cb){
+    "getOauthToken": function (access_token, cb) {
         core.provision.getOauthToken(access_token, cb);
     },
     "oauthModel": {
