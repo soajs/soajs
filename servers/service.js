@@ -307,7 +307,7 @@ service.prototype.start = function(cb) {
 					_self._log.info(_self.app.soajs.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
 					if(autoRegHost){
 						_self._log.info("Initiating service auto register for awareness ...");
-						core.registry.autoRegisterService(_self.app.soajs.serviceName, _self.app.soajs.serviceIp, function(err, registered) {
+						core.registry.autoRegisterService(_self.app.soajs.serviceName, _self.app.soajs.serviceIp, "services", function(err, registered) {
 						  if(err) {
 							  _self._log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
 						  } else if(registered) {

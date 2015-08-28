@@ -50,7 +50,28 @@ module.exports = function (param) {
                                 var sObj = {
                                     "name": s,
                                     "port": registry.services[s].port,
-                                    "host": registry.services[s].hosts[i]
+                                    "host": registry.services[s].hosts[i],
+                                    "what": "services"
+                                };
+                                awarenessHosts.servicesArr.push(sObj);
+                            }
+                        }
+                    }
+                }
+
+                for (var s in registry.daemons) {
+                    if (Object.hasOwnProperty.call(registry.daemons,s) && s !== param.serviceName) {
+                        if (!serviceAwarenessObj[s])
+                            serviceAwarenessObj[s] = {"healthy": [], "index": 0};
+                        if (!serviceAwarenessObj[s].healthy)
+                            serviceAwarenessObj[s].healthy = [];
+                        if (registry.daemons[s].hosts && registry.daemons[s].hosts.length > 0) {
+                            for (var i = 0; i < registry.daemons[s].hosts.length; i++) {
+                                var sObj = {
+                                    "name": s,
+                                    "port": registry.daemons[s].port,
+                                    "host": registry.daemons[s].hosts[i],
+                                    "what": "daemons"
                                 };
                                 awarenessHosts.servicesArr.push(sObj);
                             }
@@ -63,8 +84,8 @@ module.exports = function (param) {
                     request({
                         'uri': 'http://' + sObj.host + ':' + (sObj.port + registry.serviceConfig.ports.maintenanceInc) + '/heartbeat'
                     }, function (error, response, body) {
-                        if (!registry.services[sObj.name].awarenessStats)
-                            registry.services[sObj.name].awarenessStats = {};
+                        if (!registry[sObj.what][sObj.name].awarenessStats)
+                            registry[sObj.what][sObj.name].awarenessStats = {};
                         var statusObj = {"lastCheck": new Date().getTime(), "healthy": false};
                         if (!error && response.statusCode === 200) {
                             statusObj.healthy = true;
@@ -72,9 +93,9 @@ module.exports = function (param) {
                                 serviceAwarenessObj[sObj.name].healthy.push(sObj.host);
                         }
                         else {
-                            if (registry.services[sObj.name].awarenessStats[sObj.host] && registry.services[sObj.name].awarenessStats[sObj.host].healthy === false){
-                                statusObj.downCount = registry.services[sObj.name].awarenessStats[sObj.host].downCount + 1;
-                                statusObj.downSince = registry.services[sObj.name].awarenessStats[sObj.host].downSince;
+                            if (registry[sObj.what][sObj.name].awarenessStats[sObj.host] && registry[sObj.what][sObj.name].awarenessStats[sObj.host].healthy === false){
+                                statusObj.downCount = registry[sObj.what][sObj.name].awarenessStats[sObj.host].downCount + 1;
+                                statusObj.downSince = registry[sObj.what][sObj.name].awarenessStats[sObj.host].downSince;
                             }
                             else{
                                 statusObj.downSince = statusObj.lastCheck;
@@ -92,7 +113,7 @@ module.exports = function (param) {
                                 }
                             }
                         }
-                        registry.services[sObj.name].awarenessStats[sObj.host] = statusObj;
+                        registry[sObj.what][sObj.name].awarenessStats[sObj.host] = statusObj;
                         callback();
                     });
                 }, function (err) {

@@ -17,10 +17,6 @@ if (autoRegHost && typeof(autoRegHost) !== 'boolean') {
     autoRegHost = (autoRegHost === 'true');
 }
 
-//TODO: create getDaemonServiceConf at lib registry
-//TODO: fix registry load and reload to support type daemon
-
-
 /*
  * param = {
  *           config : object
@@ -35,6 +31,7 @@ function daemon(param) {
     _self.soajs = {};
     _self.soajs.param = param;
     _self.daemonStats = {
+        "step" : "initialize",
         "jobs": {}
     };
     _self.daemonTimeout = null;
@@ -205,6 +202,7 @@ daemon.prototype.start = function (cb) {
                             _self.daemonStats.status = daemonConf.status;
                             _self.daemonStats.interval = daemonConf.interval;
                             _self.daemonStats.ts = new Date().getTime();
+                            _self.daemonStats.step = "fetching";
                             var jobs_array = [];
                             for (var job in daemonConf.jobs) {
                                 if ((Object.hasOwnProperty.call(daemonConf.jobs, job)) && struct_jobs[job]) {
@@ -248,7 +246,7 @@ daemon.prototype.start = function (cb) {
                                 }
                             }
                             if (jobs_array.length > 0) {
-                                console.log(daemonConf);
+                                _self.daemonStats.step = "executing";
                                 async.each(jobs_array,
                                     function (jobThread, callback) {
                                         var threadStartTs = new Date().getTime();
@@ -282,30 +280,23 @@ daemon.prototype.start = function (cb) {
                                     }, function (err) {
                                         if (err)
                                             _self.soajs.log.warn('Unable to complete daemon execution: ' + err);
-                                        console.log ("***************************************** ASYNC")
-                                            _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf.interval || defaultInterval));
-                                        //return resume();
+                                        _self.daemonStats.step = "waiting";
+                                        _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf.interval || defaultInterval));
                                     }
                                 );
                             }
                             else {
-                                console.log ("***************************************** EMPTY JOBS CONF")
                                 _self.soajs.log.info('Jobs stack is empty for daemon [' + daemonConf.daemon + '] and group [' + daemonConf.daemonConfigGroup + ']');
-                                //if (daemonConf.interval != -1)
-                                    _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf.interval || defaultInterval));
-                                //return resume();
+                                _self.daemonStats.step = "waiting";
+                                _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf.interval || defaultInterval));
                             }
                         }
                         else {
-                            console.log ("***************************************** EMPTY DAEON CONF")
-                            //if (daemonConf.interval != -1)
-                                _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf ? daemonConf.interval : defaultInterval));
-                            //return resume();
+                            _self.daemonStats.step = "waiting";
+                            _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf ? daemonConf.interval : defaultInterval));
                         }
                     });
                 };
-                console.log ("***************************************** OUTSIDE")
-                //_self.daemonTimeout = setTimeout(executeDaemon, 5000);
                 executeDaemon();
                 resume();
             }
@@ -313,10 +304,23 @@ daemon.prototype.start = function (cb) {
     } else {
         return resume(new Error('Failed starting daemon service'));
     }
-    var resume = function(err){
+    var resume = function (err) {
+        if(autoRegHost){
+            _self.soajs.log.info("Initiating service auto register for awareness ...");
+            core.registry.autoRegisterService(_self.soajs.serviceName, _self.soajs.serviceIp, "daemons", function(err, registered) {
+                if(err) {
+                    _self.soajs.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
+                } else if(registered) {
+                    _self.soajs.log.info('The autoRegisterService @ controllers for [' + _self.soajs.serviceName + '@' + _self.soajs.serviceIp + '] successfully finished.');
+                }
+            });
+        }
+        else{
+            _self.soajs.log.info("Service auto register for awareness, skipped.");
+        }
         if (cb && typeof cb === "function") {
             cb(err);
-        } else if (err){
+        } else if (err) {
             throw err;
         }
     }
@@ -327,7 +331,6 @@ daemon.prototype.stop = function (cb) {
     _self.soajs.log.info('stopping daemon service[' + _self.soajs.serviceName + '] on port:', _self.soajs.daemonServiceConf.info.port);
     if (_self.daemonTimeout)
         clearTimeout(_self.daemonTimeout);
-    console.log("******************************** " + _self.daemonTimeout)
     _self.appMaintenance.httpServer.close(function (err) {
         if (cb) {
             cb(err);

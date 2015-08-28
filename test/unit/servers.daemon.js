@@ -58,4 +58,15 @@ describe('Testing helloDaemon', function() {
             done();
         });
     });
+    it('Testing /helloDaemon/daemonStats', function(done) {
+        requester('get', {
+            uri: 'http://localhost:5200/daemonStats'
+        }, function(err, body, response) {
+            assert.ifError(err);
+            assert.equal(response.statusCode, 200);
+            assert.ok(body);
+            assert.deepEqual(body.result, true);
+            done();
+        });
+    });
 });

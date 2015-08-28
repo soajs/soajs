@@ -484,23 +484,31 @@ exports.profile = function (cb) {
 };
 exports.register = function (param, cb) {
     if (param.ip && param.name) {
-        if (!registry_struct[regEnvironment].services[param.name]) {
+        var what = ((param.type === "service")? "services":"daemons");
+        if (!registry_struct[regEnvironment][what][param.name]) {
             if (!param.port) {
                 return cb(new Error("unable to register service. missing params"));
             }
-            registry_struct[regEnvironment].services[param.name] = {
-                "extKeyRequired": param.extKeyRequired || false,
-                "port": param.port,
-                "requestTimeout": param.requestTimeout,
-                "requestTimeoutRenewal": param.requestTimeoutRenewal
-            };
+            if(param.type === "service") {
+                registry_struct[regEnvironment][what][param.name] = {
+                    "port": param.port,
+                    "extKeyRequired": param.extKeyRequired || false,
+                    "requestTimeout": param.requestTimeout,
+                    "requestTimeoutRenewal": param.requestTimeoutRenewal
+                };
+            }
+            else{
+                registry_struct[regEnvironment][what][param.name] = {
+                    "port": param.port
+                };
+            }
         }
-        if (!registry_struct[regEnvironment].services[param.name].hosts) {
-            registry_struct[regEnvironment].services[param.name].hosts = [];
+        if (!registry_struct[regEnvironment][what][param.name].hosts) {
+            registry_struct[regEnvironment][what][param.name].hosts = [];
         }
-        registry_struct[regEnvironment].services[param.name].hosts.push(param.ip);
+        registry_struct[regEnvironment][what][param.name].hosts.push(param.ip);
         registry_struct[regEnvironment].timeLoaded = new Date().getTime();
-        return cb(null, registry_struct[regEnvironment].services[param.name]);
+        return cb(null, registry_struct[regEnvironment][what][param.name]);
     }
     return cb(new Error("unable to register service. missing params"));
 };
@@ -522,26 +530,38 @@ exports.reload = function (param, cb) {
         return cb(err, reg);
     });
 };
-exports.autoRegisterService = function (name, serviceIp, cb) {
+exports.autoRegisterService = function (name, serviceIp, what, cb) {
     var controllerSRV = registry_struct[regEnvironment].services.controller;
-    var serviceSRV = registry_struct[regEnvironment].services[name];
+    var serviceSRV = registry_struct[regEnvironment][what][name];
     if (!serviceSRV.newServiceOrHost) {
         return cb(null, false);
     }
     if (controllerSRV && controllerSRV.hosts) {
         async.each(controllerSRV.hosts,
             function (ip, callback) {
-                request({
+                var requestOptions = {
                     'uri': 'http://' + ip + ':' + (controllerSRV.port + registry_struct[regEnvironment].serviceConfig.ports.maintenanceInc) + '/register',
-                    'qs': {
+                };
+                if (what === "daemons") {
+                    requestOptions.qs = {
                         "name": name,
                         "port": serviceSRV.port,
                         "ip": serviceIp,
+                        "type": "daemon"
+                    };
+                }
+                else {
+                    requestOptions.qs = {
+                        "name": name,
+                        "port": serviceSRV.port,
+                        "ip": serviceIp,
+                        "type": "service",
                         "extKeyRequired": serviceSRV.extKeyRequired,
                         "requestTimeout": serviceSRV.requestTimeout,
                         "requestTimeoutRenewal": serviceSRV.requestTimeoutRenewal
-                    }
-                }, function (error) {
+                    };
+                }
+                request(requestOptions, function (error) {
                     return (error) ? callback(error) : callback(null);
                 });
             }, function (err) {
