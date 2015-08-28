@@ -248,6 +248,7 @@ daemon.prototype.start = function (cb) {
                                 }
                             }
                             if (jobs_array.length > 0) {
+                                console.log(daemonConf);
                                 async.each(jobs_array,
                                     function (jobThread, callback) {
                                         var threadStartTs = new Date().getTime();
@@ -281,26 +282,42 @@ daemon.prototype.start = function (cb) {
                                     }, function (err) {
                                         if (err)
                                             _self.soajs.log.warn('Unable to complete daemon execution: ' + err);
-                                        _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf.interval || defaultInterval)); //30 minutes default if not set
+                                        console.log ("***************************************** ASYNC")
+                                            _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf.interval || defaultInterval));
+                                        //return resume();
                                     }
                                 );
                             }
-                            else
+                            else {
+                                console.log ("***************************************** EMPTY JOBS CONF")
                                 _self.soajs.log.info('Jobs stack is empty for daemon [' + daemonConf.daemon + '] and group [' + daemonConf.daemonConfigGroup + ']');
-                            _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf.interval || defaultInterval));
+                                //if (daemonConf.interval != -1)
+                                    _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf.interval || defaultInterval));
+                                //return resume();
+                            }
                         }
-                        else
-                            _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf ? daemonConf.interval : defaultInterval));
+                        else {
+                            console.log ("***************************************** EMPTY DAEON CONF")
+                            //if (daemonConf.interval != -1)
+                                _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf ? daemonConf.interval : defaultInterval));
+                            //return resume();
+                        }
                     });
                 };
+                console.log ("***************************************** OUTSIDE")
+                //_self.daemonTimeout = setTimeout(executeDaemon, 5000);
                 executeDaemon();
+                resume();
             }
         });
     } else {
+        return resume(new Error('Failed starting daemon service'));
+    }
+    var resume = function(err){
         if (cb && typeof cb === "function") {
-            cb(new Error('Failed starting daemon service'));
-        } else {
-            throw new Error('Failed starting daemon service');
+            cb(err);
+        } else if (err){
+            throw err;
         }
     }
 };
@@ -310,6 +327,7 @@ daemon.prototype.stop = function (cb) {
     _self.soajs.log.info('stopping daemon service[' + _self.soajs.serviceName + '] on port:', _self.soajs.daemonServiceConf.info.port);
     if (_self.daemonTimeout)
         clearTimeout(_self.daemonTimeout);
+    console.log("******************************** " + _self.daemonTimeout)
     _self.appMaintenance.httpServer.close(function (err) {
         if (cb) {
             cb(err);

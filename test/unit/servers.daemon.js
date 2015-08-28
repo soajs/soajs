@@ -3,6 +3,8 @@ var assert = require('assert');
 var helper = require("../helper.js");
 var soajs = helper.requireModule('index.js');
 
+var requester = helper.requester;
+
 describe('Testing helloDaemon', function() {
     var daemon = new soajs.server.daemon({
         "config": {
