@@ -13,7 +13,7 @@ module.exports = {
     "URLParam": {
         "connectTimeoutMS": 0,
         "socketTimeoutMS": 0,
-        "maxPoolSize": 5,
+        "maxPoolSize": 2,
         "wtimeoutMS": 0,
         "slaveOk": true
     },
