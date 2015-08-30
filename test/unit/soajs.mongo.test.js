@@ -402,6 +402,48 @@ describe("TESTING soajs.mongo", function() {
 		});
 	});
 
+	describe("testing findStream", function() {
+		it("fail - no collectionName", function(done) {
+			mongo.findStream(null, function(error) {
+				assert.ok(error);
+				assert.ok(error.message);
+				//assert.equal(error.message, 'Wrong input param form mongo function');
+				done();
+			});
+		});
+
+		it('success - all working', function(done) {
+			mongo.findStream("myCollection", function(error, Stream) {
+				assert.ifError(error);
+				assert.ok(Stream);
+
+				Stream.on('end', function(){
+					done();
+				});
+			});
+		});
+
+		it('success - all working', function(done) {
+			mongo.findStream("myCollection", {}, function(error, Stream) {
+				assert.ifError(error);
+				assert.ok(Stream);
+				Stream.on('end', function(){
+					done();
+				});
+			});
+		});
+
+		it('success - all working', function(done) {
+			mongo.findStream("myCollection", {}, {}, function(error, Stream) {
+				assert.ifError(error);
+				assert.ok(Stream);
+				Stream.on('end', function(){
+					done();
+				});
+			});
+		});
+	});
+
 	describe("testing find and modify", function() {
 		it("fail - no collectionName", function(done) {
 			mongo.findAndModify(null, function(error) {
