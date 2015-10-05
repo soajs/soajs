@@ -9,6 +9,7 @@ describe('Testing helloDaemon', function() {
     var daemon = new soajs.server.daemon({
         "config": {
             serviceName: "helloDaemon",
+            "serviceVersion": 1,
             servicePort: 4200,
             "errors": {},
             "schema": {

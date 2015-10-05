@@ -52,6 +52,7 @@ module.exports = function () {
             }
             core.key.getInfo(key, req.soajs.registry.serviceConfig.key, function (err, keyObj) {
                 if (err) {
+                    req.soajs.log.warn(err.message);
                     return req.soajs.controllerResponse(core.error.getError(132));
                 }
                 if (!req.headers.key) {

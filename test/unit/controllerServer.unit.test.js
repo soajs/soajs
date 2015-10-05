@@ -15,6 +15,7 @@ describe("testing controller", function() {
 		var helloworld = new soajs.server.service({
 			"config": {
 				"serviceName": 'helloworld',
+				"serviceVersion": 1,
 				"servicePort": 4020,
 				"extKeyRequired": false,
 				errors: {},
@@ -164,6 +165,7 @@ describe("testing controller", function() {
 			"acl": false,
 			"config": {
 				"serviceName": 'example01',
+				"serviceVersion": 1,
 				"servicePort": 4010,
 				"extKeyRequired": false,
 				errors: {},
@@ -275,6 +277,7 @@ describe("testing controller", function() {
 			"acl": false,
 			"config": {
 				"serviceName": 'example03',
+				"serviceVersion": 1,
 				"servicePort": 4012,
 				errors: {},
 				schema: {

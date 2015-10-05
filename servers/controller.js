@@ -25,6 +25,7 @@ function controller(param) {
     var _self = this;
     _self.awareness = true;
     _self.serviceName = "controller";
+    _self.serviceVersion = 1;
     _self.serviceIp = process.env.SOAJS_SRVIP || null;
 }
 
@@ -46,6 +47,7 @@ controller.prototype.init = function (callback) {
     }
     core.registry.load({
         "serviceName": _self.serviceName,
+        "serviceVersion": _self.serviceVersion,
         "apiList": null,
         "awareness": _self.awareness,
         "serviceIp": _self.serviceIp
@@ -144,6 +146,7 @@ controller.prototype.init = function (callback) {
             if (parsedUrl.pathname === '/reloadRegistry') {
                 core.registry.reload({
                     "serviceName": _self.serviceName,
+                    "serviceVersion": null,
                     "apiList": null,
                     "awareness": _self.awareness,
                     "serviceIp": _self.serviceIp
@@ -186,7 +189,8 @@ controller.prototype.init = function (callback) {
                     "name": parsedUrl.query.name,
                     "port": parseInt(parsedUrl.query.port),
                     "ip": parsedUrl.query.ip,
-                    "type": parsedUrl.query.type
+                    "type": parsedUrl.query.type,
+                    "version": parseInt(parsedUrl.query.version)
                 };
                 if (regOptions.type === "service") {
                     regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
