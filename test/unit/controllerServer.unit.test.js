@@ -209,7 +209,7 @@ describe("testing controller", function() {
 		});
 		it('Testing /example01', function(done) {
 			requester('get', {
-				uri: 'http://localhost:4000/example01'
+				uri: 'http://localhost:4000/example01:1'
 			}, function(err, body, response) {
 				assert.ifError(err);
 				assert.equal(response.statusCode, 200);
