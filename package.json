@@ -1,7 +1,7 @@
 {
   "name": "soajs",
   "description": "soajs framework",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -46,7 +46,7 @@
     "express-session": "*",
     "jsonschema" : "*",
     "method-override": "*",
-    "mongoskin": "*",
+    "mongoskin": "1.4.13",
     "morgan": "*",
     "netmask": "*",
     "nodemailer": "*",
