@@ -15,6 +15,7 @@ describe("testing controller", function() {
 		var helloworld = new soajs.server.service({
 			"config": {
 				"serviceName": 'helloworld',
+				"serviceVersion": 1,
 				"servicePort": 4020,
 				"extKeyRequired": false,
 				errors: {},
@@ -164,6 +165,7 @@ describe("testing controller", function() {
 			"acl": false,
 			"config": {
 				"serviceName": 'example01',
+				"serviceVersion": 1,
 				"servicePort": 4010,
 				"extKeyRequired": false,
 				errors: {},
@@ -207,7 +209,7 @@ describe("testing controller", function() {
 		});
 		it('Testing /example01', function(done) {
 			requester('get', {
-				uri: 'http://localhost:4000/example01'
+				uri: 'http://localhost:4000/example01:1'
 			}, function(err, body, response) {
 				assert.ifError(err);
 				assert.equal(response.statusCode, 200);
@@ -275,6 +277,7 @@ describe("testing controller", function() {
 			"acl": false,
 			"config": {
 				"serviceName": 'example03',
+				"serviceVersion": 1,
 				"servicePort": 4012,
 				errors: {},
 				schema: {

@@ -21,7 +21,19 @@ module.exports = function () {
 
         var parsedUrl = url.parse(req.url, true);
 
-        var parameters = extractBuildParameters(req, parsedUrl.pathname.split('/')[1], parsedUrl.path);
+        var service_nv = parsedUrl.pathname.split('/')[1];
+        var service_n = service_nv;
+        var service_v = null;
+        var index = service_nv.indexOf(":");
+        if(index !== -1) {
+            service_v = parseInt(service_nv.substr(index + 1));
+            if (isNaN(service_v)){
+                service_v = null;
+                req.soajs.log.warn('Service version must be integer: ['+service_nv+']');
+            }
+            service_n = service_nv.substr(0, index);
+        }
+        var parameters = extractBuildParameters(req, service_n, service_nv, service_v, parsedUrl.path);
         if (!parameters) {
             req.soajs.log.fatal("url[", req.url, "] couldn't be matched to a service or the service entry in registry is missing [port || hosts]");
             return req.soajs.controllerResponse(core.error.getError(130));
@@ -52,6 +64,7 @@ module.exports = function () {
             }
             core.key.getInfo(key, req.soajs.registry.serviceConfig.key, function (err, keyObj) {
                 if (err) {
+                    req.soajs.log.warn(err.message);
                     return req.soajs.controllerResponse(core.error.getError(132));
                 }
                 if (!req.headers.key) {
@@ -77,10 +90,11 @@ module.exports = function () {
  * @param url
  * @returns {*}
  */
-function extractBuildParameters(req, service, url) {
+function extractBuildParameters(req, service, service_nv, version, url) {
     if (service && req.soajs.registry && req.soajs.registry.services && req.soajs.registry.services[service] && req.soajs.registry.services[service].port && req.soajs.registry.services[service].hosts) {
-        req.soajs.registry.services[service].url = url.substring(service.length + 1);
+        req.soajs.registry.services[service].url = url.substring(service_nv.length + 1);
         req.soajs.registry.services[service].name = service;
+        req.soajs.registry.services[service].version = version;
         return req.soajs.registry.services[service];
     }
     return null;
@@ -101,9 +115,9 @@ function redirectToService(req, res) {
     var requestTOR = restServiceParams.requestTimeoutRenewal || config.requestTimeoutRenewal;
     var requestTO = restServiceParams.requestTimeout || config.requestTimeout;
 
-    req.soajs.awareness.getHost(restServiceParams.name, function (host) {
+    req.soajs.awareness.getHost(restServiceParams.name, restServiceParams.version, function (host) {
         if (!host) {
-            req.soajs.log.error('Unable to find any healthy host for service [' + restServiceParams.name + ']');
+            req.soajs.log.error('Unable to find any healthy host for service [' + restServiceParams.name + (restServiceParams.version?('@'+restServiceParams.version):'') + ']');
             return req.soajs.controllerResponse(core.error.getError(133));
         }
         var requestOptions = {
@@ -155,7 +169,6 @@ function redirectToService(req, res) {
         if (config.authorization) {
             isRequestAuthorized(req, requestOptions);
         }
-
         req.soajs.controller.redirectedRequest = request(requestOptions);
         req.soajs.controller.redirectedRequest.on('error', function (err) {
             req.soajs.log.error(err);
