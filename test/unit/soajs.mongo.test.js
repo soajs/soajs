@@ -528,6 +528,26 @@ describe("TESTING soajs.mongo", function() {
 		});
 	});
 
+	describe("testing distinct", function() {
+		it("fail - no collectionName", function(done) {
+			mongo.distinct(null, null, function(error) {
+				assert.ok(error);
+				assert.ok(error.message);
+				//assert.equal(error.message, 'Wrong input param form mongo function');
+				done();
+			});
+		});
+
+		it('success - all working', function(done) {
+			mongo.distinct("myCollection", 'a', function(error, response) {
+				assert.ifError(error);
+				assert.equal(response, 1);
+				done();
+			});
+		});
+
+	});
+
 	describe("testing remove", function() {
 		it("fail - no collectionName", function(done) {
 			mongo.remove(null, null, function(error) {

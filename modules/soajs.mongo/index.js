@@ -426,7 +426,7 @@ MongoDriver.prototype.count = function(collectionName, criteria, cb) {
 };
 
 /**
- * Distinct the number of criteria matching documents in a collection
+ * Returns an array of Distinct values from a collection
  *
  * @param {String} collectionName
  * @param {Array} fields
