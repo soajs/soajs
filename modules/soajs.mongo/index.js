@@ -426,6 +426,27 @@ MongoDriver.prototype.count = function(collectionName, criteria, cb) {
 };
 
 /**
+ * Distinct the number of criteria matching documents in a collection
+ *
+ * @param {String} collectionName
+ * @param {Array} fields
+ * @param {Function} cb
+ * @returns {*}
+ */
+MongoDriver.prototype.distinct = function(collectionName, fields, cb) {
+	var self = this;
+	if(!collectionName) {
+		return cb(generateError(191));
+	}
+	connect(self, function(err) {
+		if(err) {
+			return cb(err);
+		}
+		self.db.collection(collectionName).distinct(fields, cb);
+	});
+};
+
+/**
  * Removes the objects matching the criteria from the specified collection
  *
  * @param {String} collectionName
