@@ -433,8 +433,12 @@ MongoDriver.prototype.count = function(collectionName, criteria, cb) {
  * @param {Function} cb
  * @returns {*}
  */
-MongoDriver.prototype.distinct = function(collectionName, fields, cb) {
-	var self = this;
+MongoDriver.prototype.distinct = function() {
+	var args = Array.prototype.slice.call(arguments)
+		, collectionName = args.shift()
+		, cb = args[args.length - 1]
+		, self = this;
+
 	if(!collectionName) {
 		return cb(generateError(191));
 	}
@@ -442,7 +446,7 @@ MongoDriver.prototype.distinct = function(collectionName, fields, cb) {
 		if(err) {
 			return cb(err);
 		}
-		self.db.collection(collectionName).distinct(fields, cb);
+		self.db.collection(collectionName).distinct.apply(self.db.collection(collectionName), args);
 	});
 };
 
