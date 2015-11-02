@@ -145,17 +145,22 @@ module.exports = {
         sources['session'] = (obj.req.soajs && obj.req.soajs.session) ? obj.req.soajs.session.getSERVICE() : {};
 
         var paramsLocalConfig = obj.config.schema[obj.apiName];
-        var paramsServiceConfig = null;
-        if (obj.req.soajs.servicesConfig && obj.req.soajs.servicesConfig.SOAJS && obj.req.soajs.servicesConfig.SOAJS.IMFV && obj.req.soajs.servicesConfig.SOAJS.IMFV.schema) {
-            paramsServiceConfig = obj.req.soajs.servicesConfig.SOAJS.IMFV.schema[obj.apiName]
+        var paramsServiceConfigAPI = null;
+        var paramsServiceConfigCommonFields = null;
+        if (obj.req.soajs.servicesConfig && obj.req.soajs.servicesConfig[obj.config.serviceName] && obj.req.soajs.servicesConfig[obj.config.serviceName].SOAJS && obj.req.soajs.servicesConfig[obj.config.serviceName].SOAJS.IMFV && obj.req.soajs.servicesConfig[obj.config.serviceName].SOAJS.IMFV.schema) {
+            paramsServiceConfigAPI = obj.req.soajs.servicesConfig[obj.config.serviceName].SOAJS.IMFV.schema[obj.apiName];
+            paramsServiceConfigCommonFields = obj.req.soajs.servicesConfig[obj.config.serviceName].SOAJS.IMFV.schema.commonFields;
         }
         var params = paramsLocalConfig;
-        if (paramsServiceConfig) {
-            params = merge.recursive(true, paramsLocalConfig, paramsServiceConfig);
+        if (paramsServiceConfigAPI) {
+            params = merge.recursive(true, paramsLocalConfig, paramsServiceConfigAPI);
         }
 
         if (utils.validProperty(params, 'commonFields')) {
-            params = mergeCommonFields(params, obj.config.schema.commonFields);
+            var commonFields = obj.config.schema.commonFields;
+            if (paramsServiceConfigCommonFields)
+                commonFields = merge.recursive(true, commonFields, paramsServiceConfigCommonFields);
+            params = mergeCommonFields(params, commonFields);
         }
 
         var data = {};
