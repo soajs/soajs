@@ -426,6 +426,31 @@ MongoDriver.prototype.count = function(collectionName, criteria, cb) {
 };
 
 /**
+ * Returns an array of Distinct values from a collection
+ *
+ * @param {String} collectionName
+ * @param {Array} fields
+ * @param {Function} cb
+ * @returns {*}
+ */
+MongoDriver.prototype.distinct = function() {
+	var args = Array.prototype.slice.call(arguments)
+		, collectionName = args.shift()
+		, cb = args[args.length - 1]
+		, self = this;
+
+	if(!collectionName) {
+		return cb(generateError(191));
+	}
+	connect(self, function(err) {
+		if(err) {
+			return cb(err);
+		}
+		self.db.collection(collectionName).distinct.apply(self.db.collection(collectionName), args);
+	});
+};
+
+/**
  * Removes the objects matching the criteria from the specified collection
  *
  * @param {String} collectionName
