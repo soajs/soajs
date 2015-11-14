@@ -304,6 +304,7 @@ var build = {
             resume("services");
         }
         else {
+	        var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
             if (param.type && param.type === "daemon") {
                 var daemonServiceObj = build.daemon(registryDBInfo.daemons_schema, param.serviceName);
                 if (daemonServiceObj) {
@@ -312,7 +313,6 @@ var build = {
                 }
                 else {
                     //registering a new daemon service
-                    var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
                     registry["daemons"][param.serviceName] = {
                         "port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc)
                     };
@@ -343,7 +343,6 @@ var build = {
                 }
                 else {
                     //registering a new service
-                    var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
                     registry["services"][param.serviceName] = {
                         "extKeyRequired": param.extKeyRequired || false,
                         "port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc),
