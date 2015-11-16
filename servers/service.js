@@ -85,7 +85,12 @@ service.prototype.init = function(callback) {
 	var registry = null;
 	var soajs = _self.app.soajs;
 	var param = soajs.param;
+
+	//NOTE: to support backward compatibility where serviceName can be at the root of param
 	soajs.serviceName = param.serviceName || param.config.serviceName;
+	param.config.serviceName = soajs.serviceName;
+	//END NOTE
+
 	soajs.awareness = param.config.awareness || false;
 	soajs.serviceIp = process.env.SOAJS_SRVIP || null;
 

@@ -45,6 +45,7 @@
     "express": "*",
     "express-session": "*",
     "jsonschema" : "*",
+    "merge": "*",
     "method-override": "*",
     "mongoskin": "1.4.13",
     "morgan": "*",
