@@ -19,393 +19,424 @@ var registry_struct = {};
 registry_struct[regEnvironment] = null;
 
 var build = {
-    "metaAndCoreDB": function (STRUCT) {
-        var metaAndCoreDB = {"metaDB": {}, "coreDB": {}};
+        "metaAndCoreDB": function (STRUCT) {
+            var metaAndCoreDB = {"metaDB": {}, "coreDB": {}};
 
-        if (STRUCT && STRUCT.dbs && STRUCT.dbs.databases) {
-            for (var dbName in STRUCT.dbs.databases) {
-                if (Object.hasOwnProperty.call(STRUCT.dbs.databases, dbName)) {
-                    var dbRec = STRUCT.dbs.databases[dbName];
-                    var dbObj = null;
+            if (STRUCT && STRUCT.dbs && STRUCT.dbs.databases) {
+                for (var dbName in STRUCT.dbs.databases) {
+                    if (Object.hasOwnProperty.call(STRUCT.dbs.databases, dbName)) {
+                        var dbRec = STRUCT.dbs.databases[dbName];
+                        var dbObj = null;
+                        if (dbRec.cluster && STRUCT.dbs.clusters[dbRec.cluster]) {
+                            dbObj = {
+                                "prefix": STRUCT.dbs.config.prefix,
+                                "servers": STRUCT.dbs.clusters[dbRec.cluster].servers,
+                                "credentials": STRUCT.dbs.clusters[dbRec.cluster].credentials,
+                                "URLParam": STRUCT.dbs.clusters[dbRec.cluster].URLParam,
+                                "extraParam": STRUCT.dbs.clusters[dbRec.cluster].extraParam
+                            };
+                            if (dbRec.tenantSpecific) {
+                                dbObj.name = "#TENANT_NAME#_" + dbName;
+                                metaAndCoreDB.metaDB[dbName] = dbObj;
+                            }
+                            else {
+                                dbObj.name = dbName;
+                                metaAndCoreDB.coreDB[dbName] = dbObj;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return metaAndCoreDB;
+        },
+
+        "sessionDB": function (STRUCT) {
+            var sessionDB = null;
+            if (STRUCT && STRUCT.dbs && STRUCT.dbs.config && STRUCT.dbs.config.session) {
+                if (STRUCT.dbs.config.session) {
+                    var dbRec = STRUCT.dbs.config.session;
                     if (dbRec.cluster && STRUCT.dbs.clusters[dbRec.cluster]) {
-                        dbObj = {
+                        sessionDB = {
+                            "name": STRUCT.dbs.config.session.name,
                             "prefix": STRUCT.dbs.config.prefix,
                             "servers": STRUCT.dbs.clusters[dbRec.cluster].servers,
                             "credentials": STRUCT.dbs.clusters[dbRec.cluster].credentials,
                             "URLParam": STRUCT.dbs.clusters[dbRec.cluster].URLParam,
-                            "extraParam": STRUCT.dbs.clusters[dbRec.cluster].extraParam
+                            "extraParam": STRUCT.dbs.clusters[dbRec.cluster].extraParam,
+                            'store': STRUCT.dbs.config.session.store,
+                            "collection": STRUCT.dbs.config.session.collection,
+                            'stringify': STRUCT.dbs.config.session.stringify,
+                            'expireAfter': STRUCT.dbs.config.session.expireAfter
                         };
-                        if (dbRec.tenantSpecific) {
-                            dbObj.name = "#TENANT_NAME#_" + dbName;
-                            metaAndCoreDB.metaDB[dbName] = dbObj;
-                        }
-                        else {
-                            dbObj.name = dbName;
-                            metaAndCoreDB.coreDB[dbName] = dbObj;
-                        }
                     }
                 }
             }
-        }
+            return sessionDB;
+        },
 
-        return metaAndCoreDB;
-    },
-
-    "sessionDB": function (STRUCT) {
-        var sessionDB = null;
-        if (STRUCT && STRUCT.dbs && STRUCT.dbs.config && STRUCT.dbs.config.session) {
-            if (STRUCT.dbs.config.session) {
-                var dbRec = STRUCT.dbs.config.session;
-                if (dbRec.cluster && STRUCT.dbs.clusters[dbRec.cluster]) {
-                    sessionDB = {
-                        "name": STRUCT.dbs.config.session.name,
-                        "prefix": STRUCT.dbs.config.prefix,
-                        "servers": STRUCT.dbs.clusters[dbRec.cluster].servers,
-                        "credentials": STRUCT.dbs.clusters[dbRec.cluster].credentials,
-                        "URLParam": STRUCT.dbs.clusters[dbRec.cluster].URLParam,
-                        "extraParam": STRUCT.dbs.clusters[dbRec.cluster].extraParam,
-                        'store': STRUCT.dbs.config.session.store,
-                        "collection": STRUCT.dbs.config.session.collection,
-                        'stringify': STRUCT.dbs.config.session.stringify,
-                        'expireAfter': STRUCT.dbs.config.session.expireAfter
-                    };
-                }
-            }
-        }
-        return sessionDB;
-    },
-
-    "allServices": function (STRUCT, servicesObj) {
-        if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
-            for (var i = 0; i < STRUCT.length; i++) {
-                if (STRUCT[i].name === 'controller') {
-                    continue;
-                }
-                servicesObj[STRUCT[i].name] = {
-                    "extKeyRequired": STRUCT[i].extKeyRequired,
-                    "port": STRUCT[i].port,
-                    "requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
-                    "requestTimeout": STRUCT[i].requestTimeout || null
-                };
-            }
-        }
-    },
-
-    "allDaemons": function (STRUCT, servicesObj) {
-        if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
-            for (var i = 0; i < STRUCT.length; i++) {
-                if (STRUCT[i].name === 'controller') {
-                    continue;
-                }
-                servicesObj[STRUCT[i].name] = {
-                    "port": STRUCT[i].port
-                };
-            }
-        }
-    },
-
-    "servicesHosts": function (STRUCT, servicesObj) {
-        if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
-            for (var i = 0; i < STRUCT.length; i++) {
-                if (STRUCT[i].env === regEnvironment) {
-                    if (servicesObj[STRUCT[i].name]) {
-                        if (!servicesObj[STRUCT[i].name].hosts) {
-                            servicesObj[STRUCT[i].name].hosts = [];
-                        }
-                        if (servicesObj[STRUCT[i].name].hosts.indexOf(STRUCT[i].ip) === -1) {
-                            servicesObj[STRUCT[i].name].hosts.push(STRUCT[i].ip);
-                        }
+        "allServices": function (STRUCT, servicesObj) {
+            if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
+                for (var i = 0; i < STRUCT.length; i++) {
+                    if (STRUCT[i].name === 'controller') {
+                        continue;
                     }
-                }
-            }
-        }
-    },
-    "service": function (STRUCT, serviceName) {
-        var serviceObj = null;
-        if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
-            for (var i = 0; i < STRUCT.length; i++) {
-                if (STRUCT[i].name === serviceName) {
-                    serviceObj = {
+                    servicesObj[STRUCT[i].name] = {
                         "extKeyRequired": STRUCT[i].extKeyRequired,
                         "port": STRUCT[i].port,
                         "requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
                         "requestTimeout": STRUCT[i].requestTimeout || null
                     };
-                    break;
                 }
             }
-        }
-        return serviceObj;
-    },
-    "daemon": function (STRUCT, serviceName) {
-        var serviceObj = null;
-        if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
-            for (var i = 0; i < STRUCT.length; i++) {
-                if (STRUCT[i].name === serviceName) {
-                    //TODO: add env specific info in object below ie: interval=3000, status=1||0,
-                    serviceObj = {
+        },
+
+        "allDaemons": function (STRUCT, servicesObj) {
+            if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
+                for (var i = 0; i < STRUCT.length; i++) {
+                    if (STRUCT[i].name === 'controller') {
+                        continue;
+                    }
+                    servicesObj[STRUCT[i].name] = {
                         "port": STRUCT[i].port
                     };
-                    break;
                 }
             }
-        }
-        return serviceObj;
-    },
+        },
 
-    "controllerHosts": function (STRUCT, controllerObj) {
-        if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
-            for (var i = 0; i < STRUCT.length; i++) {
-                if (STRUCT[i].name === "controller" && STRUCT[i].env === regEnvironment) {
-                    if (!controllerObj.hosts) {
-                        controllerObj.hosts = [];
-                    }
-                    if (controllerObj.hosts.indexOf(STRUCT[i].ip) === -1) {
-                        controllerObj.hosts.push(STRUCT[i].ip);
+        "servicesHosts": function (STRUCT, servicesObj) {
+            if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
+                for (var i = 0; i < STRUCT.length; i++) {
+                    if (STRUCT[i].env === regEnvironment) {
+                        if (servicesObj[STRUCT[i].name]) {
+                            if (!servicesObj[STRUCT[i].name].hosts) {
+                                servicesObj[STRUCT[i].name].hosts = {};
+                                servicesObj[STRUCT[i].name].hosts.latest = STRUCT[i].version;
+                                servicesObj[STRUCT[i].name].hosts[STRUCT[i].version] = [];
+                            }
+                            if (!servicesObj[STRUCT[i].name].hosts[STRUCT[i].version]){
+                                servicesObj[STRUCT[i].name].hosts[STRUCT[i].version] = [];
+                            }
+                            if (STRUCT[i].version > servicesObj[STRUCT[i].name].hosts.latest){
+                                servicesObj[STRUCT[i].name].hosts.latest = STRUCT[i].version;
+                            }
+                            if (servicesObj[STRUCT[i].name].hosts[STRUCT[i].version].indexOf(STRUCT[i].ip) === -1) {
+                                servicesObj[STRUCT[i].name].hosts[STRUCT[i].version].push(STRUCT[i].ip);
+                            }
+                        }
                     }
                 }
             }
-        }
-    },
+        },
+        "service": function (STRUCT, serviceName) {
+            var serviceObj = null;
+            if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
+                for (var i = 0; i < STRUCT.length; i++) {
+                    if (STRUCT[i].name === serviceName) {
+                        serviceObj = {
+                            "extKeyRequired": STRUCT[i].extKeyRequired,
+                            "port": STRUCT[i].port,
+                            "requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
+                            "requestTimeout": STRUCT[i].requestTimeout || null
+                        };
+                        break;
+                    }
+                }
+            }
+            return serviceObj;
+        },
+        "daemon": function (STRUCT, serviceName) {
+            var serviceObj = null;
+            if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
+                for (var i = 0; i < STRUCT.length; i++) {
+                    if (STRUCT[i].name === serviceName) {
+                        //TODO: add env specific info in object below ie: interval=3000, status=1||0,
+                        serviceObj = {
+                            "port": STRUCT[i].port
+                        };
+                        break;
+                    }
+                }
+            }
+            return serviceObj;
+        },
 
-    "loadDBInformation": function (dbConfiguration, envCode, param, callback) {
-        if (!mongo) {
-            mongo = new Mongo(dbConfiguration);
-        }
-        mongo.findOne('environment', {'code': envCode.toUpperCase()}, function (error, envRecord) {
-            if (error) {
-                return callback(error);
+        "controllerHosts": function (STRUCT, controllerObj) {
+            if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
+                for (var i = 0; i < STRUCT.length; i++) {
+                    if (STRUCT[i].name === "controller" && STRUCT[i].env === regEnvironment) {
+                        if (!controllerObj.hosts) {
+                            controllerObj.hosts = [];
+                        }
+                        if (controllerObj.hosts.indexOf(STRUCT[i].ip) === -1) {
+                            controllerObj.hosts.push(STRUCT[i].ip);
+                        }
+                    }
+                }
             }
-            var obj = {};
-            if (envRecord && JSON.stringify(envRecord) !== '{}') {
-                obj['ENV_schema'] = envRecord;
+        },
+
+        "loadDBInformation": function (dbConfiguration, envCode, param, callback) {
+            if (!mongo) {
+                mongo = new Mongo(dbConfiguration);
             }
-            mongo.find('hosts', {'env': envCode}, function (error, hostsRecords) {
+            mongo.findOne('environment', {'code': envCode.toUpperCase()}, function (error, envRecord) {
                 if (error) {
                     return callback(error);
                 }
-                if (hostsRecords && Array.isArray(hostsRecords) && hostsRecords.length > 0) {
-                    obj['ENV_hosts'] = hostsRecords;
+                var obj = {};
+                if (envRecord && JSON.stringify(envRecord) !== '{}') {
+                    obj['ENV_schema'] = envRecord;
                 }
-                mongo.find('services', function (error, servicesRecords) {
+                mongo.find('hosts', {'env': envCode}, function (error, hostsRecords) {
                     if (error) {
                         return callback(error);
                     }
-                    if (servicesRecords && Array.isArray(servicesRecords) && servicesRecords.length > 0) {
-                        obj['services_schema'] = servicesRecords;
+                    if (hostsRecords && Array.isArray(hostsRecords) && hostsRecords.length > 0) {
+                        obj['ENV_hosts'] = hostsRecords;
                     }
-                    mongo.find('daemons', function (error, daemonsRecords) {
+                    mongo.find('services', function (error, servicesRecords) {
                         if (error) {
                             return callback(error);
                         }
-                        if (servicesRecords && Array.isArray(daemonsRecords) && daemonsRecords.length > 0) {
-                            obj['daemons_schema'] = daemonsRecords;
+                        if (servicesRecords && Array.isArray(servicesRecords) && servicesRecords.length > 0) {
+                            obj['services_schema'] = servicesRecords;
                         }
-                        return callback(null, obj);
+                        mongo.find('daemons', function (error, daemonsRecords) {
+                            if (error) {
+                                return callback(error);
+                            }
+                            if (servicesRecords && Array.isArray(daemonsRecords) && daemonsRecords.length > 0) {
+                                obj['daemons_schema'] = daemonsRecords;
+                            }
+                            return callback(null, obj);
+                        });
                     });
                 });
             });
-        });
-    },
+        },
 
-    "registerNewService": function (dbConfiguration, serviceObj, ports, collection, cb) {
-        if (!mongo) {
-            mongo = new Mongo(dbConfiguration);
-        }
-        mongo.findOne(collection, {'port': serviceObj.port}, function (error, record) {
-            if (error) {
-                return cb(error);
+        "registerNewService": function (dbConfiguration, serviceObj, ports, collection, cb) {
+            if (!mongo) {
+                mongo = new Mongo(dbConfiguration);
             }
-            if (!record) {
-                mongo.insert(collection, serviceObj, cb);
-            }
-            else {
-                serviceObj.port = randomInt(ports.controller + ports.randomInc, ports.controller + ports.maintenanceInc);
-                build.registerNewService(dbConfiguration, serviceObj, ports, collection, cb);
-            }
-        });
-    },
-
-    "checkRegisterServiceIP": function (dbConfiguration, hostObj, cb) {
-        if (!mongo) {
-            mongo = new Mongo(dbConfiguration);
-        }
-        //check if this host has this ip in the env
-        mongo.findOne('hosts', hostObj, function (error, dbRecord) {
-            if (error || dbRecord) {
-                return cb(error, false);
-            }
-            if (!dbRecord) {
-                mongo.insert('hosts', hostObj, function (err) {
-                    if (err) {
-                        return cb(err, false);
-                    }
-                    return cb(null, true);
-                });
-            }
-        });
-    },
-
-    "buildRegistry": function (param, registry, registryDBInfo, callback) {
-        /**
-         * ENV_schema:
-         * --------------
-         * registry.tenantMetaDB             //tenantSpecific true
-         * registry.serviceConfig
-         * registry.coreDB.session
-         * registry.coreDB                   //tenantSpecific false
-         * registry.services.controller      // without the hosts array
-         *
-         * services_schema:
-         * -------------------
-         * registry.services.SERVICENAME     // if in service
-         * registry.services.EVERYSERVICE    // if in controller only and awareness is true
-         *
-         * ENV_hosts:
-         * -------------
-         * registry.services.controller.hosts   // if in service and awareness is true
-         * registry.services.EVERYSERVICE.hosts // if in controller only and awareness is true
-         */
-        var metaAndCoreDB = build.metaAndCoreDB(registryDBInfo.ENV_schema);
-        registry["tenantMetaDB"] = metaAndCoreDB.metaDB;
-        if (!registryDBInfo.ENV_schema || !registryDBInfo.ENV_schema.services || !registryDBInfo.ENV_schema.services.config) {
-            var err = new Error('Unable to get [' + regEnvironment + '] environment services from db');
-            if (!param.reload) {
-                throw err;
-            } else {
-                return callback(err);
-            }
-        }
-        registry["serviceConfig"] = registryDBInfo.ENV_schema.services.config;
-
-        for (var coreDBName in metaAndCoreDB.coreDB) {
-            if (Object.hasOwnProperty.call(metaAndCoreDB.coreDB, coreDBName)) {
-                registry["coreDB"][coreDBName] = metaAndCoreDB.coreDB[coreDBName];
-            }
-        }
-
-        registry["services"] = {
-            "controller": {
-                "maxPoolSize": registryDBInfo.ENV_schema.services.controller.maxPoolSize,
-                "authorization": registryDBInfo.ENV_schema.services.controller.authorization,
-                "port": registryDBInfo.ENV_schema.services.config.ports.controller,
-                "requestTimeout": registryDBInfo.ENV_schema.services.controller.requestTimeout || null,
-                "requestTimeoutRenewal": registryDBInfo.ENV_schema.services.controller.requestTimeoutRenewal || null
-            }
-        };
-
-        registry["daemons"] = {};
-
-        if (param.serviceName === "controller") {
-            build.allServices(registryDBInfo.services_schema, registry["services"]);
-            build.servicesHosts(registryDBInfo.ENV_hosts, registry["services"]);
-            build.allDaemons(registryDBInfo.daemons_schema, registry["daemons"]);
-            build.servicesHosts(registryDBInfo.ENV_hosts, registry["daemons"]);
-            resume("services");
-        }
-        else {
-	        var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
-            if (param.type && param.type === "daemon") {
-                var daemonServiceObj = build.daemon(registryDBInfo.daemons_schema, param.serviceName);
-                if (daemonServiceObj) {
-                    registry["daemons"][param.serviceName] = daemonServiceObj;
-                    return resume("daemons");
+            mongo.findOne(collection, {'port': serviceObj.port}, function (error, record) {
+                if (error) {
+                    return cb(error);
+                }
+                if (!record) {
+                    mongo.insert(collection, serviceObj, cb);
                 }
                 else {
-                    //registering a new daemon service
-                    registry["daemons"][param.serviceName] = {
-                        "port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc)
-                    };
+                    serviceObj.port = randomInt(ports.controller + ports.randomInc, ports.controller + ports.maintenanceInc);
+                    build.registerNewService(dbConfiguration, serviceObj, ports, collection, cb);
+                }
+            });
+        },
 
-                    //adding daemon service for the first time to services collection
-                    var newDaemonServiceObj = {
-                        'name': param.serviceName,
-                        'port': registry["daemons"][param.serviceName].port,
-                        'jobs': param.jobList
-                    };
-
-                    build.registerNewService(registry.coreDB.provision, newDaemonServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'daemons', function (error) {
-                        if (error) {
-                            throw new Error('Unable to register new daemon service ' + param.serviceName + ' : ' + error.message);
+        "checkRegisterServiceIP": function (dbConfiguration, hostObj, cb) {
+            if (!mongo) {
+                mongo = new Mongo(dbConfiguration);
+            }
+            //check if this host has this ip in the env
+            mongo.findOne('hosts', hostObj, function (error, dbRecord) {
+                if (error || dbRecord) {
+                    return cb(error, false);
+                }
+                if (!dbRecord) {
+                    mongo.insert('hosts', hostObj, function (err) {
+                        if (err) {
+                            return cb(err, false);
                         }
+                        return cb(null, true);
+                    });
+                }
+            });
+        },
+
+        "buildRegistry": function (param, registry, registryDBInfo, callback) {
+            /**
+             * ENV_schema:
+             * --------------
+             * registry.tenantMetaDB             //tenantSpecific true
+             * registry.serviceConfig
+             * registry.coreDB.session
+             * registry.coreDB                   //tenantSpecific false
+             * registry.services.controller      // without the hosts array
+             *
+             * services_schema:
+             * -------------------
+             * registry.services.SERVICENAME     // if in service
+             * registry.services.EVERYSERVICE    // if in controller only and awareness is true
+             *
+             * ENV_hosts:
+             * -------------
+             * registry.services.controller.hosts   // if in service and awareness is true
+             * registry.services.EVERYSERVICE.hosts // if in controller only and awareness is true
+             */
+            var metaAndCoreDB = build.metaAndCoreDB(registryDBInfo.ENV_schema);
+            registry["tenantMetaDB"] = metaAndCoreDB.metaDB;
+            if (!registryDBInfo.ENV_schema || !registryDBInfo.ENV_schema.services || !registryDBInfo.ENV_schema.services.config) {
+                var err = new Error('Unable to get [' + regEnvironment + '] environment services from db');
+                if (!param.reload) {
+                    throw err;
+                } else {
+                    return callback(err);
+                }
+            }
+            registry["serviceConfig"] = registryDBInfo.ENV_schema.services.config;
+
+            for (var coreDBName in metaAndCoreDB.coreDB) {
+                if (Object.hasOwnProperty.call(metaAndCoreDB.coreDB, coreDBName)) {
+                    registry["coreDB"][coreDBName] = metaAndCoreDB.coreDB[coreDBName];
+                }
+            }
+
+            registry["services"] = {
+                "controller": {
+                    "maxPoolSize": registryDBInfo.ENV_schema.services.controller.maxPoolSize,
+                    "authorization": registryDBInfo.ENV_schema.services.controller.authorization,
+                    "port": registryDBInfo.ENV_schema.services.config.ports.controller,
+                    "requestTimeout": registryDBInfo.ENV_schema.services.controller.requestTimeout || null,
+                    "requestTimeoutRenewal": registryDBInfo.ENV_schema.services.controller.requestTimeoutRenewal || null
+                }
+            };
+
+            registry["daemons"] = {};
+
+            if (param.serviceName === "controller") {
+                build.allServices(registryDBInfo.services_schema, registry["services"]);
+                build.servicesHosts(registryDBInfo.ENV_hosts, registry["services"]);
+                build.allDaemons(registryDBInfo.daemons_schema, registry["daemons"]);
+                build.servicesHosts(registryDBInfo.ENV_hosts, registry["daemons"]);
+                resume("services");
+            }
+            else {
+                if (param.type && param.type === "daemon") {
+                    var daemonServiceObj = build.daemon(registryDBInfo.daemons_schema, param.serviceName);
+                    if (daemonServiceObj) {
+                        registry["daemons"][param.serviceName] = daemonServiceObj;
                         return resume("daemons");
-                    });
-                }
-            }
-            else {
-                registry["coreDB"]["session"] = build.sessionDB(registryDBInfo.ENV_schema);
+                    }
+                    else {
+                        //registering a new daemon service
+                        var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
+                        registry["daemons"][param.serviceName] = {
+                            "port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc)
+                        };
+                        //adding daemon service for the first time to services collection
+                        var newDaemonServiceObj = {
+                            'name': param.serviceName,
+                            'port': registry["daemons"][param.serviceName].port,
+                            'jobs': param.jobList,
+                            'versions' : {},
+                            'latest': param.serviceVersion
+                        };
+                        newDaemonServiceObj.versions[param.serviceVersion] = {};
 
-                var serviceObj = build.service(registryDBInfo.services_schema, param.serviceName);
-                if (serviceObj) {
-                    registry["services"][param.serviceName] = serviceObj;
-                    //todo: check the apis list if they are updated or removed
-                    return resume("services");
+                        build.registerNewService(registry.coreDB.provision, newDaemonServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'daemons', function (error) {
+                            if (error) {
+                                throw new Error('Unable to register new daemon service ' + param.serviceName + ' : ' + error.message);
+                            }
+                            return resume("daemons");
+                        });
+                    }
                 }
                 else {
-                    //registering a new service
-                    registry["services"][param.serviceName] = {
-                        "extKeyRequired": param.extKeyRequired || false,
-                        "port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc),
-                        "requestTimeout": param.requestTimeout,
-                        "requestTimeoutRenewal": param.requestTimeoutRenewal,
-                        "awareness": param.awareness
-                    };
+                    registry["coreDB"]["session"] = build.sessionDB(registryDBInfo.ENV_schema);
 
-                    //adding service for the first time to services collection
-                    var newServiceObj = {
-                        'name': param.serviceName,
-                        'extKeyRequired': registry["services"][param.serviceName].extKeyRequired,
-                        'port': registry["services"][param.serviceName].port,
-                        'requestTimeout': registry["services"][param.serviceName].requestTimeout,
-                        'requestTimeoutRenewal': registry["services"][param.serviceName].requestTimeoutRenewal,
-                        'awareness': param.awareness,
-                        'apis': param.apiList
-                    };
-
-                    build.registerNewService(registry.coreDB.provision, newServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'services', function (error) {
-                        if (error) {
-                            throw new Error('Unable to register new service ' + param.serviceName + ' : ' + error.message);
-                        }
+                    var serviceObj = build.service(registryDBInfo.services_schema, param.serviceName);
+                    if (serviceObj) {
+                        registry["services"][param.serviceName] = serviceObj;
+                        //todo: check the apis list if they are updated or removed
                         return resume("services");
-                    });
+                    }
+                    else {
+                        //registering a new service
+                        var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
+                        registry["services"][param.serviceName] = {
+                            "extKeyRequired": param.extKeyRequired || false,
+                            "port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc),
+                            "requestTimeout": param.requestTimeout,
+                            "requestTimeoutRenewal": param.requestTimeoutRenewal,
+                            "awareness": param.awareness
+                        };
+
+                        //adding service for the first time to services collection
+                        var newServiceObj = {
+                            'name': param.serviceName,
+                            'extKeyRequired': registry["services"][param.serviceName].extKeyRequired,
+                            'port': registry["services"][param.serviceName].port,
+                            'requestTimeout': registry["services"][param.serviceName].requestTimeout,
+                            'requestTimeoutRenewal': registry["services"][param.serviceName].requestTimeoutRenewal,
+                            'awareness': param.awareness,
+                            'apis': param.apiList,
+                            'versions' : {},
+                            'latest': param.serviceVersion
+                        };
+                        newServiceObj.versions[param.serviceVersion] = {};
+
+                        build.registerNewService(registry.coreDB.provision, newServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'services', function (error) {
+                            if (error) {
+                                throw new Error('Unable to register new service ' + param.serviceName + ' : ' + error.message);
+                            }
+                            return resume("services");
+                        });
+                    }
                 }
             }
-        }
-        function resume(what) {
-            build.controllerHosts(registryDBInfo.ENV_hosts, registry["services"].controller);
-            if (!autoRegHost || param.reload) {
-                return callback();
-            }
-            else if (param.serviceIp) {
-                var hostObj = {
-                    'env': registry.name.toLowerCase(),
-                    'name': param.serviceName,
-                    'ip': param.serviceIp,
-                    'hostname': os.hostname().toLowerCase()
-                };
-                build.checkRegisterServiceIP(registry.coreDB.provision, hostObj, function (error, registered) {
-                    if (error) {
-                        throw new Error("Unable to register new host for service:" + error.message);
-                    }
-                    if (registered && registry.serviceConfig.awareness.autoRegisterService) {
-                        registry[what][param.serviceName].newServiceOrHost = true;
-                        if (!registry[what][param.serviceName].hosts) {
-                            registry[what][param.serviceName].hosts = [];
+            function resume(what) {
+                build.controllerHosts(registryDBInfo.ENV_hosts, registry["services"].controller);
+                if (!autoRegHost || param.reload) {
+                    return callback();
+                }
+                else if (param.serviceIp) {
+                    var hostObj = {
+                        'env': registry.name.toLowerCase(),
+                        'name': param.serviceName,
+                        'ip': param.serviceIp,
+                        'hostname': os.hostname().toLowerCase(),
+                        'version' : param.serviceVersion
+                    };
+                    build.checkRegisterServiceIP(registry.coreDB.provision, hostObj, function (error, registered) {
+                        if (error) {
+                            throw new Error("Unable to register new host for service:" + error.message);
                         }
-                        registry[what][param.serviceName].hosts.push(param.serviceIp);
+                        if (registered && registry.serviceConfig.awareness.autoRegisterService) {
+                            registry[what][param.serviceName].newServiceOrHost = true;
+                            if (!registry[what][param.serviceName].hosts) {
+                                if (param.serviceName === "controller") {
+                                    registry[what][param.serviceName].hosts = [];
+                                }
+                                else{
+                                    registry[what][param.serviceName].hosts = {};
+                                    registry[what][param.serviceName].hosts.latest = param.serviceVersion;
+                                    registry[what][param.serviceName].hosts[param.serviceVersion] = [];
+                                }
+                            }
+                            if (param.serviceName === "controller") {
+                                registry[what][param.serviceName].hosts.push(param.serviceIp);
+                            }
+                            else {
+                                if (!registry[what][param.serviceName].hosts[param.serviceVersion]) {
+                                    registry[what][param.serviceName].hosts[param.serviceVersion] = [];
+                                }
+                                registry[what][param.serviceName].hosts[param.serviceVersion].push(param.serviceIp);
+                            }
+                        }
+                        return callback();
+                    });
+                }
+                else {
+                    if (!param.serviceIp) {
+                        throw new Error("Unable to register new host ip [" + param.serviceIp + "] for service [" + param.serviceName + "]");
                     }
                     return callback();
-                });
-            }
-            else {
-                if (!param.serviceIp) {
-                    throw new Error("Unable to register new host ip [" + param.serviceIp + "] for service [" + param.serviceName + "]");
                 }
-                return callback();
             }
         }
     }
-};
+    ;
 
 function randomInt(low, high) {
     return Math.floor(Math.random() * (high - low) + low);
@@ -483,12 +514,12 @@ exports.profile = function (cb) {
 };
 exports.register = function (param, cb) {
     if (param.ip && param.name) {
-        var what = ((param.type === "service")? "services":"daemons");
+        var what = ((param.type === "service") ? "services" : "daemons");
         if (!registry_struct[regEnvironment][what][param.name]) {
             if (!param.port) {
                 return cb(new Error("unable to register service. missing params"));
             }
-            if(param.type === "service") {
+            if (param.type === "service") {
                 registry_struct[regEnvironment][what][param.name] = {
                     "port": param.port,
                     "extKeyRequired": param.extKeyRequired || false,
@@ -496,16 +527,20 @@ exports.register = function (param, cb) {
                     "requestTimeoutRenewal": param.requestTimeoutRenewal
                 };
             }
-            else{
+            else {
                 registry_struct[regEnvironment][what][param.name] = {
                     "port": param.port
                 };
             }
         }
         if (!registry_struct[regEnvironment][what][param.name].hosts) {
-            registry_struct[regEnvironment][what][param.name].hosts = [];
+            registry_struct[regEnvironment][what][param.name].hosts = {};
+            registry_struct[regEnvironment][what][param.name].hosts.latest = param.serviceVersion;
         }
-        registry_struct[regEnvironment][what][param.name].hosts.push(param.ip);
+        if (!registry_struct[regEnvironment][what][param.name].hosts[param.serviceVersion]){
+            registry_struct[regEnvironment][what][param.name].hosts[param.serviceVersion] = [];
+        }
+        registry_struct[regEnvironment][what][param.name].hosts[param.serviceVersion].push(param.ip);
         registry_struct[regEnvironment].timeLoaded = new Date().getTime();
         return cb(null, registry_struct[regEnvironment][what][param.name]);
     }
@@ -529,7 +564,7 @@ exports.reload = function (param, cb) {
         return cb(err, reg);
     });
 };
-exports.autoRegisterService = function (name, serviceIp, what, cb) {
+exports.autoRegisterService = function (name, serviceIp, serviceVersion, what, cb) {
     var controllerSRV = registry_struct[regEnvironment].services.controller;
     var serviceSRV = registry_struct[regEnvironment][what][name];
     if (!serviceSRV.newServiceOrHost) {
@@ -539,14 +574,15 @@ exports.autoRegisterService = function (name, serviceIp, what, cb) {
         async.each(controllerSRV.hosts,
             function (ip, callback) {
                 var requestOptions = {
-                    'uri': 'http://' + ip + ':' + (controllerSRV.port + registry_struct[regEnvironment].serviceConfig.ports.maintenanceInc) + '/register',
+                    'uri': 'http://' + ip + ':' + (controllerSRV.port + registry_struct[regEnvironment].serviceConfig.ports.maintenanceInc) + '/register'
                 };
                 if (what === "daemons") {
                     requestOptions.qs = {
                         "name": name,
                         "port": serviceSRV.port,
                         "ip": serviceIp,
-                        "type": "daemon"
+                        "type": "daemon",
+                        "version": serviceVersion
                     };
                 }
                 else {
@@ -555,6 +591,7 @@ exports.autoRegisterService = function (name, serviceIp, what, cb) {
                         "port": serviceSRV.port,
                         "ip": serviceIp,
                         "type": "service",
+                        "version": serviceVersion,
                         "extKeyRequired": serviceSRV.extKeyRequired,
                         "requestTimeout": serviceSRV.requestTimeout,
                         "requestTimeoutRenewal": serviceSRV.requestTimeoutRenewal

@@ -42,6 +42,7 @@ daemon.prototype.init = function (callback) {
     var _self = this;
     var registry = null;
     _self.soajs.serviceName = _self.soajs.param.serviceName || _self.soajs.param.config.serviceName;
+    _self.soajs.serviceVersion = _self.soajs.param.config.serviceVersion || 1;
     _self.soajs.serviceIp = process.env.SOAJS_SRVIP || null;
 
     var fetchedHostIp = null;
@@ -62,6 +63,7 @@ daemon.prototype.init = function (callback) {
     core.registry.load({
         "type": "daemon",
         "serviceName": _self.soajs.serviceName,
+        "serviceVersion": _self.soajs.serviceVersion,
         "designatedPort": _self.soajs.param.config.servicePort || null,
         "serviceIp": _self.soajs.serviceIp,
         "jobList": {}
@@ -144,6 +146,7 @@ daemon.prototype.start = function (cb) {
                     core.registry.reload({
                         "type": "daemon",
                         "serviceName": _self.soajs.serviceName,
+                        "serviceVersion": _self.soajs.serviceVersion,
                         "serviceIp": _self.soajs.serviceIp,
                         "jobList": {}
                     }, function (err, reg) {
@@ -308,7 +311,7 @@ daemon.prototype.start = function (cb) {
     var resume = function (err) {
         if(autoRegHost){
             _self.soajs.log.info("Initiating service auto register for awareness ...");
-            core.registry.autoRegisterService(_self.soajs.serviceName, _self.soajs.serviceIp, "daemons", function(err, registered) {
+            core.registry.autoRegisterService(_self.soajs.serviceName, _self.soajs.serviceIp, _self.soajs.serviceVersion, "daemons", function(err, registered) {
                 if(err) {
                     _self.soajs.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
                 } else if(registered) {

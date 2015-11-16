@@ -91,6 +91,7 @@ service.prototype.init = function(callback) {
 	param.config.serviceName = soajs.serviceName;
 	//END NOTE
 
+    soajs.serviceVersion = param.config.serviceVersion || 1;
 	soajs.awareness = param.config.awareness || false;
 	soajs.serviceIp = process.env.SOAJS_SRVIP || null;
 
@@ -112,6 +113,7 @@ service.prototype.init = function(callback) {
 	_self.app.soajs.apiList = extractAPIsList(param.config.schema);
 	core.registry.load({
 		"serviceName": soajs.serviceName,
+        "serviceVersion": soajs.serviceVersion,
 		"designatedPort": param.config.servicePort || null,
 		"extKeyRequired": param.config.extKeyRequired || false,
 		"requestTimeout": param.config.requestTimeout || null,
@@ -262,6 +264,7 @@ service.prototype.init = function(callback) {
 			_self.app.use(awareness_mw({
 				"awareness": soajs.awareness,
 				"serviceName": soajs.serviceName,
+                "serviceVersion": soajs.serviceVersion,
 				"log": _self._log,
 				"apiList": _self.app.soajs.apiList,
 				"serviceIp": _self.app.soajs.serviceIp
@@ -312,7 +315,7 @@ service.prototype.start = function(cb) {
 					_self._log.info(_self.app.soajs.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
 					if(autoRegHost){
 						_self._log.info("Initiating service auto register for awareness ...");
-						core.registry.autoRegisterService(_self.app.soajs.serviceName, _self.app.soajs.serviceIp, "services", function(err, registered) {
+						core.registry.autoRegisterService(_self.app.soajs.serviceName, _self.app.soajs.serviceIp, _self.app.soajs.serviceVersion, "services", function(err, registered) {
 						  if(err) {
 							  _self._log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
 						  } else if(registered) {
@@ -352,6 +355,7 @@ service.prototype.start = function(cb) {
 				_self.appMaintenance.get("/reloadRegistry", function(req, res) {
 					core.registry.reload({
 						"serviceName": _self.app.soajs.serviceName,
+                        "serviceVersion": _self.app.soajs.serviceVersion,
 						"apiList": _self.app.soajs.apiList,
 						"awareness": _self.app.soajs.awareness,
 						"serviceIp": _self.app.soajs.serviceIp
