@@ -39,41 +39,41 @@ module.exports = function (param) {
                     "registryLoadedTime": registry.timeLoaded,
                     "servicesArr": []
                 };
-                for (var s in registry.services) {
-                    if (Object.hasOwnProperty.call(registry.services,s) && s !== param.serviceName) {
-                        if (!serviceAwarenessObj[s])
-                            serviceAwarenessObj[s] = {"healthy": [], "index": 0};
-                        if (!serviceAwarenessObj[s].healthy)
-                            serviceAwarenessObj[s].healthy = [];
-                        if (registry.services[s].hosts && registry.services[s].hosts.length > 0) {
-                            for (var i = 0; i < registry.services[s].hosts.length; i++) {
-                                var sObj = {
-                                    "name": s,
-                                    "port": registry.services[s].port,
-                                    "host": registry.services[s].hosts[i],
+                for (var s1 in registry.services) {
+                    if (Object.hasOwnProperty.call(registry.services,s1) && s1 !== param.serviceName) {
+                        if (!serviceAwarenessObj[s1])
+                            serviceAwarenessObj[s1] = {"healthy": [], "index": 0};
+                        if (!serviceAwarenessObj[s1].healthy)
+                            serviceAwarenessObj[s1].healthy = [];
+                        if (registry.services[s1].hosts && registry.services[s1].hosts.length > 0) {
+                            for (var i1 = 0; i1 < registry.services[s1].hosts.length; i1++) {
+                                var sObj1 = {
+                                    "name": s1,
+                                    "port": registry.services[s1].port,
+                                    "host": registry.services[s1].hosts[i1],
                                     "what": "services"
                                 };
-                                awarenessHosts.servicesArr.push(sObj);
+                                awarenessHosts.servicesArr.push(sObj1);
                             }
                         }
                     }
                 }
 
-                for (var s in registry.daemons) {
-                    if (Object.hasOwnProperty.call(registry.daemons,s) && s !== param.serviceName) {
-                        if (!serviceAwarenessObj[s])
-                            serviceAwarenessObj[s] = {"healthy": [], "index": 0};
-                        if (!serviceAwarenessObj[s].healthy)
-                            serviceAwarenessObj[s].healthy = [];
-                        if (registry.daemons[s].hosts && registry.daemons[s].hosts.length > 0) {
-                            for (var i = 0; i < registry.daemons[s].hosts.length; i++) {
-                                var sObj = {
-                                    "name": s,
-                                    "port": registry.daemons[s].port,
-                                    "host": registry.daemons[s].hosts[i],
+                for (var s2 in registry.daemons) {
+                    if (Object.hasOwnProperty.call(registry.daemons,s2) && s2 !== param.serviceName) {
+                        if (!serviceAwarenessObj[s2])
+                            serviceAwarenessObj[s2] = {"healthy": [], "index": 0};
+                        if (!serviceAwarenessObj[s2].healthy)
+                            serviceAwarenessObj[s2].healthy = [];
+                        if (registry.daemons[s2].hosts && registry.daemons[s2].hosts.length > 0) {
+                            for (var i2 = 0; i2 < registry.daemons[s2].hosts.length; i2++) {
+                                var sObj2 = {
+                                    "name": s2,
+                                    "port": registry.daemons[s2].port,
+                                    "host": registry.daemons[s2].hosts[i2],
                                     "what": "daemons"
                                 };
-                                awarenessHosts.servicesArr.push(sObj);
+                                awarenessHosts.servicesArr.push(sObj2);
                             }
                         }
                     }

@@ -166,7 +166,7 @@ var provision = {
                     return cb(err);
                 }
                 cb(null, grpCong[0]);
-            })
+            });
         }
         else
             return cb();
