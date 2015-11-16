@@ -206,8 +206,9 @@ daemon.prototype.start = function (cb) {
                             var jobs_array = [];
                             for (var job in daemonConf.jobs) {
                                 if ((Object.hasOwnProperty.call(daemonConf.jobs, job)) && struct_jobs[job]) {
-                                    if (daemonConf.jobs[job].type === "global") {
-                                        var jobObj = {
+                                    var jobObj;
+	                                if (daemonConf.jobs[job].type === "global") {
+                                        jobObj = {
                                             "soajs": {
                                                 "servicesConfig": daemonConf.jobs[job].serviceConfig
                                             },
@@ -218,7 +219,7 @@ daemon.prototype.start = function (cb) {
                                     }
                                     else if (daemonConf.jobs[job].tenantExtKeys) { //type === "tenant"
                                         for (var tCount = 0; tCount < daemonConf.jobs[job].tenantExtKeys.length; tCount++) {
-                                            var jobObj = {
+                                            jobObj = {
                                                 "soajs": {},
                                                 "job": job
                                             };
@@ -323,7 +324,7 @@ daemon.prototype.start = function (cb) {
         } else if (err) {
             throw err;
         }
-    }
+    };
 };
 
 daemon.prototype.stop = function (cb) {

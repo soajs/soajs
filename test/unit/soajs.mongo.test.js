@@ -540,8 +540,9 @@ describe("TESTING soajs.mongo", function() {
 
 		it('success - all working', function(done) {
 			mongo.distinct("myCollection", 'a', function(error, response) {
+				console.log(error, response);
 				assert.ifError(error);
-				assert.equal(response, 1);
+				assert.equal(response.length, 1);
 				done();
 			});
 		});
