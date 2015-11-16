@@ -6,6 +6,7 @@ var MultiTenantSession = require("../../classes/MultiTenantSession");
 var async = require("async");
 var Netmask = require('netmask').Netmask;
 var useragent = require('useragent');
+var merge = require('merge');
 
 /**
  *
@@ -199,12 +200,16 @@ module.exports = function (configuration) {
      * @returns {*}
      */
     function uracCheck(obj, cb) {
+        var userServiceConf = {};
         if (obj.req.soajs.session) {
-            obj.req.soajs.servicesConfig = obj.req.soajs.session.getConfig();
+            userServiceConf = obj.req.soajs.session.getConfig();
+            //obj.req.soajs.servicesConfig = obj.req.soajs.session.getConfig();
         }
-        if (!obj.req.soajs.servicesConfig) {
-            obj.req.soajs.servicesConfig = obj.keyObj.config;
-        }
+        var tenantServiceConf = obj.keyObj.config;
+        //if (!obj.req.soajs.servicesConfig) {
+        //    obj.req.soajs.servicesConfig = obj.keyObj.config;
+        //}
+        obj.req.soajs.servicesConfig = merge.recursive(true, tenantServiceConf, userServiceConf);
         return cb(null, obj);
     }
 
