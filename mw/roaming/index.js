@@ -36,7 +36,7 @@ module.exports = function (configuration) {
         var uracRecord = obj.req.soajs.session.getUrac();
         uracRecord.roaming = {
             "tenant": obj.req.soajs.tenant
-        }
+        };
         var mtSession = new MultiTenantSession(mtSessionParam);
         obj.req.soajs.session = mtSession;
         obj.req.soajs.session.setURAC(uracRecord, function (err) {
