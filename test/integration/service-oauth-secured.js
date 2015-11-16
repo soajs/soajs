@@ -183,10 +183,10 @@ var lib = {
 						mongo = new Mongo(req.soajs.registry.coreDB.provision);
 					}
 					mongo.findOne(userCollectionName, {'userId': req.soajs.inputmaskData['username']}, function(err, record) {
-                        console.log("-----------------------1")
+                        console.log("-----------------------");
                         console.log(err, record);
                         console.log({'userId': req.soajs.inputmaskData['username']});
-                        console.log("-----------------------1")
+                        console.log("-----------------------");
 						if(record) {
 							var hashConfig = {
 								"hashIterations": config.hashIterations,
