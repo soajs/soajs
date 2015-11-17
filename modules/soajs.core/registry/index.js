@@ -108,7 +108,9 @@ var build = {
             if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
                 for (var i = 0; i < STRUCT.length; i++) {
                     if (STRUCT[i].env === regEnvironment) {
-                        if (servicesObj[STRUCT[i].name]) {
+                        if (servicesObj[STRUCT[i].name] && STRUCT[i].name !== "controller") {
+                            if (!STRUCT[i].version)
+                                STRUCT[i].version = 1;
                             if (!servicesObj[STRUCT[i].name].hosts) {
                                 servicesObj[STRUCT[i].name].hosts = {};
                                 servicesObj[STRUCT[i].name].hosts.latest = STRUCT[i].version;
