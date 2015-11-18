@@ -108,7 +108,7 @@ var build = {
             if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
                 for (var i = 0; i < STRUCT.length; i++) {
                     if (STRUCT[i].env === regEnvironment) {
-                        if (servicesObj[STRUCT[i].name] && STRUCT[i].name !== "controller") {
+                        if (servicesObj[STRUCT[i].name]) {
                             if (!STRUCT[i].version)
                                 STRUCT[i].version = 1;
                             if (!servicesObj[STRUCT[i].name].hosts) {
@@ -167,11 +167,21 @@ var build = {
             if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
                 for (var i = 0; i < STRUCT.length; i++) {
                     if (STRUCT[i].name === "controller" && STRUCT[i].env === regEnvironment) {
+                        if (!STRUCT[i].version)
+                            STRUCT[i].version = 1;
                         if (!controllerObj.hosts) {
-                            controllerObj.hosts = [];
+                            controllerObj.hosts = {};
+                            controllerObj.hosts.latest = STRUCT[i].version;
+                            controllerObj.hosts[STRUCT[i].version] = [];
                         }
-                        if (controllerObj.hosts.indexOf(STRUCT[i].ip) === -1) {
-                            controllerObj.hosts.push(STRUCT[i].ip);
+                        if (!controllerObj.hosts[STRUCT[i].version]){
+                            controllerObj.hosts[STRUCT[i].version] = [];
+                        }
+                        if (STRUCT[i].version > controllerObj.hosts.latest){
+                            controllerObj.hosts.latest = STRUCT[i].version;
+                        }
+                        if (controllerObj.hosts[STRUCT[i].version].indexOf(STRUCT[i].ip) === -1) {
+                            controllerObj.hosts[STRUCT[i].version].push(STRUCT[i].ip);
                         }
                     }
                 }
