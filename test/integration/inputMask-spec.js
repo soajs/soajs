@@ -8,6 +8,7 @@ var async = require("async");
 var soajs = helper.requireModule('index.js');
 
 var serviceName = "example01";
+var serviceName2 = "example06";
 
 var requester = helper.requester;
 
@@ -441,7 +442,8 @@ scenarios.push({
 
 var holder = {
 	controller: null,
-	service: null
+	service: null,
+	service2: null
 };
 var lib = {
 	startController: function(cb) {
@@ -456,6 +458,7 @@ var lib = {
         console.log("**** stop controller");
 		holder.controller.stop(cb);
 	},
+
 	stopTestService: function(cb) {
         console.log("**** stop service");
 		holder.service.stop(cb);
@@ -505,21 +508,75 @@ var lib = {
 				//}, 500);
 			});
 		});
+	},
+
+	stopTestService2: function(cb) {
+		console.log("**** stop service2");
+		holder.service2.stop(cb);
+	},
+	startTestService2: function(cb) {
+		console.log("**** start service2");
+		var config = {
+			"serviceName": serviceName2,
+			"requestTimeout": 30,
+			"requestTimeoutRenewal": 5,
+			"extKeyRequired": true,
+			"awareness": true,
+			"errors": {},
+			"schema": {
+				"/testRoute":{
+					"_apiInfo":{
+						"l": "Test Route IMFV per Tenant",
+						"group": "wow",
+						"groupMain": true
+					},
+					"name": {
+						"required": true,
+						"source": ['body.name'],
+						"validation":{
+							"type": "string"
+						}
+					}
+				}
+			}
+		};
+
+		holder.service2 = new soajs.server.service({
+			"session": true,
+			"security": true,
+			"multitenant": true,
+			"acl": true,
+			"config": config
+		});
+
+		holder.service2.init(function() {
+			console.log("**** start service2 init");
+			holder.service2.post("/testRoute", function(req, res) {
+				req.soajs.log.info('Test: /testRoute POST');
+				var data = req.soajs.inputmaskData;
+				res.json(req.soajs.buildResponse(null, data));
+			});
+			holder.service2.start(function() {
+				cb();
+			});
+		});
 	}
 };
 
 describe('testing inputMask', function() {
 
 	before(function(done) {
-		async.series([lib.startTestService, lib.startController], function(err) {
+		async.series([lib.startTestService2, lib.startTestService, lib.startController], function(err) {
 			//lib.startTestService(function(err) {
+			console.log(err);
 			assert.ifError(err);
 			done();
 		});
 	});
 	after(function(done) {
-		async.series([lib.stopController, lib.stopTestService], function(err) {
+		async.series([lib.stopController, lib.stopTestService, lib.stopTestService2], function(err) {
 			//lib.stopTestService(function(err) {
+			console.log(err);
 			assert.ifError(err);
 			done();
 		});
@@ -561,6 +618,67 @@ describe('testing inputMask', function() {
 						});
 					});
 				}
+			});
+		});
+	});
+
+	describe("testing inputMask Tenant IMFV specific", function(){
+
+		it("fail - missing email", function(done){
+			requester("post", {
+				uri: 'http://localhost:4000/' + serviceName2 + "/testRoute",
+				headers:{
+					key: "aa39b5490c4a4ed0e56d7ec1232a428f7ad78ebb7347db3fc9875cb10c2bce39bbf8aabacf9e00420afb580b15698c04ce10d659d1972ebc53e76b6bbae0c113bee1e23062800bc830e4c329ca913fefebd1f1222295cf2eb5486224044b4d0c"
+				},
+				body: true,
+				form: { name: 'john'}
+			}, function(err, body) {
+				assert.ifError(err);
+				assert.ok(body);
+				assert.equal(body.result, false);
+				done();
+			});
+		});
+
+		it("success - using default type value", function(done){
+			requester("post", {
+				uri: 'http://localhost:4000/' + serviceName2 + "/testRoute",
+				headers:{
+					key: "aa39b5490c4a4ed0e56d7ec1232a428f7ad78ebb7347db3fc9875cb10c2bce39bbf8aabacf9e00420afb580b15698c04ce10d659d1972ebc53e76b6bbae0c113bee1e23062800bc830e4c329ca913fefebd1f1222295cf2eb5486224044b4d0c"
+				},
+				body: true,
+				form: { name: 'john', email: "john@soajs.org"}
+			}, function(err, body) {
+				assert.ifError(err);
+				assert.ok(body);
+				assert.equal(body.result, true);
+				assert.deepEqual(body.data, {
+					name: 'john',
+					email: "john@soajs.org",
+					"type": "userTEST"
+				});
+				done();
+			});
+		});
+
+		it("success - full imfv per tenant", function(done){
+			requester("post", {
+				uri: 'http://localhost:4000/' + serviceName2 + "/testRoute",
+				headers:{
+					key: "aa39b5490c4a4ed0e56d7ec1232a428f7ad78ebb7347db3fc9875cb10c2bce39bbf8aabacf9e00420afb580b15698c04ce10d659d1972ebc53e76b6bbae0c113bee1e23062800bc830e4c329ca913fefebd1f1222295cf2eb5486224044b4d0c"
+				},
+				body: true,
+				form: { name: 'john', email: "john@soajs.org", type: "overrideTEST"}
+			}, function(err, body) {
+				assert.ifError(err);
+				assert.ok(body);
+				assert.equal(body.result, true);
+				assert.deepEqual(body.data, {
+					name: 'john',
+					email: "john@soajs.org",
+					"type": "overrideTEST"
+				});
+				done();
 			});
 		});
 	});

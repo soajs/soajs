@@ -6,7 +6,10 @@ var core = helper.requireModule('./modules/soajs.core/index');
 //var registry = core.getRegistry();
 var coreLogger = core.getLogger('testing', {
     "src": true,
-    "level": "debug"
+    "level": "debug",
+	"formatter": {
+		outputMode: 'long'
+	}
 });
 var methods = ['trace', 'warn', 'fatal', 'error','debug', 'info'];
 
