@@ -47,7 +47,7 @@
     "jsonschema" : "*",
     "merge": "*",
     "method-override": "*",
-    "mongoskin": "1.4.13",
+    "mongoskin": "*",
     "morgan": "*",
     "netmask": "*",
     "nodemailer": "*",

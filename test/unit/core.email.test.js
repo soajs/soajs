@@ -53,11 +53,7 @@ describe("testing mail functionality", function() {
 		});
 
 		it("success - should initialize mail sendmail", function(done) {
-			mailer = new coreMail({
-				'type': 'sendmail',
-				'options': {
-				}
-			});
+			mailer = new coreMail();
 			assert.ok(mailer);
 			done();
 		});
@@ -107,7 +103,7 @@ describe("testing mail functionality", function() {
 		var soajsMailer;
 		it("initialise soajsMail", function(done) {
 			soajsMailer = new soajsMail({
-				'type': 'sendmail',
+				'type': 'direct',
 				'options': {
 				}
 			});

@@ -417,6 +417,10 @@ describe("TESTING soajs.mongo", function() {
 				assert.ifError(error);
 				assert.ok(Stream);
 
+				Stream.on('data', function(data){
+					console.log(data);
+				});
+
 				Stream.on('end', function(){
 					done();
 				});
@@ -427,6 +431,11 @@ describe("TESTING soajs.mongo", function() {
 			mongo.findStream("myCollection", {}, function(error, Stream) {
 				assert.ifError(error);
 				assert.ok(Stream);
+
+				Stream.on('data', function(data){
+					console.log(data);
+				});
+
 				Stream.on('end', function(){
 					done();
 				});
@@ -437,6 +446,11 @@ describe("TESTING soajs.mongo", function() {
 			mongo.findStream("myCollection", {}, {}, function(error, Stream) {
 				assert.ifError(error);
 				assert.ok(Stream);
+
+				Stream.on('data', function(data){
+					console.log(data);
+				});
+
 				Stream.on('end', function(){
 					done();
 				});

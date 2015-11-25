@@ -62,10 +62,22 @@ MongoDriver.prototype.insert = function(collectionName, docs, cb) {
 				docs.v = 1;
 				docs.ts = new Date().getTime();
 			}
-			self.db.collection(collectionName).insert(docs, {'safe': true}, cb);
+			self.db.collection(collectionName).insert(docs, {'safe': true}, function (error, response) {
+				if (error) {
+					return cb (error);
+				}
+
+				return cb (null, response.ops);
+			});
 		}
 		else {
-			self.db.collection(collectionName).insert(docs, {'safe': true}, cb);
+			self.db.collection(collectionName).insert(docs, {'safe': true}, function(error, response){
+				if (error) {
+					return cb (error);
+				}
+
+				return cb (null, response.ops);
+			});
 		}
 	});
 };
@@ -141,7 +153,12 @@ MongoDriver.prototype.update = function(/*collectionName, criteria, record, [opt
 				if(!originalRecord && extra.upsert){
 					updateOptions['$set'].v = 1;
 					updateOptions['$set'].ts = new Date().getTime();
-					self.db.collection(collectionName).update(criteria, updateOptions, extra, cb);
+					self.db.collection(collectionName).update(criteria, updateOptions, extra, function(error, response){
+						if(error){
+							return cb(error);
+						}
+						return cb(null, response.result.n);
+					});
 				}
 				else{
 					MongoDriver.addVersionToRecords.call(self, collectionName, originalRecord, function(error, versionedRecord) {
@@ -153,13 +170,23 @@ MongoDriver.prototype.update = function(/*collectionName, criteria, record, [opt
 						if(!updateOptions['$set']) {updateOptions['$set'] = {};}
 						updateOptions['$set'].ts = new Date().getTime();
 
-						self.db.collection(collectionName).update(criteria, updateOptions, extra, cb);
+						self.db.collection(collectionName).update(criteria, updateOptions, extra, function(error, response){
+							if(error){
+								return cb(error);
+							}
+							return cb(null, response.result.n);
+						});
 					});
 				}
 			});
 		}
 		else {
-			self.db.collection(collectionName).update(criteria, updateOptions, extra, cb);
+			self.db.collection(collectionName).update(criteria, updateOptions, extra, function(error, response){
+				if(error){
+					return cb(error);
+				}
+				return cb(null, response.result.n);
+			});
 		}
 	});
 };
