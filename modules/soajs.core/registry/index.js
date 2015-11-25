@@ -417,24 +417,24 @@ var build = {
                         if (registered && registry.serviceConfig.awareness.autoRegisterService) {
                             registry[what][param.serviceName].newServiceOrHost = true;
                             if (!registry[what][param.serviceName].hosts) {
-                                if (param.serviceName === "controller") {
-                                    registry[what][param.serviceName].hosts = [];
-                                }
-                                else{
+                                //if (param.serviceName === "controller") {
+                                //    registry[what][param.serviceName].hosts = [];
+                                //}
+                                //else{
                                     registry[what][param.serviceName].hosts = {};
                                     registry[what][param.serviceName].hosts.latest = param.serviceVersion;
                                     registry[what][param.serviceName].hosts[param.serviceVersion] = [];
-                                }
+                                //}
                             }
-                            if (param.serviceName === "controller") {
-                                registry[what][param.serviceName].hosts.push(param.serviceIp);
-                            }
-                            else {
+                            //if (param.serviceName === "controller") {
+                            //    registry[what][param.serviceName].hosts.push(param.serviceIp);
+                            //}
+                            //else {
                                 if (!registry[what][param.serviceName].hosts[param.serviceVersion]) {
                                     registry[what][param.serviceName].hosts[param.serviceVersion] = [];
                                 }
                                 registry[what][param.serviceName].hosts[param.serviceVersion].push(param.serviceIp);
-                            }
+                            //}
                         }
                         return callback();
                     });
