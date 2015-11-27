@@ -53,7 +53,7 @@ describe("testing mail functionality", function() {
 		});
 
 		it("success - should initialize mail sendmail", function(done) {
-			mailer = new coreMail();
+			mailer = new coreMail({'type': 'sendmail', 'options': {}});
 			assert.ok(mailer);
 			done();
 		});
