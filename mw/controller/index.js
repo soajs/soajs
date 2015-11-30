@@ -172,7 +172,11 @@ function redirectToService(req, res) {
         req.soajs.controller.redirectedRequest = request(requestOptions);
         req.soajs.controller.redirectedRequest.on('error', function (err) {
             req.soajs.log.error(err);
-            return req.soajs.controllerResponse(core.error.getError(135));
+            try {
+                return req.soajs.controllerResponse(core.error.getError(135));
+            } catch (e) {
+                req.soajs.log.error(e);
+            }
         });
         if (req.method === 'POST' || req.method === 'PUT') {
             req.pipe(req.soajs.controller.redirectedRequest).pipe(res);
