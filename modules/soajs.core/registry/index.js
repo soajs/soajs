@@ -585,8 +585,9 @@ exports.autoRegisterService = function (name, serviceIp, serviceVersion, what, c
     if (!serviceSRV.newServiceOrHost) {
         return cb(null, false);
     }
-    if (controllerSRV && controllerSRV.hosts) {
-        async.each(controllerSRV.hosts,
+
+    if (controllerSRV && controllerSRV.hosts && controllerSRV.hosts.latest && controllerSRV.hosts[controllerSRV.hosts.latest]) {
+        async.each(controllerSRV.hosts[controllerSRV.hosts.latest],
             function (ip, callback) {
                 var requestOptions = {
                     'uri': 'http://' + ip + ':' + (controllerSRV.port + registry_struct[regEnvironment].serviceConfig.ports.maintenanceInc) + '/register'
