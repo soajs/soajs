@@ -33,7 +33,7 @@ module.exports = function (configuration) {
             'geo': obj.geo,
             'req': obj.req
         };
-        var uracRecord = obj.req.soajs.session.getUrac();
+        var uracRecord = obj.req.soajs.session.getUrac(true);
         uracRecord.roaming = {
             "tenant": obj.req.soajs.tenant
         };

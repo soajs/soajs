@@ -232,12 +232,15 @@ var build = {
             if (!mongo) {
                 mongo = new Mongo(dbConfiguration);
             }
-            mongo.findOne(collection, {'port': serviceObj.port}, function (error, record) {
+            mongo.findOne(collection, {'port': serviceObj.port, 'name' : {'$ne': serviceObj.name}}, function (error, record) {
                 if (error) {
-                    return cb(error);
+                    return cb(error, null);
                 }
                 if (!record) {
-                    mongo.insert(collection, serviceObj, cb);
+                    //mongo.insert(collection, serviceObj, cb);
+                    mongo.update(collection, {'name' : serviceObj.name}, {'$set': serviceObj}, {'upsert': true}, function (error) {
+                        return cb (error, serviceObj.port);
+                    });
                 }
                 else {
                     serviceObj.port = randomInt(ports.controller + ports.randomInc, ports.controller + ports.maintenanceInc);
@@ -250,6 +253,13 @@ var build = {
             if (!mongo) {
                 mongo = new Mongo(dbConfiguration);
             }
+            mongo.update('hosts', hostObj, {'$set': hostObj}, {'upsert': true}, function (err) {
+                if (err) {
+                    return cb(err, false);
+                }
+                return cb(null, true);
+            });
+            /*
             //check if this host has this ip in the env
             mongo.findOne('hosts', hostObj, function (error, dbRecord) {
                 if (error || dbRecord) {
@@ -264,6 +274,7 @@ var build = {
                     });
                 }
             });
+            */
         },
 
         "buildRegistry": function (param, registry, registryDBInfo, callback) {
@@ -325,13 +336,13 @@ var build = {
             }
             else {
                 if (param.type && param.type === "daemon") {
-                    var daemonServiceObj = build.daemon(registryDBInfo.daemons_schema, param.serviceName);
-                    if (daemonServiceObj) {
-                        registry["daemons"][param.serviceName] = daemonServiceObj;
-                        return resume("daemons");
-                    }
-                    else {
-                        //registering a new daemon service
+                    //var daemonServiceObj = build.daemon(registryDBInfo.daemons_schema, param.serviceName);
+                    //if (daemonServiceObj) {
+                    //    registry["daemons"][param.serviceName] = daemonServiceObj;
+                    //    return resume("daemons");
+                    //}
+                    //else {
+                        //registering a new daemon service or update existing
                         var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
                         registry["daemons"][param.serviceName] = {
                             "port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc)
@@ -346,24 +357,25 @@ var build = {
                         };
                         newDaemonServiceObj.versions[param.serviceVersion] = {};
 
-                        build.registerNewService(registry.coreDB.provision, newDaemonServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'daemons', function (error) {
+                        build.registerNewService(registry.coreDB.provision, newDaemonServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'daemons', function (error, port) {
                             if (error) {
                                 throw new Error('Unable to register new daemon service ' + param.serviceName + ' : ' + error.message);
                             }
+                            registry["daemons"][param.serviceName].port = port;
                             return resume("daemons");
                         });
-                    }
+                    //}
                 }
                 else {
                     registry["coreDB"]["session"] = build.sessionDB(registryDBInfo.ENV_schema);
 
-                    var serviceObj = build.service(registryDBInfo.services_schema, param.serviceName);
-                    if (serviceObj) {
-                        registry["services"][param.serviceName] = serviceObj;
-                        //todo: check the apis list if they are updated or removed
-                        return resume("services");
-                    }
-                    else {
+                    //var serviceObj = build.service(registryDBInfo.services_schema, param.serviceName);
+                    //if (serviceObj) {
+                    //    registry["services"][param.serviceName] = serviceObj;
+                    //    //todo: check the apis list if they are updated or removed
+                    //   return resume("services");
+                    //}
+                    //else {
                         //registering a new service
                         var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
                         registry["services"][param.serviceName] = {
@@ -388,13 +400,14 @@ var build = {
                         };
                         newServiceObj.versions[param.serviceVersion] = {};
 
-                        build.registerNewService(registry.coreDB.provision, newServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'services', function (error) {
+                        build.registerNewService(registry.coreDB.provision, newServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'services', function (error, port) {
                             if (error) {
                                 throw new Error('Unable to register new service ' + param.serviceName + ' : ' + error.message);
                             }
+                            registry["services"][param.serviceName].port = port;
                             return resume("services");
                         });
-                    }
+                    //}
                 }
             }
             function resume(what) {
@@ -417,24 +430,14 @@ var build = {
                         if (registered && registry.serviceConfig.awareness.autoRegisterService) {
                             registry[what][param.serviceName].newServiceOrHost = true;
                             if (!registry[what][param.serviceName].hosts) {
-                                //if (param.serviceName === "controller") {
-                                //    registry[what][param.serviceName].hosts = [];
-                                //}
-                                //else{
                                     registry[what][param.serviceName].hosts = {};
                                     registry[what][param.serviceName].hosts.latest = param.serviceVersion;
                                     registry[what][param.serviceName].hosts[param.serviceVersion] = [];
-                                //}
                             }
-                            //if (param.serviceName === "controller") {
-                            //    registry[what][param.serviceName].hosts.push(param.serviceIp);
-                            //}
-                            //else {
                                 if (!registry[what][param.serviceName].hosts[param.serviceVersion]) {
                                     registry[what][param.serviceName].hosts[param.serviceVersion] = [];
                                 }
                                 registry[what][param.serviceName].hosts[param.serviceVersion].push(param.serviceIp);
-                            //}
                         }
                         return callback();
                     });

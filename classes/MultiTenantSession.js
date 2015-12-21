@@ -373,7 +373,7 @@ MultiTenantSession.prototype.getConfig = function () {
  *
  * @returns {*}
  */
-MultiTenantSession.prototype.getUrac = function () {
+MultiTenantSession.prototype.getUrac = function (_ALL) {
     var tId = this.session.persistSession.holder.tenant.id;
     if (!this.session.sessions[tId].urac) {
         return null;
@@ -392,6 +392,9 @@ MultiTenantSession.prototype.getUrac = function () {
             "oauthRefreshToken" : this.session.sessions[tId].urac.oauthRefreshToken,
             "oauthAccessToken" : this.session.sessions[tId].urac.oauthAccessToken
         };
+        if (_ALL) {
+            urac.config = this.session.sessions[tId].urac.config;
+        }
     }
     return urac;
 };
