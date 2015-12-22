@@ -34,8 +34,17 @@ function getPackagesFromDb(code, cb) {
                             if (!struct) {
                                 struct = {};
                             }
+
+                            var ACL = products[i].packages[j].acl;
+                            if (ACL && typeof prodPackACL === "object") {
+                                if (ACL[regEnvironment])
+                                    ACL = ACL[regEnvironment];
+                            }
+                            else
+                                ACL = null;
+
                             struct[products[i].packages[j].code] = {
-                                "acl": products[i].packages[j].acl || null,
+                                "acl": ACL,
                                 "_TTL": products[i].packages[j]._TTL,
                                 "_TIME": new Date().getTime()
                             };
@@ -88,6 +97,14 @@ function getKeyFromDb(key, tId, oauth, cb) {
                                     else
                                         keyConfig = {};
 
+                                    var ACL = tenants[i].applications[j].acl;
+                                    if (ACL && typeof prodPackACL === "object") {
+                                        if (ACL[regEnvironment])
+                                            ACL = ACL[regEnvironment];
+                                    }
+                                    else
+                                        ACL = null;
+
                                     keyStruct[tenants[i].applications[j].keys[k].key] = {
                                         "key": tenants[i].applications[j].keys[k].key,
                                         "tenant": {
@@ -98,7 +115,7 @@ function getKeyFromDb(key, tId, oauth, cb) {
                                             "product": tenants[i].applications[j].product,
                                             "package": tenants[i].applications[j].package,
                                             "appId": tenants[i].applications[j].appId.toString(),
-                                            "acl": tenants[i].applications[j].acl || null
+                                            "acl": ACL
                                         },
                                         "extKeys": tenants[i].applications[j].keys[k].extKeys,
                                         "config": keyConfig,
