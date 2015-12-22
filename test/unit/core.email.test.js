@@ -103,7 +103,7 @@ describe("testing mail functionality", function() {
 		var soajsMailer;
 		it("initialise soajsMail", function(done) {
 			soajsMailer = new soajsMail({
-				'type': 'direct',
+				'type': 'sendmail',
 				'options': {
 				}
 			});
