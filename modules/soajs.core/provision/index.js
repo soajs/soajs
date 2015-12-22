@@ -36,7 +36,7 @@ function getPackagesFromDb(code, cb) {
                             }
 
                             var ACL = products[i].packages[j].acl;
-                            if (ACL && typeof prodPackACL === "object") {
+                            if (ACL && typeof ACL === "object") {
                                 if (ACL[regEnvironment])
                                     ACL = ACL[regEnvironment];
                             }
@@ -98,7 +98,7 @@ function getKeyFromDb(key, tId, oauth, cb) {
                                         keyConfig = {};
 
                                     var ACL = tenants[i].applications[j].acl;
-                                    if (ACL && typeof prodPackACL === "object") {
+                                    if (ACL && typeof ACL === "object") {
                                         if (ACL[regEnvironment])
                                             ACL = ACL[regEnvironment];
                                     }

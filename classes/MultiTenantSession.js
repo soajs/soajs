@@ -1,5 +1,8 @@
 "use strict";
 
+var regEnvironment = (process.env.SOAJS_ENV || "dev");
+regEnvironment = regEnvironment.toLowerCase();
+
 /**
  *
  * @param {Object} obj={session: {}, req: {}, tenant:{id: xxx, key: xxx}, product: {product: xxx, package: xxx, appId: xxx}, request: {service: xxx, api: xxx}, device: {}, geo: {}}
@@ -240,8 +243,33 @@ MultiTenantSession.prototype.setURAC = function (urac, cb) {
         urac.config = {};
     if (!urac.config.packages)
         urac.config.packages = {};
+    else {
+        //urac.config.packages[packageCode].acl
+        for(var packageCode in urac.config.packages) {
+            if (Object.hasOwnProperty.call(urac.config.packages, packageCode)) {
+                var ACL = urac.config.packages[packageCode].acl;
+                if (ACL && typeof ACL === "object") {
+                    if (ACL[regEnvironment])
+                        urac.config.packages[packageCode].acl = ACL[regEnvironment];
+                }
+            }
+        }
+    }
     if (!urac.config.keys)
         urac.config.keys = {};
+    else {
+        //urac.config.keys[key].acl
+        for (var key in urac.config.keys) {
+            if (Object.hasOwnProperty.call(urac.config.keys, key)) {
+                var ACL = urac.config.keys[key].acl;
+                if (ACL && typeof ACL === "object") {
+                    if (ACL[regEnvironment])
+                        urac.config.keys[key].acl = ACL[regEnvironment];
+                }
+            }
+        }
+    }
+
     this.session.sessions[tId].urac = urac;
 
     this.setPersistSessionSTATE("URAC");
