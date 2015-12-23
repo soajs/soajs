@@ -332,7 +332,7 @@ var build = {
                 build.servicesHosts(registryDBInfo.ENV_hosts, registry["services"]);
                 build.allDaemons(registryDBInfo.daemons_schema, registry["daemons"]);
                 build.servicesHosts(registryDBInfo.ENV_hosts, registry["daemons"]);
-                resume("services");
+                return resume("services");
             }
             else {
                 if (param.type && param.type === "daemon") {
@@ -458,8 +458,7 @@ var build = {
                 }
             }
         }
-    }
-    ;
+    };
 
 function randomInt(low, high) {
     return Math.floor(Math.random() * (high - low) + low);
