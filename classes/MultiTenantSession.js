@@ -1,4 +1,5 @@
 "use strict";
+var merge = require('merge');
 
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
@@ -268,6 +269,45 @@ MultiTenantSession.prototype.setURAC = function (urac, cb) {
                 }
             }
         }
+    }
+
+    //Groups ACL
+    // - merge all group.config.keys[key].acl
+    // - merge all group.config.packages[packageCode].acl
+    if (urac.groupsConfig){
+        var mergedInfo = {"keys":{}, "packages":{}};
+        for (var i=0; i<=urac.groupsConfig.length; i++){
+            var group = urac.groupsConfig[i];
+            if (group.config){
+                if (group.config.keys){
+                    //merge all keys ACL
+                    for (var key in group.config.keys) {
+                        if (Object.hasOwnProperty.call(group.config.keys, key)) {
+                            if (group.config.keys[key].acl && group.config.keys[key].acl[regEnvironment]) {
+                                if (mergedInfo.keys[key] && mergedInfo.keys[key].acl && mergedInfo.keys[key].acl[regEnvironment])
+                                    mergedInfo.keys[key].acl = merge.recursive(true, mergedInfo.keys[key].acl, group.config.keys[key].acl[regEnvironment]);
+                                else
+                                    mergedInfo.keys[key] = {"acl": group.config.keys[key].acl[regEnvironment]};
+                            }
+                        }
+                    }
+                }
+                if (group.config.packages) {
+                    //merge all packages ACL
+                    for (var packageCode in group.config.packages) {
+                        if (Object.hasOwnProperty.call(group.config.packages, packageCode)) {
+                            if (group.config.packages[packageCode].acl && group.config.packages[packageCode].acl[regEnvironment]) {
+                                if (mergedInfo.packages[packageCode] && mergedInfo.packages[packageCode].acl)
+                                    mergedInfo.packages[packageCode].acl = merge.recursive(true, mergedInfo.packages[packageCode].acl, group.config.packages[packageCode].acl[regEnvironment]);
+                                else
+                                    mergedInfo.packages[packageCode] = {"acl": group.config.packages[packageCode].acl[regEnvironment]};
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        urac.groupsConfig = mergedInfo;
     }
 
     this.session.sessions[tId].urac = urac;
