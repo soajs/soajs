@@ -147,6 +147,7 @@ daemon.prototype.start = function (cb) {
                         "type": "daemon",
                         "serviceName": _self.soajs.serviceName,
                         "serviceVersion": _self.soajs.serviceVersion,
+	                    "designatedPort": _self.soajs.param.config.servicePort || null,
                         "serviceIp": _self.soajs.serviceIp,
                         "jobList": {}
                     }, function (err, reg) {

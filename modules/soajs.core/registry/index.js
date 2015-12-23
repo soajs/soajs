@@ -356,14 +356,18 @@ var build = {
                             'latest': param.serviceVersion
                         };
                         newDaemonServiceObj.versions[param.serviceVersion] = {};
-
-                        build.registerNewService(registry.coreDB.provision, newDaemonServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'daemons', function (error, port) {
-                            if (error) {
-                                throw new Error('Unable to register new daemon service ' + param.serviceName + ' : ' + error.message);
-                            }
-                            registry["daemons"][param.serviceName].port = port;
-                            return resume("daemons");
-                        });
+						if (param.reload){
+							return resume("daemons");
+						}
+	                    else {
+							build.registerNewService(registry.coreDB.provision, newDaemonServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'daemons', function (error, port) {
+								if (error) {
+									throw new Error('Unable to register new daemon service ' + param.serviceName + ' : ' + error.message);
+								}
+								registry["daemons"][param.serviceName].port = port;
+								return resume("daemons");
+							});
+						}
                     //}
                 }
                 else {
@@ -385,28 +389,32 @@ var build = {
                             "requestTimeoutRenewal": param.requestTimeoutRenewal,
                             "awareness": param.awareness
                         };
+		                if (param.reload){
+			                return resume("services");
+		                }
+	                    else {
+			                //adding service for the first time to services collection
+			                var newServiceObj = {
+				                'name': param.serviceName,
+				                'extKeyRequired': registry["services"][param.serviceName].extKeyRequired,
+				                'port': registry["services"][param.serviceName].port,
+				                'requestTimeout': registry["services"][param.serviceName].requestTimeout,
+				                'requestTimeoutRenewal': registry["services"][param.serviceName].requestTimeoutRenewal,
+				                'awareness': param.awareness,
+				                'apis': param.apiList,
+				                'versions': {},
+				                'latest': param.serviceVersion
+			                };
+			                newServiceObj.versions[param.serviceVersion] = {};
 
-                        //adding service for the first time to services collection
-                        var newServiceObj = {
-                            'name': param.serviceName,
-                            'extKeyRequired': registry["services"][param.serviceName].extKeyRequired,
-                            'port': registry["services"][param.serviceName].port,
-                            'requestTimeout': registry["services"][param.serviceName].requestTimeout,
-                            'requestTimeoutRenewal': registry["services"][param.serviceName].requestTimeoutRenewal,
-                            'awareness': param.awareness,
-                            'apis': param.apiList,
-                            'versions' : {},
-                            'latest': param.serviceVersion
-                        };
-                        newServiceObj.versions[param.serviceVersion] = {};
-
-                        build.registerNewService(registry.coreDB.provision, newServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'services', function (error, port) {
-                            if (error) {
-                                throw new Error('Unable to register new service ' + param.serviceName + ' : ' + error.message);
-                            }
-                            registry["services"][param.serviceName].port = port;
-                            return resume("services");
-                        });
+			                build.registerNewService(registry.coreDB.provision, newServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'services', function (error, port) {
+				                if (error) {
+					                throw new Error('Unable to register new service ' + param.serviceName + ' : ' + error.message);
+				                }
+				                registry["services"][param.serviceName].port = port;
+				                return resume("services");
+			                });
+		                }
                     //}
                 }
             }
@@ -574,7 +582,7 @@ exports.load = function (param, cb) {
 exports.reload = function (param, cb) {
     if (!param) param = {};
     param.reload = true;
-    param.designatedPort = null;
+    //param.designatedPort = null;
     return getRegistry(param, function (err, reg) {
         return cb(err, reg);
     });

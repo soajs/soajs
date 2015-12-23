@@ -22,6 +22,7 @@ module.exports = function (param) {
             registry = core.registry.get();
             core.registry.reload({
                 "serviceName": param.serviceName,
+                "designatedPort": param.designatedPort,
                 "serviceVersion": param.serviceVersion,
                 "apiList": param.apiList,
                 "awareness": param.awareness,
