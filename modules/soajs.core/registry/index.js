@@ -336,13 +336,6 @@ var build = {
             }
             else {
                 if (param.type && param.type === "daemon") {
-                    //var daemonServiceObj = build.daemon(registryDBInfo.daemons_schema, param.serviceName);
-                    //if (daemonServiceObj) {
-                    //    registry["daemons"][param.serviceName] = daemonServiceObj;
-                    //    return resume("daemons");
-                    //}
-                    //else {
-                        //registering a new daemon service or update existing
                         var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
                         registry["daemons"][param.serviceName] = {
                             "port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc)
@@ -368,54 +361,43 @@ var build = {
 								return resume("daemons");
 							});
 						}
-                    //}
                 }
                 else {
                     registry["coreDB"]["session"] = build.sessionDB(registryDBInfo.ENV_schema);
 
-                    //var serviceObj = build.service(registryDBInfo.services_schema, param.serviceName);
-                    //if (serviceObj) {
-                    //    registry["services"][param.serviceName] = serviceObj;
-                    //    //todo: check the apis list if they are updated or removed
-                    //   return resume("services");
-                    //}
-                    //else {
-                        //registering a new service
-                        var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
-                        registry["services"][param.serviceName] = {
-                            "extKeyRequired": param.extKeyRequired || false,
-                            "port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc),
-                            "requestTimeout": param.requestTimeout,
-                            "requestTimeoutRenewal": param.requestTimeoutRenewal,
-                            "awareness": param.awareness
+                    var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
+                    registry["services"][param.serviceName] = {
+                        "extKeyRequired": param.extKeyRequired || false,
+                        "port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc),
+                        "requestTimeout": param.requestTimeout,
+                        "requestTimeoutRenewal": param.requestTimeoutRenewal,
+                        "awareness": param.awareness
+                    };
+                    if (param.reload)
+                        return resume("services");
+                    else {
+                        //adding service for the first time to services collection
+                        var newServiceObj = {
+                            'name': param.serviceName,
+                            'extKeyRequired': registry["services"][param.serviceName].extKeyRequired,
+                            'port': registry["services"][param.serviceName].port,
+                            'requestTimeout': registry["services"][param.serviceName].requestTimeout,
+                            'requestTimeoutRenewal': registry["services"][param.serviceName].requestTimeoutRenewal,
+                            'awareness': param.awareness,
+                            'apis': param.apiList,
+                            'versions': {},
+                            'latest': param.serviceVersion
                         };
-		                if (param.reload){
-			                return resume("services");
-		                }
-	                    else {
-			                //adding service for the first time to services collection
-			                var newServiceObj = {
-				                'name': param.serviceName,
-				                'extKeyRequired': registry["services"][param.serviceName].extKeyRequired,
-				                'port': registry["services"][param.serviceName].port,
-				                'requestTimeout': registry["services"][param.serviceName].requestTimeout,
-				                'requestTimeoutRenewal': registry["services"][param.serviceName].requestTimeoutRenewal,
-				                'awareness': param.awareness,
-				                'apis': param.apiList,
-				                'versions': {},
-				                'latest': param.serviceVersion
-			                };
-			                newServiceObj.versions[param.serviceVersion] = {};
+                        newServiceObj.versions[param.serviceVersion] = {};
 
-			                build.registerNewService(registry.coreDB.provision, newServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'services', function (error, port) {
-				                if (error) {
-					                throw new Error('Unable to register new service ' + param.serviceName + ' : ' + error.message);
-				                }
-				                registry["services"][param.serviceName].port = port;
-				                return resume("services");
-			                });
-		                }
-                    //}
+                        build.registerNewService(registry.coreDB.provision, newServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'services', function (error, port) {
+                            if (error) {
+                                throw new Error('Unable to register new service ' + param.serviceName + ' : ' + error.message);
+                            }
+                            registry["services"][param.serviceName].port = port;
+                            return resume("services");
+                        });
+                    }
                 }
             }
             function resume(what) {
@@ -445,7 +427,8 @@ var build = {
                                 if (!registry[what][param.serviceName].hosts[param.serviceVersion]) {
                                     registry[what][param.serviceName].hosts[param.serviceVersion] = [];
                                 }
-                                registry[what][param.serviceName].hosts[param.serviceVersion].push(param.serviceIp);
+                                if (registry[what][param.serviceName].hosts[param.serviceVersion].indexOf(param.serviceIp) === -1)
+                                    registry[what][param.serviceName].hosts[param.serviceVersion].push(param.serviceIp);
                         }
                         return callback();
                     });
@@ -557,12 +540,13 @@ exports.register = function (param, cb) {
         }
         if (!registry_struct[regEnvironment][what][param.name].hosts) {
             registry_struct[regEnvironment][what][param.name].hosts = {};
-            registry_struct[regEnvironment][what][param.name].hosts.latest = param.serviceVersion;
+            registry_struct[regEnvironment][what][param.name].hosts.latest = param.version;
         }
-        if (!registry_struct[regEnvironment][what][param.name].hosts[param.serviceVersion]){
-            registry_struct[regEnvironment][what][param.name].hosts[param.serviceVersion] = [];
+        if (!registry_struct[regEnvironment][what][param.name].hosts[param.version]){
+            registry_struct[regEnvironment][what][param.name].hosts[param.version] = [];
         }
-        registry_struct[regEnvironment][what][param.name].hosts[param.serviceVersion].push(param.ip);
+        if (registry_struct[regEnvironment][what][param.name].hosts[param.version].indexOf(param.ip) === -1)
+            registry_struct[regEnvironment][what][param.name].hosts[param.version].push(param.ip);
         registry_struct[regEnvironment].timeLoaded = new Date().getTime();
         return cb(null, registry_struct[regEnvironment][what][param.name]);
     }
