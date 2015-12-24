@@ -445,7 +445,8 @@ var build = {
                                 if (!registry[what][param.serviceName].hosts[param.serviceVersion]) {
                                     registry[what][param.serviceName].hosts[param.serviceVersion] = [];
                                 }
-                                registry[what][param.serviceName].hosts[param.serviceVersion].push(param.serviceIp);
+                                if (registry[what][param.serviceName].hosts[param.serviceVersion].indexOf(param.serviceIp) === -1)
+                                    registry[what][param.serviceName].hosts[param.serviceVersion].push(param.serviceIp);
                         }
                         return callback();
                     });
@@ -520,10 +521,12 @@ var getRegistry = function (param, cb) {
     try {
         if (param.reload || !registry_struct[regEnvironment]) {
             loadRegistry(param, function (err) {
+                //console.log(JSON.stringify(registry_struct[regEnvironment]));
                 return cb(err, registry_struct[regEnvironment]);
             });
         }
         else {
+            //console.log(JSON.stringify(registry_struct[regEnvironment]));
             return cb(null, registry_struct[regEnvironment]);
         }
     } catch (e) {
@@ -558,12 +561,13 @@ exports.register = function (param, cb) {
         }
         if (!registry_struct[regEnvironment][what][param.name].hosts) {
             registry_struct[regEnvironment][what][param.name].hosts = {};
-            registry_struct[regEnvironment][what][param.name].hosts.latest = param.serviceVersion;
+            registry_struct[regEnvironment][what][param.name].hosts.latest = param.version;
         }
-        if (!registry_struct[regEnvironment][what][param.name].hosts[param.serviceVersion]){
-            registry_struct[regEnvironment][what][param.name].hosts[param.serviceVersion] = [];
+        if (!registry_struct[regEnvironment][what][param.name].hosts[param.version]){
+            registry_struct[regEnvironment][what][param.name].hosts[param.version] = [];
         }
-        registry_struct[regEnvironment][what][param.name].hosts[param.serviceVersion].push(param.ip);
+        if (registry_struct[regEnvironment][what][param.name].hosts[param.version].indexOf(param.ip) === -1)
+            registry_struct[regEnvironment][what][param.name].hosts[param.version].push(param.ip);
         registry_struct[regEnvironment].timeLoaded = new Date().getTime();
         return cb(null, registry_struct[regEnvironment][what][param.name]);
     }

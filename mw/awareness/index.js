@@ -35,6 +35,8 @@ module.exports = function (param) {
             });
         };
         var awareness_healthCheck = function () {
+            //console.log ("=================");
+            //console.log(JSON.stringify(registry));
             registry = core.registry.get();
             if (awarenessHosts.registryLoadedTime !== registry.timeLoaded) {
                 awarenessHosts = {
@@ -103,8 +105,10 @@ module.exports = function (param) {
                     }
                 }
             }
+            //console.log ("awarenessHosts",awarenessHosts);
             async.each(awarenessHosts.servicesArr,
                 function (sObj, callback) {
+                    //console.log(sObj);
                     request({
                         'uri': 'http://' + sObj.host + ':' + (sObj.port + registry.serviceConfig.ports.maintenanceInc) + '/heartbeat'
                     }, function (error, response, body) {
@@ -137,7 +141,12 @@ module.exports = function (param) {
                                 }
                             }
                         }
+                        //console.log ("statusObj",sObj.host, statusObj);
+                        //console.log("--------");
+                        //console.log(JSON.stringify(serviceAwarenessObj));
                         registry[sObj.what][sObj.name].awarenessStats[sObj.host] = statusObj;
+                        //console.log("--------");
+                        //console.log(registry[sObj.what][sObj.name].awarenessStats[sObj.host]);
                         callback();
                     });
                 }, function (err) {
