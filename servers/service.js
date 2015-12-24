@@ -264,6 +264,7 @@ service.prototype.init = function(callback) {
 			_self.app.use(awareness_mw({
 				"awareness": soajs.awareness,
 				"serviceName": soajs.serviceName,
+				"designatedPort": param.config.servicePort,
                 "serviceVersion": soajs.serviceVersion,
 				"log": _self._log,
 				"apiList": _self.app.soajs.apiList,
