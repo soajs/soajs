@@ -396,10 +396,16 @@ MultiTenantSession.prototype.getAcl = function () {
         return null;
     }
     var acl = null;
+
     if (this.session.sessions[tId].urac.config.keys[key] && this.session.sessions[tId].urac.config.keys[key].acl)
         acl = this.session.sessions[tId].urac.config.keys[key].acl;
     if(!acl && this.session.sessions[tId].urac.config.packages[packageCode] && this.session.sessions[tId].urac.config.packages[packageCode].acl)
         acl = this.session.sessions[tId].urac.config.packages[packageCode].acl;
+
+    if(!acl && this.session.sessions[tId].urac.groupsConfig.keys[key] && this.session.sessions[tId].urac.groupsConfig.keys[key].acl)
+        acl = this.session.sessions[tId].urac.groupsConfig.keys[key].acl;
+    if(!acl && this.session.sessions[tId].urac.groupsConfig.packages[packageCode] && this.session.sessions[tId].urac.groupsConfig.packages[packageCode].acl)
+        acl = this.session.sessions[tId].urac.groupsConfig.packages[packageCode].acl;
 
     return acl;
 };
