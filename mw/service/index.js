@@ -183,7 +183,7 @@ module.exports = function (configuration) {
                 'package': obj.keyObj.application.package,
                 'appId': obj.keyObj.application.appId
             },
-            'request': {'service': obj.app.soajs.serviceName, 'api': obj.req.path},
+            'request': {'service': obj.app.soajs.param.config.serviceName, 'api': obj.req.path},
             'device': obj.device,
             'geo': obj.geo,
             'req': obj.req
@@ -201,14 +201,9 @@ module.exports = function (configuration) {
      */
     function uracCheck(obj, cb) {
         var userServiceConf = {};
-        if (obj.req.soajs.session) {
+        if (obj.req.soajs.session)
             userServiceConf = obj.req.soajs.session.getConfig();
-            //obj.req.soajs.servicesConfig = obj.req.soajs.session.getConfig();
-        }
         var tenantServiceConf = obj.keyObj.config;
-        //if (!obj.req.soajs.servicesConfig) {
-        //    obj.req.soajs.servicesConfig = obj.keyObj.config;
-        //}
         obj.req.soajs.servicesConfig = merge.recursive(true, tenantServiceConf, userServiceConf);
         return cb(null, obj);
     }
@@ -292,13 +287,13 @@ module.exports = function (configuration) {
             if (obj.req.soajs.session) {
                 var uracACL = obj.req.soajs.session.getAcl();
                 if (uracACL)
-                    aclObj = uracACL[obj.app.soajs.serviceName];
+                    aclObj = uracACL[obj.app.soajs.param.config.serviceName];
             }
             if (!aclObj && obj.keyObj.application.acl) {
-                aclObj = obj.keyObj.application.acl[obj.app.soajs.serviceName];
+                aclObj = obj.keyObj.application.acl[obj.app.soajs.param.config.serviceName];
             }
             if (!aclObj && obj.packObj.acl)
-                aclObj = obj.packObj.acl[obj.app.soajs.serviceName];
+                aclObj = obj.packObj.acl[obj.app.soajs.param.config.serviceName];
             return aclObj;
         }
     };
@@ -360,7 +355,7 @@ module.exports = function (configuration) {
     };
 
     return function (req, res, next) {
-        if (req.soajs.registry.services[soajs.serviceName].extKeyRequired) {
+        if (req.soajs.registry.services[soajs.param.config.serviceName].extKeyRequired) {
             try {
                 provision.getExternalKeyData(req.get("key"), req.soajs.registry.serviceConfig.key, function (err, keyObj) {
                     if (keyObj && keyObj.application && keyObj.application.package) {
@@ -397,7 +392,6 @@ module.exports = function (configuration) {
 
                                 if (param.session)
                                     serviceCheckArray.push(persistSession);
-
                                 async.waterfall(serviceCheckArray, function (err, data) {
                                     if (err)
                                         return next(err);

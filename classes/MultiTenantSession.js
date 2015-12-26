@@ -278,7 +278,7 @@ MultiTenantSession.prototype.setURAC = function (urac, cb) {
         var mergedInfo = {"keys":{}, "packages":{}};
         for (var i=0; i<=urac.groupsConfig.length; i++){
             var group = urac.groupsConfig[i];
-            if (group.config){
+            if (group && group.config){
                 if (group.config.keys){
                     //merge all keys ACL
                     for (var key in group.config.keys) {
@@ -402,11 +402,12 @@ MultiTenantSession.prototype.getAcl = function () {
     if(!acl && this.session.sessions[tId].urac.config.packages[packageCode] && this.session.sessions[tId].urac.config.packages[packageCode].acl)
         acl = this.session.sessions[tId].urac.config.packages[packageCode].acl;
 
-    if(!acl && this.session.sessions[tId].urac.groupsConfig.keys[key] && this.session.sessions[tId].urac.groupsConfig.keys[key].acl)
-        acl = this.session.sessions[tId].urac.groupsConfig.keys[key].acl;
-    if(!acl && this.session.sessions[tId].urac.groupsConfig.packages[packageCode] && this.session.sessions[tId].urac.groupsConfig.packages[packageCode].acl)
-        acl = this.session.sessions[tId].urac.groupsConfig.packages[packageCode].acl;
-
+    if (!acl && this.session.sessions[tId].urac.groupsConfig) {
+        if (this.session.sessions[tId].urac.groupsConfig.keys[key] && this.session.sessions[tId].urac.groupsConfig.keys[key].acl)
+            acl = this.session.sessions[tId].urac.groupsConfig.keys[key].acl;
+        if (this.session.sessions[tId].urac.groupsConfig.packages[packageCode] && this.session.sessions[tId].urac.groupsConfig.packages[packageCode].acl)
+            acl = this.session.sessions[tId].urac.groupsConfig.packages[packageCode].acl;
+    }
     return acl;
 };
 /**
