@@ -1,4 +1,8 @@
 "use strict";
+var merge = require('merge');
+
+var regEnvironment = (process.env.SOAJS_ENV || "dev");
+regEnvironment = regEnvironment.toLowerCase();
 
 /**
  *
@@ -240,8 +244,84 @@ MultiTenantSession.prototype.setURAC = function (urac, cb) {
         urac.config = {};
     if (!urac.config.packages)
         urac.config.packages = {};
+    else {
+        //urac.config.packages[packageCode].acl
+        for(var packageCode in urac.config.packages) {
+            if (Object.hasOwnProperty.call(urac.config.packages, packageCode)) {
+                var ACL = urac.config.packages[packageCode].acl;
+                if (ACL && typeof ACL === "object") {
+                    if (ACL[regEnvironment] && (!ACL[regEnvironment].access && !ACL[regEnvironment].apis && !ACL[regEnvironment].apisRegExp && !ACL[regEnvironment].apisPermission))
+                        urac.config.packages[packageCode].acl = ACL[regEnvironment];
+                }
+            }
+        }
+    }
     if (!urac.config.keys)
         urac.config.keys = {};
+    else {
+        //urac.config.keys[key].acl
+        for (var key in urac.config.keys) {
+            if (Object.hasOwnProperty.call(urac.config.keys, key)) {
+                var ACL = urac.config.keys[key].acl;
+                if (ACL && typeof ACL === "object") {
+                    if (ACL[regEnvironment] && (!ACL[regEnvironment].access && !ACL[regEnvironment].apis && !ACL[regEnvironment].apisRegExp && !ACL[regEnvironment].apisPermission))
+                        urac.config.keys[key].acl = ACL[regEnvironment];
+                }
+            }
+        }
+    }
+
+    //Groups ACL
+    // - merge all group.config.keys[key].acl
+    // - merge all group.config.packages[packageCode].acl
+    if (urac.groupsConfig){
+        var mergedInfo = {"keys":{}, "packages":{}};
+        for (var i=0; i<=urac.groupsConfig.length; i++){
+            var group = urac.groupsConfig[i];
+            if (group && group.config){
+                if (group.config.keys){
+                    //merge all keys ACL
+                    for (var key in group.config.keys) {
+                        if (Object.hasOwnProperty.call(group.config.keys, key)) {
+	                        var ACL = group.config.keys[key].acl;
+                            if (ACL) {
+	                            if(ACL[regEnvironment] && (!ACL[regEnvironment].access && !ACL[regEnvironment].apis && !ACL[regEnvironment].apisRegExp && !ACL[regEnvironment].apisPermission)){
+		                            if (mergedInfo.keys[key] && mergedInfo.keys[key].acl && mergedInfo.keys[key].acl[regEnvironment])
+			                            mergedInfo.keys[key].acl = merge.recursive(true, mergedInfo.keys[key].acl, ACL[regEnvironment]);
+		                            else
+			                            mergedInfo.keys[key] = {"acl": ACL[regEnvironment]};
+	                            }
+	                            else{
+		                            mergedInfo.keys[key] = {"acl": ACL};
+	                            }
+                            }
+                        }
+                    }
+                }
+                if (group.config.packages) {
+                    //merge all packages ACL
+                    for (var packageCode in group.config.packages) {
+                        if (Object.hasOwnProperty.call(group.config.packages, packageCode)) {
+	                        var ACL = group.config.packages[packageCode].acl;
+                            if (ACL) {
+	                            if(ACL[regEnvironment] && (!ACL[regEnvironment].access && !ACL[regEnvironment].apis && !ACL[regEnvironment].apisRegExp && !ACL[regEnvironment].apisPermission)){
+		                            if (mergedInfo.packages[packageCode] && mergedInfo.packages[packageCode].acl)
+			                            mergedInfo.packages[packageCode].acl = merge.recursive(true, mergedInfo.packages[packageCode].acl, ACL[regEnvironment]);
+		                            else
+			                            mergedInfo.packages[packageCode] = {"acl": ACL[regEnvironment]};
+	                            }
+	                            else{
+		                            mergedInfo.packages[packageCode] = {"acl": ACL};
+	                            }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        urac.groupsConfig = mergedInfo;
+    }
+
     this.session.sessions[tId].urac = urac;
 
     this.setPersistSessionSTATE("URAC");
@@ -328,11 +408,18 @@ MultiTenantSession.prototype.getAcl = function () {
         return null;
     }
     var acl = null;
+
     if (this.session.sessions[tId].urac.config.keys[key] && this.session.sessions[tId].urac.config.keys[key].acl)
         acl = this.session.sessions[tId].urac.config.keys[key].acl;
     if(!acl && this.session.sessions[tId].urac.config.packages[packageCode] && this.session.sessions[tId].urac.config.packages[packageCode].acl)
         acl = this.session.sessions[tId].urac.config.packages[packageCode].acl;
 
+    if (!acl && this.session.sessions[tId].urac.groupsConfig) {
+        if (this.session.sessions[tId].urac.groupsConfig.keys[key] && this.session.sessions[tId].urac.groupsConfig.keys[key].acl)
+            acl = this.session.sessions[tId].urac.groupsConfig.keys[key].acl;
+        if (this.session.sessions[tId].urac.groupsConfig.packages[packageCode] && this.session.sessions[tId].urac.groupsConfig.packages[packageCode].acl)
+            acl = this.session.sessions[tId].urac.groupsConfig.packages[packageCode].acl;
+    }
     return acl;
 };
 /**

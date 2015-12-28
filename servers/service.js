@@ -84,49 +84,62 @@ service.prototype.init = function(callback) {
 	var _self = this;
 	var registry = null;
 	var soajs = _self.app.soajs;
-	var param = soajs.param;
+	//var param = soajs.param;
+
+	soajs.param.config.serviceName = soajs.param.serviceName || soajs.param.config.serviceName;
+	soajs.param.config.serviceVersion = soajs.param.config.serviceVersion || 1;
+	soajs.param.config.servicePort = soajs.param.config.servicePort || null;
+	soajs.param.config.extKeyRequired = soajs.param.config.extKeyRequired || false;
+	soajs.param.config.requestTimeout = soajs.param.config.requestTimeout || null;
+	soajs.param.config.requestTimeoutRenewal = soajs.param.config.requestTimeoutRenewal || null;
+	soajs.param.config.awareness = soajs.param.config.awareness || true;
+	soajs.param.config.serviceIp = process.env.SOAJS_SRVIP || null;
 
 	//NOTE: to support backward compatibility where serviceName can be at the root of param
-	soajs.serviceName = param.serviceName || param.config.serviceName;
-	param.config.serviceName = soajs.serviceName;
+	//soajs.serviceName = param.serviceName || param.config.serviceName;
+	//param.config.serviceName = soajs.serviceName;
 	//END NOTE
-
-    soajs.serviceVersion = param.config.serviceVersion || 1;
-	soajs.awareness = param.config.awareness || false;
-	soajs.serviceIp = process.env.SOAJS_SRVIP || null;
+    //soajs.serviceVersion = param.config.serviceVersion || 1;
+	//soajs.awareness = param.config.awareness || false;
+	//soajs.serviceIp = process.env.SOAJS_SRVIP || null;
+	//soajs.designatedPort = param.config.servicePort || null;
+	//soajs.extKeyRequired = param.config.extKeyRequired || false;
+	//soajs.requestTimeout = param.config.requestTimeout || null;
+	//soajs.requestTimeoutRenewal = param.config.requestTimeoutRenewal || null;
 
 	var fetchedHostIp = null;
 	var serviceIpNotDetected = false;
 	if(!autoRegHost){
-        soajs.serviceIp = '127.0.0.1';
+		soajs.param.config.serviceIp = '127.0.0.1';
 	}
-	if(!soajs.serviceIp) {
+	if(!soajs.param.config.serviceIp) {
 		fetchedHostIp = core.getHostIp();
       if(fetchedHostIp && fetchedHostIp.result) {
-          soajs.serviceIp = fetchedHostIp.ip;
+		  soajs.param.config.serviceIp = fetchedHostIp.ip;
       } else {
           serviceIpNotDetected = true;
-          soajs.serviceIp = "127.0.0.1";
+		  soajs.param.config.serviceIp = "127.0.0.1";
       }
 	}
 
-	_self.app.soajs.apiList = extractAPIsList(param.config.schema);
+	soajs.apiList = extractAPIsList(soajs.param.config.schema);
+
 	core.registry.load({
-		"serviceName": soajs.serviceName,
-        "serviceVersion": soajs.serviceVersion,
-		"designatedPort": param.config.servicePort || null,
-		"extKeyRequired": param.config.extKeyRequired || false,
-		"requestTimeout": param.config.requestTimeout || null,
-		"requestTimeoutRenewal": param.config.requestTimeoutRenewal || null,
-		"apiList": _self.app.soajs.apiList,
-		"awareness": soajs.awareness,
-		"serviceIp": soajs.serviceIp
+		"serviceName": soajs.param.config.serviceName,
+        "serviceVersion": soajs.param.config.serviceVersion,
+		"designatedPort": soajs.param.config.servicePort,
+		"extKeyRequired": soajs.param.config.extKeyRequired,
+		"requestTimeout": soajs.param.config.requestTimeout,
+		"requestTimeoutRenewal": soajs.param.config.requestTimeoutRenewal,
+		"awareness": soajs.param.config.awareness,
+		"serviceIp": soajs.param.config.serviceIp,
+		"apiList": soajs.apiList
 	}, function(reg) {
 		registry = reg;
-		soajs.serviceConf = lib.registry.getServiceConf(soajs.serviceName, registry);
+		soajs.serviceConf = lib.registry.getServiceConf(soajs.param.config.serviceName, registry);
 		soajs.provision = registry.coreDB.provision;
 
-		_self._log = core.getLogger(soajs.serviceName, registry.serviceConfig.logger);
+		_self._log = core.getLogger(soajs.param.config.serviceName, registry.serviceConfig.logger);
 		_self._log.info("Registry has been loaded successfully from environment: " + registry.environment);
 
 		if(fetchedHostIp) {
@@ -134,19 +147,19 @@ service.prototype.init = function(callback) {
 				_self._log.warn("Unable to find the service host ip. The service will NOT be registered for awareness.");
 				_self._log.info("IPs found: ", fetchedHostIp.ips);
 				if(serviceIpNotDetected) {
-					_self._log.warn("The default service IP has been used [" + soajs.serviceIp + "]");
+					_self._log.warn("The default service IP has been used [" + soajs.param.config.serviceIp + "]");
 				}
 			}
 			else {
-				_self._log.info("The IP registered for service [" + soajs.serviceName + "] awareness : ", fetchedHostIp.ip);
+				_self._log.info("The IP registered for service [" + soajs.param.config.serviceName + "] awareness : ", fetchedHostIp.ip);
 			}
 		}
 
-		if(!soajs.serviceName || !soajs.serviceConf) {
-			if(!soajs.serviceName) {
-				_self._log.error('Service failed to start, serviceName is empty [' + soajs.serviceName + ']');
+		if(!soajs.param.config.serviceName || !soajs.serviceConf) {
+			if(!soajs.param.config.serviceName) {
+				_self._log.error('Service failed to start, serviceName is empty [' + soajs.param.config.serviceName + ']');
 			} else {
-				_self._log.error('Service [' + soajs.serviceName + '] failed to start. Unable to find the service entry in registry');
+				_self._log.error('Service [' + soajs.param.config.serviceName + '] failed to start. Unable to find the service entry in registry');
 			}
 			return callback(new Error("Service shutdown due to failure!"));
 		}
@@ -158,7 +171,7 @@ service.prototype.init = function(callback) {
 		_self.appMaintenance.use(favicon_mw());
 		_self._log.info("Favicon middleware initialization done.");
 
-		if(param.logger) {
+		if(soajs.param.logger) {
 			var logger = require('morgan');
 			_self.app.use(logger('combined'));
 			_self._log.info("Morgan Logger middleware initialization done.");
@@ -173,7 +186,7 @@ service.prototype.init = function(callback) {
 		var response_mw = require("./../mw/response/index");
 		_self.app.use(response_mw({}));
 
-		if(param.bodyParser) {
+		if(soajs.param.bodyParser) {
 			var bodyParser = require('body-parser');
 			_self.app.use(bodyParser.json());
 			_self.app.use(bodyParser.urlencoded({extended: true}));
@@ -183,7 +196,7 @@ service.prototype.init = function(callback) {
 			_self._log.info("Body-Parser middleware initialization skipped.");
 		}
 
-		if(param.methodOverride) {
+		if(soajs.param.methodOverride) {
 			var methodOverride = require('method-override');
 			_self.app.use(methodOverride());
 			_self._log.info("Method-Override middleware initialization done.");
@@ -192,7 +205,7 @@ service.prototype.init = function(callback) {
 			_self._log.info("Method-Override middleware initialization skipped.");
 		}
 
-		if(param.cookieParser) {
+		if(soajs.param.cookieParser) {
 			var cookieParser = require('cookie-parser');
 			_self.app.use(cookieParser(soajs.serviceConf._conf.cookie.secret));
 			_self._log.info("CookieParser middleware initialization done.");
@@ -201,7 +214,7 @@ service.prototype.init = function(callback) {
 			_self._log.info("CookieParser middleware initialization skipped.");
 		}
 
-		if(param.session) {
+		if(soajs.param.session) {
 			var session = require('express-session');
 			var MongoStore = require('./../modules/soajs.mongoStore/index.js')(session);
 			var store = new MongoStore(registry.coreDB.session);
@@ -219,24 +232,24 @@ service.prototype.init = function(callback) {
 			_self._log.info("Express-Session middleware initialization skipped.");
 		}
 
-		if(param.inputmask && param.config.schema) {
+		if(soajs.param.inputmask && soajs.param.config.schema) {
 			var inputmask_mw = require("./../mw/inputmask/index");
 			var inputmaskSrc = ["params", "headers", "query"];
-			if(param.cookieParser) {
+			if(soajs.param.cookieParser) {
 				inputmaskSrc.push("cookies");
 			}
-			if(param.bodyParser) {
+			if(soajs.param.bodyParser) {
 				inputmaskSrc.push("body");
 			}
 
-			soajs.inputmask = inputmask_mw(param.config, inputmaskSrc);
+			soajs.inputmask = inputmask_mw(soajs.param.config, inputmaskSrc);
 			_self._log.info("IMFV middleware initialization done.");
 		}
 		else{
 			_self._log.info("IMFV middleware initialization skipped.");
 		}
 
-		if(param.bodyParser && param.oauth) {
+		if(soajs.param.bodyParser && soajs.param.oauth) {
 			var oauthserver = require('oauth2-server');
 			_self.oauth = oauthserver({
 				model: provision.oauthModel,
@@ -244,7 +257,7 @@ service.prototype.init = function(callback) {
 				debug: registry.serviceConfig.oauth.debug
 			});
 
-			soajs.oauthService = param.oauthService || {"name": "oauth", "tokenApi": "/token"};
+			soajs.oauthService = soajs.param.oauthService || {"name": "oauth", "tokenApi": "/token"};
 			if(!soajs.oauthService.name) {
 				soajs.oauthService.name = "oauth";
 			}
@@ -259,16 +272,19 @@ service.prototype.init = function(callback) {
 			_self._log.info("oAuth middleware initialization skipped.");
 		}
 
-		if(soajs.awareness) {
+		if(soajs.param.config.awareness) {
 			var awareness_mw = require("./../mw/awareness/index");
 			_self.app.use(awareness_mw({
-				"awareness": soajs.awareness,
-				"serviceName": soajs.serviceName,
-				"designatedPort": param.config.servicePort,
-                "serviceVersion": soajs.serviceVersion,
-				"log": _self._log,
-				"apiList": _self.app.soajs.apiList,
-				"serviceIp": _self.app.soajs.serviceIp
+				"serviceName": soajs.param.config.serviceName,
+				"serviceVersion": soajs.param.config.serviceVersion,
+				"designatedPort": soajs.param.config.servicePort,
+				"extKeyRequired": soajs.param.config.extKeyRequired,
+				"requestTimeout": soajs.param.config.requestTimeout,
+				"requestTimeoutRenewal": soajs.param.config.requestTimeoutRenewal,
+				"awareness": soajs.param.config.awareness,
+				"serviceIp": soajs.param.config.serviceIp,
+				"apiList": soajs.apiList,
+				"log": _self._log
 			}));
 			_self._log.info("Awareness middleware initialization done.");
 		}
@@ -277,10 +293,10 @@ service.prototype.init = function(callback) {
 		}
 
 		var service_mw = require("./../mw/service/index");
-		_self.app.use(service_mw({"soajs": soajs, "app": _self.app, "param": param}));
+		_self.app.use(service_mw({"soajs": soajs, "app": _self.app, "param": soajs.param}));
 		_self._log.info("SOAJS Service middleware initialization done.");
 
-        if (param.roaming) {
+        if (soajs.param.roaming) {
             var roaming_mw = require("./../mw/roaming/index");
             _self.app.use(roaming_mw({"app": _self.app}));
             _self._log.info("SOAJS Roaming middleware initialization done.");
@@ -313,14 +329,14 @@ service.prototype.start = function(cb) {
 				_self._log.info("Service provision loaded.");
 				_self._log.info("Starting Service ...");
 				_self.app.httpServer = _self.app.listen(_self.app.soajs.serviceConf.info.port, function(err) {
-					_self._log.info(_self.app.soajs.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
+					_self._log.info(_self.app.soajs.param.config.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
 					if(autoRegHost){
 						_self._log.info("Initiating service auto register for awareness ...");
-						core.registry.autoRegisterService(_self.app.soajs.serviceName, _self.app.soajs.serviceIp, _self.app.soajs.serviceVersion, "services", function(err, registered) {
+						core.registry.autoRegisterService(_self.app.soajs.param.config.serviceName, _self.app.soajs.param.config.serviceIp, _self.app.soajs.param.config.serviceVersion, "services", function(err, registered) {
 						  if(err) {
 							  _self._log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
 						  } else if(registered) {
-							  _self._log.info('The autoRegisterService @ controllers for [' + _self.app.soajs.serviceName + '@' + _self.app.soajs.serviceIp + '] successfully finished.');
+							  _self._log.info('The autoRegisterService @ controllers for [' + _self.app.soajs.param.config.serviceName + '@' + _self.app.soajs.param.config.serviceIp + '] successfully finished.');
 						  }
 						});
 					}
@@ -340,7 +356,7 @@ service.prototype.start = function(cb) {
 						'result': false,
 						'ts': Date.now(),
 						'service': {
-							'service': _self.app.soajs.serviceName.toUpperCase(),
+							'service': _self.app.soajs.param.config.serviceName.toUpperCase(),
 							'type': 'rest',
 							'route': route || req.path
 						}
@@ -355,11 +371,14 @@ service.prototype.start = function(cb) {
 
 				_self.appMaintenance.get("/reloadRegistry", function(req, res) {
 					core.registry.reload({
-						"serviceName": _self.app.soajs.serviceName,
-                        "serviceVersion": _self.app.soajs.serviceVersion,
-						"apiList": _self.app.soajs.apiList,
-						"awareness": _self.app.soajs.awareness,
-						"serviceIp": _self.app.soajs.serviceIp
+						"serviceName": _self.app.soajs.param.config.serviceName,
+						"serviceVersion": _self.app.soajs.param.config.serviceVersion,
+						"designatedPort": _self.app.soajs.param.config.servicePort,
+						"extKeyRequired": _self.app.soajs.param.config.extKeyRequired,
+						"requestTimeout": _self.app.soajs.param.config.requestTimeout,
+						"requestTimeoutRenewal": _self.app.soajs.param.config.requestTimeoutRenewal,
+						"awareness": _self.app.soajs.param.config.awareness,
+						"serviceIp": _self.app.soajs.param.config.serviceIp
 					}, function(err, reg) {
               if(err) {
                   _self._log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
@@ -384,7 +403,7 @@ service.prototype.start = function(cb) {
 					res.jsonp(response);
 				});
 				_self.appMaintenance.httpServer = _self.appMaintenance.listen(maintenancePort, function(err) {
-					_self._log.info(_self.app.soajs.serviceName + " service maintenance is listening on port: " + maintenancePort);
+					_self._log.info(_self.app.soajs.param.config.serviceName + " service maintenance is listening on port: " + maintenancePort);
 				});
 			}
 		});
@@ -399,7 +418,7 @@ service.prototype.start = function(cb) {
 
 service.prototype.stop = function(cb) {
 	var _self = this;
-	_self._log.info('stopping service[' + _self.app.soajs.serviceName + '] on port:', _self.app.soajs.serviceConf.info.port);
+	_self._log.info('stopping service[' + _self.app.soajs.param.config.serviceName + '] on port:', _self.app.soajs.serviceConf.info.port);
 	_self.app.httpServer.close(function(err) {
 		_self.appMaintenance.httpServer.close(function(err) {
 			if(cb) {
@@ -417,7 +436,7 @@ service.prototype.stop = function(cb) {
  * @returns {*}
  */
 function injectOauth(restApp, args) {
-	if(restApp.app.soajs.oauthService && restApp.app.soajs.serviceName === restApp.app.soajs.oauthService.name && args[0] === restApp.app.soajs.oauthService.tokenApi) {
+	if(restApp.app.soajs.oauthService && restApp.app.soajs.param.config.serviceName === restApp.app.soajs.oauthService.name && args[0] === restApp.app.soajs.oauthService.tokenApi) {
 		return args;
 	}
 
