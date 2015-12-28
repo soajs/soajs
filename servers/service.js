@@ -92,7 +92,7 @@ service.prototype.init = function(callback) {
 	soajs.param.config.extKeyRequired = soajs.param.config.extKeyRequired || false;
 	soajs.param.config.requestTimeout = soajs.param.config.requestTimeout || null;
 	soajs.param.config.requestTimeoutRenewal = soajs.param.config.requestTimeoutRenewal || null;
-	soajs.param.config.awareness = soajs.param.config.awareness || false;
+	soajs.param.config.awareness = soajs.param.config.awareness || true;
 	soajs.param.config.serviceIp = process.env.SOAJS_SRVIP || null;
 
 	//NOTE: to support backward compatibility where serviceName can be at the root of param

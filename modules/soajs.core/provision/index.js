@@ -100,7 +100,7 @@ function getKeyFromDb(key, tId, oauth, cb) {
 
                                     var ACL = tenants[i].applications[j].acl;
                                     if (ACL && typeof ACL === "object") {
-                                        if (ACL[regEnvironment])
+                                        if (ACL[regEnvironment] && (!ACL[regEnvironment].access && !ACL[regEnvironment].apis && !ACL[regEnvironment].apisRegExp && !ACL[regEnvironment].apisPermission))
                                             ACL = ACL[regEnvironment];
                                     }
                                     else
