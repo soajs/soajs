@@ -230,88 +230,111 @@ daemon.prototype.start = function (cb) {
                             _self.daemonStats.interval = daemonConf.interval;
                             _self.daemonStats.ts = new Date().getTime();
                             _self.daemonStats.step = "fetching";
+
                             var jobs_array = [];
-                            for (var job in daemonConf.jobs) {
-                                if ((Object.hasOwnProperty.call(daemonConf.jobs, job)) && struct_jobs[job]) {
-                                    var jobObj;
-                                    if (daemonConf.jobs[job].type === "global") {
+                            var buildJob = function (jobInfoObj) {
+                                var jobObj = {};
+                                if (jobInfoObj.type === "global") {
+                                    jobObj = {
+                                        "soajs": {
+                                            "servicesConfig": jobInfoObj.serviceConfig
+                                        },
+                                        "job": job,
+                                        "thread": "global"
+                                    };
+                                    jobs_array.push(jobObj);
+                                }
+                                else if (jobInfoObj.tenantExtKeys) { //type === "tenant"
+                                    for (var tCount = 0; tCount < jobInfoObj.tenantExtKeys.length; tCount++) {
                                         jobObj = {
-                                            "soajs": {
-                                                "servicesConfig": daemonConf.jobs[job].serviceConfig
-                                            },
-                                            "job": job,
-                                            "thread": "global"
+                                            "soajs": {},
+                                            "job": job
                                         };
-                                        jobs_array.push(jobObj);
+                                        var tExtKey = jobInfoObj.tenantExtKeys[tCount];
+                                        jobObj.thread = tExtKey;
+                                        provision.getExternalKeyData(tExtKey, _self.soajs.daemonServiceConf._conf.key, function (err, keyObj) {
+                                            if (keyObj && keyObj.application && keyObj.application.package) {
+                                                provision.getPackageData(keyObj.application.package, function (err, packObj) {
+                                                    if (packObj) {
+                                                        jobObj.soajs.tenant = keyObj.tenant;
+                                                        jobObj.soajs.tenant.key = {
+                                                            "iKey": keyObj.key,
+                                                            "eKey": keyObj.extKey
+                                                        };
+                                                        jobObj.soajs.tenant.application = keyObj.application;
+                                                        jobObj.soajs.tenant.application.package_acl = packObj.acl;
+                                                        jobObj.soajs.servicesConfig = keyObj.config;
+                                                        jobs_array.push(jobObj);
+                                                    }
+                                                });
+                                            }
+                                        });
                                     }
-                                    else if (daemonConf.jobs[job].tenantExtKeys) { //type === "tenant"
-                                        for (var tCount = 0; tCount < daemonConf.jobs[job].tenantExtKeys.length; tCount++) {
-                                            jobObj = {
-                                                "soajs": {},
-                                                "job": job
-                                            };
-                                            var tExtKey = daemonConf.jobs[job].tenantExtKeys[tCount];
-                                            jobObj.thread = tExtKey;
-                                            provision.getExternalKeyData(tExtKey, _self.soajs.daemonServiceConf._conf.key, function (err, keyObj) {
-                                                if (keyObj && keyObj.application && keyObj.application.package) {
-                                                    provision.getPackageData(keyObj.application.package, function (err, packObj) {
-                                                        if (packObj) {
-                                                            jobObj.soajs.tenant = keyObj.tenant;
-                                                            jobObj.soajs.tenant.key = {
-                                                                "iKey": keyObj.key,
-                                                                "eKey": keyObj.extKey
-                                                            };
-                                                            jobObj.soajs.tenant.application = keyObj.application;
-                                                            jobObj.soajs.tenant.application.package_acl = packObj.acl;
-                                                            jobObj.soajs.servicesConfig = keyObj.config;
-                                                            jobs_array.push(jobObj);
-                                                        }
-                                                    });
-                                                }
-                                            });
-                                        }
+                                }
+                            };
+
+                            if (daemonConf.daemonConfigGroup.processing && daemonConf.daemonConfigGroup.processing === "sequential") {
+                                if (daemonConf.daemonConfigGroup.order && Array.isArray(daemonConf.daemonConfigGroup.order)) {
+                                    for (var i = 0; i < daemonConf.daemonConfigGroup.order.length; i++) {
+                                        if (daemonConf.jobs[daemonConf.daemonConfigGroup.order[i]])
+                                            buildJob(daemonConf.jobs[daemonConf.daemonConfigGroup.order[i]]);
                                     }
                                 }
                             }
+                            else {
+                                for (var job in daemonConf.jobs) {
+                                    if ((Object.hasOwnProperty.call(daemonConf.jobs, job)) && struct_jobs[job]) {
+                                        buildJob(daemonConf.jobs[job]);
+                                    }
+                                }
+                            }
+
                             if (jobs_array.length > 0) {
                                 _self.daemonStats.step = "executing";
-                                async.each(jobs_array,
-                                    function (jobThread, callback) {
-                                        var threadStartTs = new Date().getTime();
-                                        jobThread.soajs.registry = core.registry.get();
-                                        jobThread.soajs.log = _self.soajs.log;
-                                        struct_jobs[jobThread.job](jobThread.soajs, function (err) {
-                                            if (err) {
-                                                callback(err);
-                                            }
-                                            else {
-                                                var threadEndTs = new Date().getTime();
-                                                if (!_self.daemonStats.jobs[job])
-                                                    _self.daemonStats.jobs[job] = {};
-                                                _self.daemonStats.jobs[job].ts = threadStartTs;
-                                                if (_self.daemonStats.jobs[job].fastest) {
-                                                    if (_self.daemonStats.jobs[job].fastest > (threadEndTs - threadStartTs))
-                                                        _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
-                                                }
-                                                else
-                                                    _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
-                                                if (_self.daemonStats.jobs[job].slowest) {
-                                                    if (_self.daemonStats.jobs[job].slowest < (threadEndTs - threadStartTs))
-                                                        _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
-                                                }
-                                                else
-                                                    _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
 
-                                                callback();
+                                var asyncErrorFn = function (err) {
+                                    if (err)
+                                        _self.soajs.log.warn('Unable to complete daemon execution: ' + err);
+                                    _self.daemonStats.step = "waiting";
+                                    _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf.interval || defaultInterval));
+                                };
+                                var asyncIteratorFn = function (jobThread, callback) {
+                                    var threadStartTs = new Date().getTime();
+                                    jobThread.soajs.registry = core.registry.get();
+                                    jobThread.soajs.log = _self.soajs.log;
+                                    struct_jobs[jobThread.job](jobThread.soajs, function (err) {
+                                        if (err) {
+                                            callback(err);
+                                        }
+                                        else {
+                                            var threadEndTs = new Date().getTime();
+                                            if (!_self.daemonStats.jobs[job])
+                                                _self.daemonStats.jobs[job] = {};
+                                            _self.daemonStats.jobs[job].ts = threadStartTs;
+                                            if (_self.daemonStats.jobs[job].fastest) {
+                                                if (_self.daemonStats.jobs[job].fastest > (threadEndTs - threadStartTs))
+                                                    _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
                                             }
-                                        });
-                                    }, function (err) {
-                                        if (err)
-                                            _self.soajs.log.warn('Unable to complete daemon execution: ' + err);
-                                        _self.daemonStats.step = "waiting";
-                                        _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf.interval || defaultInterval));
-                                    }
-                                );
+                                            else
+                                                _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
+                                            if (_self.daemonStats.jobs[job].slowest) {
+                                                if (_self.daemonStats.jobs[job].slowest < (threadEndTs - threadStartTs))
+                                                    _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
+                                            }
+                                            else
+                                                _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
+
+                                            callback();
+                                        }
+                                    });
+                                };
+
+                                if (daemonConf.daemonConfigGroup.processing && daemonConf.daemonConfigGroup.processing === "sequential") {
+                                    async.eachSeries(jobs_array, asyncIteratorFn, asyncErrorFn);
+                                }
+                                else {
+                                    async.each(jobs_array, asyncIteratorFn, asyncErrorFn);
+                                }
                             }
                             else {
                                 _self.soajs.log.info('Jobs stack is empty for daemon [' + daemonConf.daemon + '] and group [' + daemonConf.daemonConfigGroup + ']');
