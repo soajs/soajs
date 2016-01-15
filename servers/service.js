@@ -84,7 +84,6 @@ service.prototype.init = function(callback) {
 	var _self = this;
 	var registry = null;
 	var soajs = _self.app.soajs;
-	//var param = soajs.param;
 
 	soajs.param.config.serviceName = soajs.param.serviceName || soajs.param.config.serviceName;
 	soajs.param.config.serviceVersion = soajs.param.config.serviceVersion || 1;
@@ -94,18 +93,6 @@ service.prototype.init = function(callback) {
 	soajs.param.config.requestTimeoutRenewal = soajs.param.config.requestTimeoutRenewal || null;
 	soajs.param.config.awareness = soajs.param.config.awareness || false;
 	soajs.param.config.serviceIp = process.env.SOAJS_SRVIP || null;
-
-	//NOTE: to support backward compatibility where serviceName can be at the root of param
-	//soajs.serviceName = param.serviceName || param.config.serviceName;
-	//param.config.serviceName = soajs.serviceName;
-	//END NOTE
-    //soajs.serviceVersion = param.config.serviceVersion || 1;
-	//soajs.awareness = param.config.awareness || false;
-	//soajs.serviceIp = process.env.SOAJS_SRVIP || null;
-	//soajs.designatedPort = param.config.servicePort || null;
-	//soajs.extKeyRequired = param.config.extKeyRequired || false;
-	//soajs.requestTimeout = param.config.requestTimeout || null;
-	//soajs.requestTimeoutRenewal = param.config.requestTimeoutRenewal || null;
 
 	var fetchedHostIp = null;
 	var serviceIpNotDetected = false;

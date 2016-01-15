@@ -340,19 +340,19 @@ var build = {
                         registry["daemons"][param.serviceName] = {
                             "port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc)
                         };
-                        //adding daemon service for the first time to services collection
-                        var newDaemonServiceObj = {
-                            'name': param.serviceName,
-                            'port': registry["daemons"][param.serviceName].port,
-                            'jobs': param.jobList,
-                            'versions' : {},
-                            'latest': param.serviceVersion
-                        };
-                        newDaemonServiceObj.versions[param.serviceVersion] = {};
 						if (param.reload){
 							return resume("daemons");
 						}
 	                    else {
+                            //adding daemon service for the first time to services collection
+                            var newDaemonServiceObj = {
+                                'name': param.serviceName,
+                                'port': registry["daemons"][param.serviceName].port,
+                                'jobs': param.jobList,
+                                'versions' : {},
+                                'latest': param.serviceVersion
+                            };
+                            newDaemonServiceObj.versions[param.serviceVersion] = {};
 							build.registerNewService(registry.coreDB.provision, newDaemonServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'daemons', function (error, port) {
 								if (error) {
 									throw new Error('Unable to register new daemon service ' + param.serviceName + ' : ' + error.message);

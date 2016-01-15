@@ -17,6 +17,26 @@ if (autoRegHost && typeof(autoRegHost) !== 'boolean') {
     autoRegHost = (autoRegHost === 'true');
 }
 
+function extractJOBsList(schema) {
+    var jobList = [];
+    for (var job in schema) {
+        if (Object.hasOwnProperty.call(schema, job)) {
+            var oneJob = {
+                'l': schema[job].l
+            };
+
+            if (schema[job].group) {
+                oneJob.group = schema[job].group;
+            }
+
+            if (schema[job].groupMain) {
+                oneJob.groupMain = schema[job].groupMain;
+            }
+        }
+        jobList[job] = oneJob;
+    }
+    return jobList;
+}
 /*
  * param = {
  *           config : object
@@ -31,7 +51,7 @@ function daemon(param) {
     _self.soajs = {};
     _self.soajs.param = param;
     _self.daemonStats = {
-        "step" : "initialize",
+        "step": "initialize",
         "jobs": {}
     };
     _self.daemonTimeout = null;
@@ -47,16 +67,12 @@ daemon.prototype.init = function (callback) {
     _self.soajs.param.config.servicePort = _self.soajs.param.config.servicePort || null;
     _self.soajs.param.config.serviceIp = process.env.SOAJS_SRVIP || null;
 
-    //_self.soajs.serviceName = _self.soajs.param.serviceName || _self.soajs.param.config.serviceName;
-    //_self.soajs.serviceVersion = _self.soajs.param.config.serviceVersion || 1;
-    //_self.soajs.serviceIp = process.env.SOAJS_SRVIP || null;
-
     var fetchedHostIp = null;
     var serviceIpNotDetected = false;
     if (!autoRegHost) {
         _self.soajs.param.config.serviceIp = '127.0.0.1';
     }
-    if (! _self.soajs.param.config.serviceIp) {
+    if (!_self.soajs.param.config.serviceIp) {
         fetchedHostIp = core.getHostIp();
         if (fetchedHostIp && fetchedHostIp.result) {
             _self.soajs.param.config.serviceIp = fetchedHostIp.ip;
@@ -66,13 +82,15 @@ daemon.prototype.init = function (callback) {
         }
     }
 
+    _self.soajs.jobList = extractJOBsList(_self.soajs.param.config.schema);
+
     core.registry.load({
         "type": "daemon",
-        "serviceName":  _self.soajs.param.config.serviceName,
-        "serviceVersion":  _self.soajs.param.config.serviceVersion,
+        "serviceName": _self.soajs.param.config.serviceName,
+        "serviceVersion": _self.soajs.param.config.serviceVersion,
         "designatedPort": _self.soajs.param.config.servicePort,
         "serviceIp": _self.soajs.param.config.serviceIp,
-        "jobList": {}
+        "jobList": _self.soajs.jobList
     }, function (reg) {
         registry = reg;
         _self.soajs.daemonServiceConf = lib.registry.getDaemonServiceConf(_self.soajs.param.config.serviceName, registry);
@@ -153,9 +171,8 @@ daemon.prototype.start = function (cb) {
                         "type": "daemon",
                         "serviceName": _self.soajs.param.config.serviceName,
                         "serviceVersion": _self.soajs.param.config.serviceVersion,
-	                    "designatedPort": _self.soajs.param.config.servicePort,
-                        "serviceIp": _self.soajs.param.config.serviceIp,
-                        "jobList": {}
+                        "designatedPort": _self.soajs.param.config.servicePort,
+                        "serviceIp": _self.soajs.param.config.serviceIp
                     }, function (err, reg) {
                         if (err) {
                             _self.soajs.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
@@ -217,7 +234,7 @@ daemon.prototype.start = function (cb) {
                             for (var job in daemonConf.jobs) {
                                 if ((Object.hasOwnProperty.call(daemonConf.jobs, job)) && struct_jobs[job]) {
                                     var jobObj;
-	                                if (daemonConf.jobs[job].type === "global") {
+                                    if (daemonConf.jobs[job].type === "global") {
                                         jobObj = {
                                             "soajs": {
                                                 "servicesConfig": daemonConf.jobs[job].serviceConfig
@@ -316,17 +333,17 @@ daemon.prototype.start = function (cb) {
         return resume(new Error('Failed starting daemon service'));
     }
     var resume = function (err) {
-        if(autoRegHost){
+        if (autoRegHost) {
             _self.soajs.log.info("Initiating service auto register for awareness ...");
-            core.registry.autoRegisterService(_self.soajs.param.config.serviceName, _self.soajs.param.config.serviceIp, _self.soajs.param.config.serviceVersion, "daemons", function(err, registered) {
-                if(err) {
+            core.registry.autoRegisterService(_self.soajs.param.config.serviceName, _self.soajs.param.config.serviceIp, _self.soajs.param.config.serviceVersion, "daemons", function (err, registered) {
+                if (err) {
                     _self.soajs.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
-                } else if(registered) {
+                } else if (registered) {
                     _self.soajs.log.info('The autoRegisterService @ controllers for [' + _self.soajs.param.config.serviceName + '@' + _self.soajs.param.config.serviceIp + '] successfully finished.');
                 }
             });
         }
-        else{
+        else {
             _self.soajs.log.info("Service auto register for awareness, skipped.");
         }
         if (cb && typeof cb === "function") {
