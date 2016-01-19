@@ -1,6 +1,7 @@
 'use strict';
 
 var core = require('../../modules/soajs.core');
+var Mongo = require('../../modules/soajs.mongo');
 var provision = require("../../modules/soajs.provision");
 var MultiTenantSession = require("../../classes/MultiTenantSession");
 var async = require("async");
@@ -34,6 +35,8 @@ module.exports = function (configuration) {
             'req': obj.req
         };
         var uracRecord = obj.req.soajs.session.getUrac(true);
+        if (!uracRecord)
+            return cb(core.error.getError(169), obj);
         uracRecord.roaming = {
             "tenant": obj.req.soajs.tenant
         };
@@ -41,7 +44,8 @@ module.exports = function (configuration) {
         obj.req.soajs.session = mtSession;
         obj.req.soajs.session.setURAC(uracRecord, function (err) {
             if (err) {
-                obj.res.jsonp(obj.req.soajs.buildResponse(core.error.getError(165)));
+                obj.req.soajs.log.error(err);
+                return cb(core.error.getError(165), obj);
             }
             return cb(null, obj);
         });
@@ -102,6 +106,44 @@ module.exports = function (configuration) {
                 return cb(core.error.getError(166));
             }
         };
+
+        req.soajs.roaming.roamEnv = function (envCode, config, cb) {
+            core.registry.loadByEnv({
+                "envCode": envCode
+            }, function (err, reg) {
+                if (err){
+                    obj.req.soajs.log.error(err);
+                    return cb(core.error.getError(170));
+                }
+                var uracRecord = req.soajs.session.getUrac(true);
+                uracRecord = {};
+                if (!uracRecord)
+                    return cb(core.error.getError(169));
+                uracRecord.roaming = {
+                    "tenant": req.soajs.tenant,
+                    "envFrom": req.soajs.registry.environment,
+                    "envTo": envCode
+                };
+
+                var envSession = {
+                    "_id": req.sessionID,
+                    "session": {
+                        "sessions": {}
+                    }
+                };
+                envSession.session.sessions[req.soajs.tenant.id] = {"urac": uracRecord};
+
+                var mongo = new Mongo(reg.coreDB.session);
+                mongo.insert(reg.coreDB.session.collection, envSession, function (err, record){
+                    mongo.closeDb();
+                    var envSoajsauth = core.security.authorization.set(null, req.sessionID);
+                    envSoajsauth.envTo = envCode;
+                    envSoajsauth.envFrom = req.soajs.registry.environment;
+                    return cb(err, envSoajsauth);
+                });
+            });
+        };
+
         return next();
     };
 };
