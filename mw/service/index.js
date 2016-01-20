@@ -183,7 +183,7 @@ module.exports = function (configuration) {
                 'package': obj.keyObj.application.package,
                 'appId': obj.keyObj.application.appId
             },
-            'request': {'service': obj.app.soajs.param.config.serviceName, 'api': obj.req.path},
+            'request': {'service': obj.app.soajs.param.serviceName, 'api': obj.req.path},
             'device': obj.device,
             'geo': obj.geo,
             'req': obj.req
@@ -287,13 +287,13 @@ module.exports = function (configuration) {
             if (obj.req.soajs.session) {
                 var uracACL = obj.req.soajs.session.getAcl();
                 if (uracACL)
-                    aclObj = uracACL[obj.app.soajs.param.config.serviceName];
+                    aclObj = uracACL[obj.app.soajs.param.serviceName];
             }
             if (!aclObj && obj.keyObj.application.acl) {
-                aclObj = obj.keyObj.application.acl[obj.app.soajs.param.config.serviceName];
+                aclObj = obj.keyObj.application.acl[obj.app.soajs.param.serviceName];
             }
             if (!aclObj && obj.packObj.acl)
-                aclObj = obj.packObj.acl[obj.app.soajs.param.config.serviceName];
+                aclObj = obj.packObj.acl[obj.app.soajs.param.serviceName];
             return aclObj;
         }
     };
@@ -355,7 +355,7 @@ module.exports = function (configuration) {
     };
 
     return function (req, res, next) {
-        if (req.soajs.registry.services[soajs.param.config.serviceName].extKeyRequired) {
+        if (req.soajs.registry.services[soajs.param.serviceName].extKeyRequired) {
             try {
                 provision.getExternalKeyData(req.get("key"), req.soajs.registry.serviceConfig.key, function (err, keyObj) {
                     if (keyObj && keyObj.application && keyObj.application.package) {
