@@ -220,6 +220,8 @@ service.prototype.init = function (callback) {
             }
             sessConf.store = store;
             _self.app.use(session(sessConf));
+            if (store.TTLFailed && store.TTLError)
+                _self._log.error(store.TTLError);
             _self._log.info("Express-Session middleware initialization done.");
         }
         else {

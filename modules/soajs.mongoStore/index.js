@@ -11,7 +11,7 @@ var defaultOptions = {
     "name": "sessionDB",
     "prefix": "",
     "servers": [
-        {"host": "127.0.0.1", "port": 27017 }
+        {"host": "127.0.0.1", "port": 27017}
     ],
     "credentials": null,
     "URLParam": {
@@ -55,9 +55,10 @@ module.exports = function (connect) {
 
     function MongoStore(options) {
         options = options || {};
+        var self = this;
 
         for (var property in defaultOptions) {
-            if (Object.hasOwnProperty.call(defaultOptions,property)) {
+            if (Object.hasOwnProperty.call(defaultOptions, property)) {
                 if (!Object.hasOwnProperty.call(options, property) || (typeof defaultOptions[property] !== typeof options[property])) {
                     options[property] = defaultOptions[property];
                 }
@@ -76,12 +77,15 @@ module.exports = function (connect) {
         this.mongo = new Mongo(dbOptions);
         this.mongo.ensureIndex(options.collection, {expires: 1}, {expireAfterSeconds: 0}, function (err, result) {
             if (err) {
-                throw new Error('Error setting TTL index on collection : ' + options.collection + ' <' + err + '>');
+                self.TTLFailed = true;
+                self.TTLError = 'Error setting TTL index on collection : ' + options.collection + ' <' + err + '>';
+                if (!options.softTTLError)
+                    throw new Error(self.TTLError);
             }
         });
 
         //NOTE: we cannot stringify the session object. we need to keep it an object in mongo in order to support multi tenancy in the set method below
-         this._options = {
+        this._options = {
             "collection": options.collection,
             "stringify": false,
             "expireAfter": options.expireAfter
@@ -143,7 +147,7 @@ module.exports = function (connect) {
         var tenant = null;
         if (!(session.persistSession.state.ALL || session.persistSession.state.TENANT ) &&
             (session.persistSession.state.KEY || session.persistSession.state.SERVICE || session.persistSession.state.CLIENTINFO ||
-                session.persistSession.state.URAC || session.persistSession.state.URACPACKAGE || session.persistSession.state.URACPACKAGEACL || session.persistSession.state.URACKEY || session.persistSession.state.URACKEYCONFIG || session.persistSession.state.URACKEYACL)) {
+            session.persistSession.state.URAC || session.persistSession.state.URACPACKAGE || session.persistSession.state.URACPACKAGEACL || session.persistSession.state.URACKEY || session.persistSession.state.URACKEYCONFIG || session.persistSession.state.URACKEYACL)) {
             tenant = getTenant(session);
             if (!tenant) {
                 return cb();
@@ -229,7 +233,10 @@ module.exports = function (connect) {
             };
         }
         if (session.persistSession.state.DONE) {
-            this.mongo.update(self._options.collection, filter, s, { 'upsert': true, 'safe': true }, function (err, data) {
+            this.mongo.update(self._options.collection, filter, s, {
+                'upsert': true,
+                'safe': true
+            }, function (err, data) {
                 if (err) {
                     return cb(err, null);
                 } else {

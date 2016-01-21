@@ -130,6 +130,7 @@ var build = {
             }
         }
     },
+    /*
     "service": function (STRUCT, serviceName) {
         var serviceObj = null;
         if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
@@ -162,7 +163,7 @@ var build = {
         }
         return serviceObj;
     },
-
+    */
     "controllerHosts": function (STRUCT, controllerObj) {
         if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
             for (var i = 0; i < STRUCT.length; i++) {
