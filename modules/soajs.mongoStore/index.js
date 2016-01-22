@@ -55,7 +55,6 @@ module.exports = function (connect) {
 
     function MongoStore(options) {
         options = options || {};
-        var self = this;
 
         for (var property in defaultOptions) {
             if (Object.hasOwnProperty.call(defaultOptions, property)) {
@@ -74,22 +73,19 @@ module.exports = function (connect) {
             dbOptions[dbProperties[i]] = options[dbProperties[i]];
         }
 
-        this.mongo = new Mongo(dbOptions);
-        this.mongo.ensureIndex(options.collection, {expires: 1}, {expireAfterSeconds: 0}, function (err, result) {
-            if (err) {
-                self.TTLFailed = true;
-                self.TTLError = 'Error setting TTL index on collection : ' + options.collection + ' <' + err + '>';
-                if (!options.softTTLError)
-                    throw new Error(self.TTLError);
-            }
-        });
-
         //NOTE: we cannot stringify the session object. we need to keep it an object in mongo in order to support multi tenancy in the set method below
         this._options = {
             "collection": options.collection,
             "stringify": false,
             "expireAfter": options.expireAfter
         };
+
+        this.mongo = new Mongo(dbOptions);
+        this.mongo.ensureIndex(options.collection, {expires: 1}, {expireAfterSeconds: 0}, function (err, result) {
+            if (err) {
+                throw new Error('Error setting TTL index on collection : ' + options.collection + ' <' + err + '>');
+            }
+        });
     }
 
     /**

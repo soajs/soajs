@@ -212,6 +212,7 @@ service.prototype.init = function (callback) {
             var session = require('express-session');
             var MongoStore = require('./../modules/soajs.mongoStore/index.js')(session);
             var store = new MongoStore(registry.coreDB.session);
+            _self._log.info(registry.coreDB.session);
             var sessConf = {};
             for (var key in soajs.serviceConf._conf.session) {
                 if (Object.hasOwnProperty.call(soajs.serviceConf._conf.session, key)) {
@@ -220,8 +221,6 @@ service.prototype.init = function (callback) {
             }
             sessConf.store = store;
             _self.app.use(session(sessConf));
-            if (store.TTLFailed && store.TTLError)
-                _self._log.error(store.TTLError);
             _self._log.info("Express-Session middleware initialization done.");
         }
         else {
