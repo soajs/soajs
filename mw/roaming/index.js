@@ -124,12 +124,13 @@ module.exports = function (configuration) {
                     "envFrom": req.soajs.registry.environment,
                     "envTo": envCode
                 };
-
+                var offset = reg.coreDB.session.expireAfter;
                 var envSession = {
                     "_id": req.sessionID,
                     "session": {
                         "sessions": {}
-                    }
+                    },
+                    "expires" : new Date(Date.now() + offset)
                 };
                 envSession.session.sessions[req.soajs.tenant.id] = {"urac": uracRecord};
 
