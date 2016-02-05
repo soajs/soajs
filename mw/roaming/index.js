@@ -128,6 +128,7 @@ module.exports = function (configuration) {
                 var envSession = {
                     "_id": req.sessionID,
                     "session": {
+	                    "cookie": req.session.cookie,
                         "sessions": {}
                     },
                     "expires" : new Date(Date.now() + offset)
