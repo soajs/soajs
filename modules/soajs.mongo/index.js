@@ -1,6 +1,8 @@
 'use strict';
 var core = require("../soajs.core");
 var mongoSkin = require('mongoskin');
+var merge = require('merge');
+var objectHash = require("object-hash");
 var config = require('./config');
 
 function generateError(errorCode) {
@@ -27,6 +29,7 @@ function MongoDriver(config) {
 	this.config = config;
 	this.db = null;
 	this.pending = false;
+	this.timeConnected = 0;
 	this.ObjectId = mongoSkin.ObjectID;
     this.mongoSkin = mongoSkin;
 }
@@ -534,8 +537,22 @@ MongoDriver.prototype.getMongoSkinDB = function(cb){
  * @returns {*}
  */
 function connect(obj, cb) {
-	if(obj.db) {
+	if(obj.db && obj.config.timeConnected) {
 		return cb();
+	}
+
+	if (!obj.config.timeConnected){
+		var dbProperties = ["servers", "credentials", "URLParam", "extraParam", "name", "prefix"];
+		var dbPropertiesLen = dbProperties.length;
+		var dbOptions = {};
+		for (var i = 0; i < dbPropertiesLen; i++) {
+			dbOptions[dbProperties[i]] = obj.config[dbProperties[i]];
+		}
+	}
+	var hash1 = objectHash(data1);
+	var hash2 = objectHash(data2);
+	if (hash1 !== hash2) {
+		return true;
 	}
 	if(obj.pending) {
 		return setImmediate(function() {
@@ -550,12 +567,15 @@ function connect(obj, cb) {
 	}
 
 	mongoSkin.connect(url, obj.config.extraParam, function(err, db) {
+		obj.pending = false;
+		obj.config.timeConnected = new Date().getTime();
+		obj.configClone = merge(true, obj.config);
+		obj.configClone = objectHash(obj.configClone);
+
 		if(err) {
-			obj.pending = false;
 			return cb(err);
 		} else {
 			obj.db = db;
-			obj.pending = false;
 			return cb();
 		}
 	});
