@@ -29,7 +29,7 @@ function MongoDriver(config) {
 	this.config = config;
 	this.db = null;
 	this.pending = false;
-	this.timeConnected = 0;
+	this.configCloneHash = null;
 	this.ObjectId = mongoSkin.ObjectID;
     this.mongoSkin = mongoSkin;
 }
@@ -537,23 +537,21 @@ MongoDriver.prototype.getMongoSkinDB = function(cb){
  * @returns {*}
  */
 function connect(obj, cb) {
+	console.log ("========= @ connect ========", obj.config.name);
+	console.log (obj.config)
 	if(obj.db && obj.config.timeConnected) {
 		return cb();
 	}
-
-	if (!obj.config.timeConnected){
-		var dbProperties = ["servers", "credentials", "URLParam", "extraParam", "name", "prefix"];
-		var dbPropertiesLen = dbProperties.length;
-		var dbOptions = {};
-		for (var i = 0; i < dbPropertiesLen; i++) {
-			dbOptions[dbProperties[i]] = obj.config[dbProperties[i]];
+	console.log ("========= @ connect step 2 ========", obj.config.name);
+	if (obj.db && !obj.config.timeConnected){
+		var currentConfObj = objectHash(obj.config);
+		if (currentConfObj === obj.configCloneHash) {
+			obj.config.timeConnected = new Date().getTime();
+			return cb();
 		}
 	}
-	var hash1 = objectHash(data1);
-	var hash2 = objectHash(data2);
-	if (hash1 !== hash2) {
-		return true;
-	}
+
+	console.log ("========= @ connect step 3 ========", obj.config.name);
 	if(obj.pending) {
 		return setImmediate(function() {
 			connect(obj, cb);
@@ -568,10 +566,9 @@ function connect(obj, cb) {
 
 	mongoSkin.connect(url, obj.config.extraParam, function(err, db) {
 		obj.pending = false;
+		obj.configCloneHash = merge(true, obj.config);
+		obj.configCloneHash = objectHash(obj.configCloneHash);
 		obj.config.timeConnected = new Date().getTime();
-		obj.configClone = merge(true, obj.config);
-		obj.configClone = objectHash(obj.configClone);
-
 		if(err) {
 			return cb(err);
 		} else {
