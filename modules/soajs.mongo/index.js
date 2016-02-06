@@ -30,6 +30,7 @@ function MongoDriver(config) {
 	this.db = null;
 	this.pending = false;
 	this.configCloneHash = null;
+	this.timeConnected = 0;
 	this.ObjectId = mongoSkin.ObjectID;
     this.mongoSkin = mongoSkin;
 }
@@ -539,14 +540,17 @@ MongoDriver.prototype.getMongoSkinDB = function(cb){
 function connect(obj, cb) {
 	console.log ("========= @ connect ========", obj.config.name);
 	console.log (obj.config)
-	if(obj.db && obj.config.timeConnected) {
+	if(obj.db && obj.config.timeConnected && (obj.timeConnected === obj.config.timeConnected)) {
 		return cb();
 	}
 	console.log ("========= @ connect step 2 ========", obj.config.name);
-	if (obj.db && !obj.config.timeConnected){
-		var currentConfObj = objectHash(obj.config);
+	if (obj.db && (!obj.config.timeConnected || (obj.timeConnected !== obj.config.timeConnected))){
+		var currentConfObj = merge(true, obj.config);
+		delete currentConfObj.timeConnected;
+		currentConfObj = objectHash(currentConfObj);
 		if (currentConfObj === obj.configCloneHash) {
 			obj.config.timeConnected = new Date().getTime();
+			obj.timeConnected = obj.config.timeConnected;
 			return cb();
 		}
 	}
@@ -567,8 +571,10 @@ function connect(obj, cb) {
 	mongoSkin.connect(url, obj.config.extraParam, function(err, db) {
 		obj.pending = false;
 		obj.configCloneHash = merge(true, obj.config);
+		delete obj.configCloneHash.timeConnected;
 		obj.configCloneHash = objectHash(obj.configCloneHash);
 		obj.config.timeConnected = new Date().getTime();
+		obj.timeConnected = obj.config.timeConnected;
 		if(err) {
 			return cb(err);
 		} else {

@@ -129,7 +129,6 @@ service.prototype.init = function (callback) {
     }, function (reg) {
         registry = reg;
         soajs.serviceConf = lib.registry.getServiceConf(soajs.param.serviceName, registry);
-        soajs.provision = registry.coreDB.provision;
 
         _self._log = core.getLogger(soajs.param.serviceName, registry.serviceConfig.logger);
         if (soajs.param.oldStyleConfiguration)
@@ -307,7 +306,7 @@ service.prototype.start = function (cb) {
     var _self = this;
     if (_self.app && _self.app.soajs) {
         _self._log.info("Service about to start ...");
-
+        var registry = core.registry.get();
         _self.app.all('*', function (req, res) {
             req.soajs.log.error(151, 'Unknown API : ' + req.path);
             res.jsonp(req.soajs.buildResponse(core.error.getError(151)));
@@ -318,7 +317,7 @@ service.prototype.start = function (cb) {
         _self.app.use(errorHandler);
 
         _self._log.info("Loading Service Provision ...");
-        provision.init(_self.app.soajs.provision, _self._log);
+        provision.init(registry.coreDB.provision, _self._log);
         provision.loadProvision(function (loaded) {
             if (loaded) {
                 _self._log.info("Service provision loaded.");
