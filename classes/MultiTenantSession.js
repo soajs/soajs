@@ -397,12 +397,10 @@ MultiTenantSession.prototype.getAcl = function () {
     }
     var acl = null;
 
-	if(this.session.sessions[tId].urac.config){
-		if (this.session.sessions[tId].urac.config.keys[key] && this.session.sessions[tId].urac.config.keys[key].acl)
-			acl = this.session.sessions[tId].urac.config.keys[key].acl;
-		if(!acl && this.session.sessions[tId].urac.config.packages[packageCode] && this.session.sessions[tId].urac.config.packages[packageCode].acl)
-			acl = this.session.sessions[tId].urac.config.packages[packageCode].acl;
-	}
+    if (this.session.sessions[tId].urac.config.keys[key] && this.session.sessions[tId].urac.config.keys[key].acl)
+        acl = this.session.sessions[tId].urac.config.keys[key].acl;
+    if(!acl && this.session.sessions[tId].urac.config.packages[packageCode] && this.session.sessions[tId].urac.config.packages[packageCode].acl)
+        acl = this.session.sessions[tId].urac.config.packages[packageCode].acl;
 
     if (!acl && this.session.sessions[tId].urac.groupsConfig) {
         if (this.session.sessions[tId].urac.groupsConfig.keys[key] && this.session.sessions[tId].urac.groupsConfig.keys[key].acl)
@@ -440,10 +438,8 @@ MultiTenantSession.prototype.getConfig = function () {
         return null;
     }
     var config = null;
-	if(this.session.sessions[tId].urac.config){
-		if (this.session.sessions[tId].urac.config.keys[key] && this.session.sessions[tId].urac.config.keys[key].config)
-			config = this.session.sessions[tId].urac.config.keys[key].config;
-	}
+    if (this.session.sessions[tId].urac.config.keys[key] && this.session.sessions[tId].urac.config.keys[key].config)
+        config = this.session.sessions[tId].urac.config.keys[key].config;
 
     return config;
 };

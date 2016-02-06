@@ -5,6 +5,7 @@ var Mongo = require('../../modules/soajs.mongo');
 var provision = require("../../modules/soajs.provision");
 var MultiTenantSession = require("../../classes/MultiTenantSession");
 var async = require("async");
+var utils = require("../../lib/utils");
 
 /**
  *
@@ -116,7 +117,6 @@ module.exports = function (configuration) {
                     return cb(core.error.getError(170));
                 }
                 var uracRecord = req.soajs.session.getUrac(true);
-                uracRecord = {};
                 if (!uracRecord)
                     return cb(core.error.getError(169));
                 uracRecord.roaming = {
@@ -124,11 +124,15 @@ module.exports = function (configuration) {
                     "envFrom": req.soajs.registry.environment,
                     "envTo": envCode
                 };
+
                 var offset = reg.coreDB.session.expireAfter;
+	            var cookie = utils.cloneObj(req.session.cookie);
+	            cookie.domain = reg.coreDB.session.domain || null;
+
                 var envSession = {
                     "_id": req.sessionID,
                     "session": {
-	                    "cookie": req.session.cookie,
+	                    "cookie": cookie,
                         "sessions": {}
                     },
                     "expires" : new Date(Date.now() + offset)
