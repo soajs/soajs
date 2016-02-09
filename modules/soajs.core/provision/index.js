@@ -35,17 +35,20 @@ function getPackagesFromDb(code, cb) {
                                 struct = {};
                             }
 
-                            var ACL = products[i].packages[j].acl;
-                            if (ACL && typeof ACL === "object") {
-                                if (ACL[regEnvironment] && (!ACL[regEnvironment].access && !ACL[regEnvironment].apis && !ACL[regEnvironment].apisRegExp && !ACL[regEnvironment].apisPermission)){
-	                                ACL = ACL[regEnvironment];
+                            var ACL_ALL_ENV = products[i].packages[j].acl;
+                            var ACL = ACL_ALL_ENV;
+                            if (ACL_ALL_ENV && typeof ACL_ALL_ENV === "object") {
+                                if (ACL_ALL_ENV[regEnvironment] && (!ACL_ALL_ENV[regEnvironment].access && !ACL_ALL_ENV[regEnvironment].apis && !ACL_ALL_ENV[regEnvironment].apisRegExp && !ACL_ALL_ENV[regEnvironment].apisPermission)){
+                                    ACL = ACL_ALL_ENV[regEnvironment];
                                 }
                             }
-                            else
+                            else {
+                                ACL_ALL_ENV = null;
                                 ACL = null;
-
+                            }
                             struct[products[i].packages[j].code] = {
                                 "acl": ACL,
+                                "acl_all_env" : ACL_ALL_ENV,
                                 "_TTL": products[i].packages[j]._TTL,
                                 "_TIME": new Date().getTime()
                             };
@@ -98,13 +101,16 @@ function getKeyFromDb(key, tId, oauth, cb) {
                                     else
                                         keyConfig = {};
 
-                                    var ACL = tenants[i].applications[j].acl;
-                                    if (ACL && typeof ACL === "object") {
-                                        if (ACL[regEnvironment] && (!ACL[regEnvironment].access && !ACL[regEnvironment].apis && !ACL[regEnvironment].apisRegExp && !ACL[regEnvironment].apisPermission))
-                                            ACL = ACL[regEnvironment];
+                                    var ACL_ALL_ENV = tenants[i].applications[j].acl;
+                                    var ACL = ACL_ALL_ENV;
+                                    if (ACL_ALL_ENV && typeof ACL_ALL_ENV === "object") {
+                                        if (ACL_ALL_ENV[regEnvironment] && (!ACL_ALL_ENV[regEnvironment].access && !ACL_ALL_ENV[regEnvironment].apis && !ACL_ALL_ENV[regEnvironment].apisRegExp && !ACL_ALL_ENV[regEnvironment].apisPermission))
+                                            ACL = ACL_ALL_ENV[regEnvironment];
                                     }
-                                    else
+                                    else {
+                                        ACL_ALL_ENV = null;
                                         ACL = null;
+                                    }
 
                                     keyStruct[tenants[i].applications[j].keys[k].key] = {
                                         "key": tenants[i].applications[j].keys[k].key,
@@ -116,7 +122,8 @@ function getKeyFromDb(key, tId, oauth, cb) {
                                             "product": tenants[i].applications[j].product,
                                             "package": tenants[i].applications[j].package,
                                             "appId": tenants[i].applications[j].appId.toString(),
-                                            "acl": ACL
+                                            "acl": ACL,
+                                            "acl_all_env" : ACL_ALL_ENV
                                         },
                                         "extKeys": tenants[i].applications[j].keys[k].extKeys,
                                         "config": keyConfig,

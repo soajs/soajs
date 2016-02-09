@@ -367,6 +367,7 @@ module.exports = function (configuration) {
                         req.soajs.tenant.application = keyObj.application;
                         provision.getPackageData(keyObj.application.package, function (err, packObj) {
                             req.soajs.tenant.application.package_acl = packObj.acl;
+                            req.soajs.tenant.application.package_acl_all_env = packObj.acl_all_env;
                             if (packObj) {
                                 var serviceCheckArray = [function (cb) {
                                     cb(null, {"app": app, "res": res, "req": req, "keyObj": keyObj, "packObj": packObj});

@@ -430,7 +430,7 @@ service.prototype.stop = function (cb) {
  * @returns {*}
  */
 function injectOauth(restApp, args) {
-	if(restApp.app.soajs.oauthService && restApp.app.soajs.param.config.serviceName === restApp.app.soajs.oauthService.name && args[0] === restApp.app.soajs.oauthService.tokenApi) {
+	if(restApp.app.soajs.oauthService && restApp.app.soajs.param.serviceName === restApp.app.soajs.oauthService.name && args[0] === restApp.app.soajs.oauthService.tokenApi) {
 		return args;
 	}
 
