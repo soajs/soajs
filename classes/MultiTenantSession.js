@@ -250,7 +250,7 @@ MultiTenantSession.prototype.setURAC = function (urac, cb) {
             if (Object.hasOwnProperty.call(urac.config.packages, packageCode)) {
                 var ACL = urac.config.packages[packageCode].acl;
                 if (ACL && typeof ACL === "object") {
-                    if (ACL[regEnvironment])
+                    if (ACL[regEnvironment] && (!ACL[regEnvironment].access && !ACL[regEnvironment].apis && !ACL[regEnvironment].apisRegExp && !ACL[regEnvironment].apisPermission))
                         urac.config.packages[packageCode].acl = ACL[regEnvironment];
                 }
             }
@@ -264,7 +264,7 @@ MultiTenantSession.prototype.setURAC = function (urac, cb) {
             if (Object.hasOwnProperty.call(urac.config.keys, key)) {
                 var ACL = urac.config.keys[key].acl;
                 if (ACL && typeof ACL === "object") {
-                    if (ACL[regEnvironment])
+                    if (ACL[regEnvironment] && (!ACL[regEnvironment].access && !ACL[regEnvironment].apis && !ACL[regEnvironment].apisRegExp && !ACL[regEnvironment].apisPermission))
                         urac.config.keys[key].acl = ACL[regEnvironment];
                 }
             }
@@ -283,11 +283,17 @@ MultiTenantSession.prototype.setURAC = function (urac, cb) {
                     //merge all keys ACL
                     for (var key in group.config.keys) {
                         if (Object.hasOwnProperty.call(group.config.keys, key)) {
-                            if (group.config.keys[key].acl && group.config.keys[key].acl[regEnvironment]) {
-                                if (mergedInfo.keys[key] && mergedInfo.keys[key].acl && mergedInfo.keys[key].acl[regEnvironment])
-                                    mergedInfo.keys[key].acl = merge.recursive(true, mergedInfo.keys[key].acl, group.config.keys[key].acl[regEnvironment]);
-                                else
-                                    mergedInfo.keys[key] = {"acl": group.config.keys[key].acl[regEnvironment]};
+	                        var ACL = group.config.keys[key].acl;
+                            if (ACL) {
+	                            if(ACL[regEnvironment] && (!ACL[regEnvironment].access && !ACL[regEnvironment].apis && !ACL[regEnvironment].apisRegExp && !ACL[regEnvironment].apisPermission)){
+		                            if (mergedInfo.keys[key] && mergedInfo.keys[key].acl && mergedInfo.keys[key].acl[regEnvironment])
+			                            mergedInfo.keys[key].acl = merge.recursive(true, mergedInfo.keys[key].acl, ACL[regEnvironment]);
+		                            else
+			                            mergedInfo.keys[key] = {"acl": ACL[regEnvironment]};
+	                            }
+	                            else{
+		                            mergedInfo.keys[key] = {"acl": ACL};
+	                            }
                             }
                         }
                     }
@@ -296,11 +302,17 @@ MultiTenantSession.prototype.setURAC = function (urac, cb) {
                     //merge all packages ACL
                     for (var packageCode in group.config.packages) {
                         if (Object.hasOwnProperty.call(group.config.packages, packageCode)) {
-                            if (group.config.packages[packageCode].acl && group.config.packages[packageCode].acl[regEnvironment]) {
-                                if (mergedInfo.packages[packageCode] && mergedInfo.packages[packageCode].acl)
-                                    mergedInfo.packages[packageCode].acl = merge.recursive(true, mergedInfo.packages[packageCode].acl, group.config.packages[packageCode].acl[regEnvironment]);
-                                else
-                                    mergedInfo.packages[packageCode] = {"acl": group.config.packages[packageCode].acl[regEnvironment]};
+	                        var ACL = group.config.packages[packageCode].acl;
+                            if (ACL) {
+	                            if(ACL[regEnvironment] && (!ACL[regEnvironment].access && !ACL[regEnvironment].apis && !ACL[regEnvironment].apisRegExp && !ACL[regEnvironment].apisPermission)){
+		                            if (mergedInfo.packages[packageCode] && mergedInfo.packages[packageCode].acl)
+			                            mergedInfo.packages[packageCode].acl = merge.recursive(true, mergedInfo.packages[packageCode].acl, ACL[regEnvironment]);
+		                            else
+			                            mergedInfo.packages[packageCode] = {"acl": ACL[regEnvironment]};
+	                            }
+	                            else{
+		                            mergedInfo.packages[packageCode] = {"acl": ACL};
+	                            }
                             }
                         }
                     }

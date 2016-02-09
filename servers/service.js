@@ -430,50 +430,50 @@ service.prototype.stop = function (cb) {
  * @returns {*}
  */
 function injectOauth(restApp, args) {
-    if (restApp.app.soajs.oauthService && restApp.app.soajs.param.serviceName === restApp.app.soajs.oauthService.name && args[0] === restApp.app.soajs.oauthService.tokenApi) {
-        return args;
-    }
+	if(restApp.app.soajs.oauthService && restApp.app.soajs.param.config.serviceName === restApp.app.soajs.oauthService.name && args[0] === restApp.app.soajs.oauthService.tokenApi) {
+		return args;
+	}
 
-    var oauthModelInjection = function (req, res, next) {
-        if (req.soajs) {
-            provision.getOauthToken(req.query.access_token, function (err, record) {
-                restApp.oauth.model["getAccessToken"] = function (bearerToken, callback) {
-                    if (record && record.oauthAccessToken) {
-                        if (record.oauthAccessToken.accessToken === bearerToken) {
-                            return callback(false, record.oauthAccessToken);
-                        }
-                    }
-                    return callback(false, false);
-                };
-                restApp.oauth.model["getRefreshToken"] = function (bearerToken, callback) {
-                    if (record && record.oauthRefreshToken) {
-                        if (record.oauthRefreshToken.refreshToken === bearerToken) {
-                            return callback(false, record.oauthRefreshToken);
-                        }
-                    }
-                    return callback(false, false);
-                };
-                return next();
-            });
-        }
-        else {
-            return next();
-        }
-    };
+	var oauthModelInjection = function(req, res, next) {
+		if(req.soajs) {
+			provision.getOauthToken(req.query.access_token, function(err, record) {
+				restApp.oauth.model["getAccessToken"] = function(bearerToken, callback) {
+					if(record && record.oauthAccessToken) {
+						if(record.oauthAccessToken.accessToken === bearerToken) {
+							return callback(false, record.oauthAccessToken);
+						}
+					}
+					return callback(false, false);
+				};
+				restApp.oauth.model["getRefreshToken"] = function(bearerToken, callback) {
+					if(record && record.oauthRefreshToken) {
+						if(record.oauthRefreshToken.refreshToken === bearerToken) {
+							return callback(false, record.oauthRefreshToken);
+						}
+					}
+					return callback(false, false);
+				};
+				return next();
+			});
+		}
+		else {
+			return next();
+		}
+	};
 
-    if (restApp.app.soajs.oauth) {
-        var len = args.length;
-        var argsNew = [];
-        argsNew.push(args[0]);
-        argsNew.push(oauthModelInjection);
-        argsNew.push(restApp.app.soajs.oauth);
-        for (var i = 1; i < len; i++) {
-            argsNew[i + 2] = args[i];
-        }
+	if(restApp.app.soajs.oauth) {
+		var len = args.length;
+		var argsNew = [];
+		argsNew.push(args[0]);
+		argsNew.push(oauthModelInjection);
+		argsNew.push(restApp.app.soajs.oauth);
+		for(var i = 1; i < len; i++) {
+			argsNew[i + 2] = args[i];
+		}
 
-        return argsNew;
-    }
-    return args;
+		return argsNew;
+	}
+	return args;
 }
 /**
  *
@@ -482,17 +482,17 @@ function injectOauth(restApp, args) {
  * @returns {*}
  */
 function injectInputmask(restApp, args) {
-    if (restApp.app.soajs.inputmask) {
-        var len = args.length;
-        var argsNew = [];
-        argsNew.push(args[0]);
-        argsNew.push(restApp.app.soajs.inputmask);
-        for (var i = 1; i < len; i++) {
-            argsNew[i + 1] = args[i];
-        }
-        return argsNew;
-    }
-    return args;
+	if(restApp.app.soajs.inputmask) {
+		var len = args.length;
+		var argsNew = [];
+		argsNew.push(args[0]);
+		argsNew.push(restApp.app.soajs.inputmask);
+		for(var i = 1; i < len; i++) {
+			argsNew[i + 1] = args[i];
+		}
+		return argsNew;
+	}
+	return args;
 }
 /**
  *
@@ -500,62 +500,62 @@ function injectInputmask(restApp, args) {
  * @returns {boolean}
  */
 function isSOAJready(app, _log) {
-    if (app && app.soajs) {
-        return true;
-    }
-    _log.info("Can't attach route because soajs express app is not defined");
-    return false;
+	if(app && app.soajs) {
+		return true;
+	}
+	_log.info("Can't attach route because soajs express app is not defined");
+	return false;
 }
 /**
  *
  */
-service.prototype.all = function () {
-    var _self = this;
-    if (!isSOAJready(_self.app, _self._log)) return;
-    var args = injectOauth(_self, arguments);
-    args = injectInputmask(_self, args);
-    _self.app.all.apply(_self.app, args);
+service.prototype.all = function() {
+	var _self = this;
+	if(!isSOAJready(_self.app, _self._log)) return;
+	var args = injectOauth(_self, arguments);
+	args = injectInputmask(_self, args);
+	_self.app.all.apply(_self.app, args);
 };
 /**
  *
  */
-service.prototype.get = function () {
-    var _self = this;
-    if (!isSOAJready(_self.app, _self._log)) return;
-    var args = injectOauth(_self, arguments);
-    args = injectInputmask(_self, args);
-    _self.app.get.apply(_self.app, args);
+service.prototype.get = function() {
+	var _self = this;
+	if(!isSOAJready(_self.app, _self._log)) return;
+	var args = injectOauth(_self, arguments);
+	args = injectInputmask(_self, args);
+	_self.app.get.apply(_self.app, args);
 };
 /**
  *
  */
-service.prototype.post = function () {
-    var _self = this;
-    if (!isSOAJready(_self.app, _self._log)) return;
-    var args = injectOauth(_self, arguments);
-    args = injectInputmask(_self, args);
-    _self.app.post.apply(_self.app, args);
+service.prototype.post = function() {
+	var _self = this;
+	if(!isSOAJready(_self.app, _self._log)) return;
+	var args = injectOauth(_self, arguments);
+	args = injectInputmask(_self, args);
+	_self.app.post.apply(_self.app, args);
 };
 
 /**
  *
  */
-service.prototype.put = function () {
-    var _self = this;
-    if (!isSOAJready(_self.app, _self._log)) return;
-    var args = injectOauth(_self, arguments);
-    args = injectInputmask(_self, args);
-    _self.app.put.apply(_self.app, args);
+service.prototype.put = function() {
+	var _self = this;
+	if(!isSOAJready(_self.app, _self._log)) return;
+	var args = injectOauth(_self, arguments);
+	args = injectInputmask(_self, args);
+	_self.app.put.apply(_self.app, args);
 };
 /**
  *
  */
-service.prototype.delete = function () {
-    var _self = this;
-    if (!isSOAJready(_self.app, _self._log)) return;
-    var args = injectOauth(_self, arguments);
-    args = injectInputmask(_self, args);
-    _self.app.delete.apply(_self.app, args);
+service.prototype.delete = function() {
+	var _self = this;
+	if(!isSOAJready(_self.app, _self._log)) return;
+	var args = injectOauth(_self, arguments);
+	args = injectInputmask(_self, args);
+	_self.app.delete.apply(_self.app, args);
 };
 
 
@@ -568,26 +568,26 @@ service.prototype.delete = function () {
  * @param next
  */
 function logErrors(err, req, res, next) {
-    if (typeof err === "number") {
-        req.soajs.log.error(core.error.generate(err));
-        return next(err);
-    }
-    if (typeof err === "object") {
-        if (err.code && err.message) {
-            req.soajs.log.error(err);
-            return next({"code": err.code, "msg": err.message});
-        }
-        else {
-            req.soajs.log.error(err);
-            req.soajs.log.error(core.error.generate(164));
-        }
-    }
-    else {
-        req.soajs.log.error(err);
-        req.soajs.log.error(core.error.generate(164));
-    }
+	if(typeof err === "number") {
+		req.soajs.log.error(core.error.generate(err));
+		return next(err);
+	}
+	if(typeof err === "object") {
+		if(err.code && err.message) {
+			req.soajs.log.error(err);
+			return next({"code": err.code, "msg": err.message});
+		}
+		else {
+			req.soajs.log.error(err);
+			req.soajs.log.error(core.error.generate(164));
+		}
+	}
+	else {
+		req.soajs.log.error(err);
+		req.soajs.log.error(core.error.generate(164));
+	}
 
-    return next(core.error.getError(164));
+	return next(core.error.getError(164));
 }
 /**
  *
@@ -597,12 +597,12 @@ function logErrors(err, req, res, next) {
  * @param next
  */
 function clientErrorHandler(err, req, res, next) {
-    if (req.xhr) {
-        req.soajs.log.error(core.error.generate(150));
-        res.status(500).send(req.soajs.buildResponse(core.error.getError(150)));
-    } else {
-        return next(err);
-    }
+	if(req.xhr) {
+		req.soajs.log.error(core.error.generate(150));
+		res.status(500).send(req.soajs.buildResponse(core.error.getError(150)));
+	} else {
+		return next(err);
+	}
 }
 /**
  *
@@ -612,12 +612,12 @@ function clientErrorHandler(err, req, res, next) {
  * @param next
  */
 function errorHandler(err, req, res, next) {
-    res.status(500);
-    if (err.code && err.msg) {
-        res.jsonp(req.soajs.buildResponse(err));
-    } else {
-        res.jsonp(req.soajs.buildResponse(core.error.getError(err)));
-    }
+	res.status(500);
+	if(err.code && err.msg) {
+		res.jsonp(req.soajs.buildResponse(err));
+	} else {
+		res.jsonp(req.soajs.buildResponse(core.error.getError(err)));
+	}
 }
 
 module.exports = service;
