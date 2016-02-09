@@ -31,7 +31,8 @@ function getKeyData(keyStruct, extKey) {
                             "product": keyStruct.application.product,
                             "package": keyStruct.application.package,
                             "appId": keyStruct.application.appId,
-                            "acl": keyStruct.application.acl
+                            "acl": keyStruct.application.acl,
+                            "acl_all_env": keyStruct.application.acl_all_env
                         },
                         "device": keyStruct.extKeys[i].device,
                         "geo": keyStruct.extKeys[i].geo,
