@@ -2,39 +2,8 @@
 
 var Mongo = require('../soajs.mongo');
 var util = require('util');
+var registry = require ("../soajs.core/registry/index.js");
 
-/**
- *
- * @type {{name: string, prefix: string, servers: {host: string, port: number}[], credentials: null, URLParam: {connectTimeoutMS: number, socketTimeoutMS: number, maxPoolSize: number, w: number, wtimeoutMS: number, slaveOk: boolean}, extraParam: {db: {native_parser: boolean}, server: {auto_reconnect: boolean}}, store: {}, collection: string, stringify: boolean, expireAfter: number}}
- */
-var defaultOptions = {
-    "name": "sessionDB",
-    "prefix": "",
-    "servers": [
-        {"host": "127.0.0.1", "port": 27017}
-    ],
-    "credentials": null,
-    "URLParam": {
-        "connectTimeoutMS": 0,
-        "socketTimeoutMS": 0,
-        "maxPoolSize": 5,
-        "w": 1,
-        "wtimeoutMS": 0,
-        "slaveOk": true
-    },
-    "extraParam": {
-        "db": {
-            "native_parser": true
-        },
-        "server": {
-            "auto_reconnect": true
-        }
-    },
-    'store': {},
-    "collection": "sessions",
-    'stringify': false,
-    'expireAfter': 1000 * 60 * 60 * 24 * 14 // 2 weeks
-};
 
 /**
  *
@@ -54,36 +23,26 @@ module.exports = function (connect) {
      */
 
     function MongoStore(options) {
-        options = options || {};
+        if (!options || typeof options !== 'object')
+            throw new Error('MongoStore needs db info to connect : ' + options + ' ');
 
-        for (var property in defaultOptions) {
-            if (Object.hasOwnProperty.call(defaultOptions, property)) {
-                if (!Object.hasOwnProperty.call(options, property) || (typeof defaultOptions[property] !== typeof options[property])) {
-                    options[property] = defaultOptions[property];
-                }
-            }
-        }
+        var dbOption = options;
+        if (options.registry && options.db)
+            dbOption = registry.get()[options.registry][options.db];
 
-        Store.call(this, options.store);
-
-        var dbProperties = ["name", "prefix", "servers", "credentials", "URLParam", "extraParam"];
-        var dbPropertiesLen = dbProperties.length;
-        var dbOptions = {};
-        for (var i = 0; i < dbPropertiesLen; i++) {
-            dbOptions[dbProperties[i]] = options[dbProperties[i]];
-        }
+        Store.call(this, dbOption.store);
 
         //NOTE: we cannot stringify the session object. we need to keep it an object in mongo in order to support multi tenancy in the set method below
         this._options = {
-            "collection": options.collection,
+            "collection": dbOption.collection,
             "stringify": false,
-            "expireAfter": options.expireAfter
+            "expireAfter": dbOption.expireAfter
         };
 
-        this.mongo = new Mongo(dbOptions);
-        this.mongo.ensureIndex(options.collection, {expires: 1}, {expireAfterSeconds: 0}, function (err, result) {
+        this.mongo = new Mongo(options);
+        this.mongo.ensureIndex(dbOption.collection, {expires: 1}, {expireAfterSeconds: 0}, function (err, result) {
             if (err) {
-                throw new Error('Error setting TTL index on collection : ' + options.collection + ' <' + err + '>');
+                throw new Error('Error setting TTL index on collection : ' + dbOption.collection + ' <' + err + '>');
             }
         });
     }

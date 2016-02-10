@@ -103,7 +103,6 @@ daemon.prototype.init = function (callback) {
     }, function (reg) {
         registry = reg;
         _self.soajs.daemonServiceConf = lib.registry.getDaemonServiceConf(_self.soajs.param.serviceName, registry);
-        _self.soajs.provision = registry.coreDB.provision;
 
         _self.soajs.log = core.getLogger(_self.soajs.param.serviceName, registry.serviceConfig.logger);
         if (_self.soajs.param.oldStyleConfiguration)
@@ -150,8 +149,9 @@ daemon.prototype.start = function (cb) {
     if (_self.soajs) {
         _self.soajs.log.info("Daemon Service about to start ...");
 
+        var registry = core.registry.get();
         _self.soajs.log.info("Loading Daemon Service Provision ...");
-        provision.init(_self.soajs.provision, _self.soajs.log);
+        provision.init(registry.coreDB.provision, _self.soajs.log);
         provision.loadProvision(function (loaded) {
             if (loaded) {
                 _self.soajs.log.info("Daemon Service provision loaded.");

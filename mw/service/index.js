@@ -358,6 +358,8 @@ module.exports = function (configuration) {
         if (req.soajs.registry.services[soajs.param.serviceName].extKeyRequired) {
             try {
                 provision.getExternalKeyData(req.get("key"), req.soajs.registry.serviceConfig.key, function (err, keyObj) {
+                    if (err)
+                        req.soajs.log.warn(err);
                     if (keyObj && keyObj.application && keyObj.application.package) {
                         req.soajs.tenant = keyObj.tenant;
                         req.soajs.tenant.key = {
@@ -366,9 +368,11 @@ module.exports = function (configuration) {
                         };
                         req.soajs.tenant.application = keyObj.application;
                         provision.getPackageData(keyObj.application.package, function (err, packObj) {
-                            req.soajs.tenant.application.package_acl = packObj.acl;
-                            req.soajs.tenant.application.package_acl_all_env = packObj.acl_all_env;
+                            if (err)
+                                req.soajs.log.warn(err);
                             if (packObj) {
+                                req.soajs.tenant.application.package_acl = packObj.acl;
+                                req.soajs.tenant.application.package_acl_all_env = packObj.acl_all_env;
                                 var serviceCheckArray = [function (cb) {
                                     cb(null, {"app": app, "res": res, "req": req, "keyObj": keyObj, "packObj": packObj});
                                 }];

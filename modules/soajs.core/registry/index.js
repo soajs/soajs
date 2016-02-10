@@ -37,10 +37,12 @@ var build = {
                         };
                         if (dbRec.tenantSpecific) {
                             dbObj.name = "#TENANT_NAME#_" + dbName;
+                            dbObj.registryLocation = {"l1": "metaDB", "l2": dbName};
                             metaAndCoreDB.metaDB[dbName] = dbObj;
                         }
                         else {
                             dbObj.name = dbName;
+                            dbObj.registryLocation = {"l1": "coreDB", "l2": dbName};
                             metaAndCoreDB.coreDB[dbName] = dbObj;
                         }
                     }
@@ -131,39 +133,39 @@ var build = {
         }
     },
     /*
-    "service": function (STRUCT, serviceName) {
-        var serviceObj = null;
-        if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
-            for (var i = 0; i < STRUCT.length; i++) {
-                if (STRUCT[i].name === serviceName) {
-                    serviceObj = {
-                        "extKeyRequired": STRUCT[i].extKeyRequired,
-                        "port": STRUCT[i].port,
-                        "requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
-                        "requestTimeout": STRUCT[i].requestTimeout || null
-                    };
-                    break;
-                }
-            }
-        }
-        return serviceObj;
-    },
-    "daemon": function (STRUCT, serviceName) {
-        var serviceObj = null;
-        if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
-            for (var i = 0; i < STRUCT.length; i++) {
-                if (STRUCT[i].name === serviceName) {
-                    //TODO: add env specific info in object below ie: interval=3000, status=1||0,
-                    serviceObj = {
-                        "port": STRUCT[i].port
-                    };
-                    break;
-                }
-            }
-        }
-        return serviceObj;
-    },
-    */
+     "service": function (STRUCT, serviceName) {
+     var serviceObj = null;
+     if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
+     for (var i = 0; i < STRUCT.length; i++) {
+     if (STRUCT[i].name === serviceName) {
+     serviceObj = {
+     "extKeyRequired": STRUCT[i].extKeyRequired,
+     "port": STRUCT[i].port,
+     "requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
+     "requestTimeout": STRUCT[i].requestTimeout || null
+     };
+     break;
+     }
+     }
+     }
+     return serviceObj;
+     },
+     "daemon": function (STRUCT, serviceName) {
+     var serviceObj = null;
+     if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
+     for (var i = 0; i < STRUCT.length; i++) {
+     if (STRUCT[i].name === serviceName) {
+     //TODO: add env specific info in object below ie: interval=3000, status=1||0,
+     serviceObj = {
+     "port": STRUCT[i].port
+     };
+     break;
+     }
+     }
+     }
+     return serviceObj;
+     },
+     */
     "controllerHosts": function (STRUCT, controllerObj) {
         if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
             for (var i = 0; i < STRUCT.length; i++) {
@@ -305,7 +307,7 @@ var build = {
         registry["tenantMetaDB"] = metaAndCoreDB.metaDB;
         if (!registryDBInfo.ENV_schema || !registryDBInfo.ENV_schema.services || !registryDBInfo.ENV_schema.services.config) {
             var err = new Error('Unable to get [' + regEnvironment + '] environment services from db');
-                return callback(err);
+            return callback(err);
         }
         registry["serviceConfig"] = registryDBInfo.ENV_schema.services.config;
 
@@ -326,6 +328,7 @@ var build = {
         };
 
         registry["coreDB"]["session"] = build.sessionDB(registryDBInfo.ENV_schema);
+        registry["coreDB"]["session"].registryLocation = {"l1": "coreDB", "l2": "session"};
 
         registry["daemons"] = {};
         return callback(null);
@@ -368,8 +371,6 @@ var build = {
                 }
             }
             else {
-                //registry["coreDB"]["session"] = build.sessionDB(registryDBInfo.ENV_schema);
-
                 var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
                 registry["services"][param.serviceName] = {
                     "extKeyRequired": param.extKeyRequired || false,
@@ -466,6 +467,7 @@ function loadProfile(envFrom) {
                     "provision": regFileObj
                 }
             };
+            registry.coreDB.provision.registryLocation = {"l1": "coreDB", "l2": "provision"};
             return registry;
         }
         else {
@@ -480,6 +482,7 @@ function loadProfile(envFrom) {
 
 function loadRegistry(param, cb) {
     var registry = loadProfile();
+    registry_struct[regEnvironment] = registry;
     if (registry) {
         build.loadDBInformation(registry.coreDB.provision, regEnvironment, param, function (error, RegistryFromDB) {
             if (error || !RegistryFromDB) {
