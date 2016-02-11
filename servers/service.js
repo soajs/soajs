@@ -96,7 +96,8 @@ service.prototype.init = function (callback) {
     soajs.param.extKeyRequired = soajs.param.extKeyRequired || false;
     soajs.param.requestTimeout = soajs.param.requestTimeout || null;
     soajs.param.requestTimeoutRenewal = soajs.param.requestTimeoutRenewal || null;
-    soajs.param.awareness = soajs.param.awareness || false;
+    soajs.param.awareness = soajs.param.awareness || true;
+    soajs.param.awarenessEnv = soajs.param.awarenessEnv || false;
     soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
 
     var fetchedHostIp = null;
@@ -284,6 +285,18 @@ service.prototype.init = function (callback) {
         }
         else {
             _self._log.info("Awareness middleware initialization skipped.");
+        }
+
+        if (soajs.param.awarenessEnv) {
+            var awarenessEnv_mw = require("./../mw/awarenessEnv/index");
+            _self.app.use(awarenessEnv_mw({
+                "awarenessEnv": soajs.param.awarenessEnv,
+                "log": _self._log
+            }));
+            _self._log.info("AwarenessEnv middleware initialization done.");
+        }
+        else {
+            _self._log.info("AwarenessEnv middleware initialization skipped.");
         }
 
         var service_mw = require("./../mw/service/index");
