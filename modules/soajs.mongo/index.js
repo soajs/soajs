@@ -553,6 +553,7 @@ MongoDriver.prototype.closeDb = function () {
     var self = this;
     if (self.db) {
         self.db.close();
+        self.db = null;
         if (self.config.registryLocation && self.config.registryLocation.l1 && self.config.registryLocation.l2)
             cacheDB[self.config.registryLocation.l1][self.config.registryLocation.l2].db = null;
     }

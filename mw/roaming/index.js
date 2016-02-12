@@ -139,6 +139,8 @@ module.exports = function (configuration) {
                 };
                 envSession.session.sessions[req.soajs.tenant.id] = {"urac": uracRecord};
 
+                delete reg.coreDB.session.registryLocation;
+
                 var mongo = new Mongo(reg.coreDB.session);
                 mongo.insert(reg.coreDB.session.collection, envSession, function (err, record){
                     mongo.closeDb();
