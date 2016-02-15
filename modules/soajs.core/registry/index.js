@@ -468,6 +468,12 @@ function loadProfile(envFrom) {
                 }
             };
             registry.coreDB.provision.registryLocation = {"l1": "coreDB", "l2": "provision"};
+
+            if (!registry_struct[registry.name])
+                registry_struct[registry.name] = registry;
+            else
+                registry_struct[registry.name].coreDB.provision = registry.coreDB.provision;
+
             return registry;
         }
         else {
@@ -482,7 +488,6 @@ function loadProfile(envFrom) {
 
 function loadRegistry(param, cb) {
     var registry = loadProfile();
-    registry_struct[regEnvironment] = registry;
     if (registry) {
         build.loadDBInformation(registry.coreDB.provision, regEnvironment, param, function (error, RegistryFromDB) {
             if (error || !RegistryFromDB) {
