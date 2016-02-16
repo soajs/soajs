@@ -463,6 +463,7 @@ function loadProfile(envFrom) {
                 "projectPath": regFile.substr(0, regFile.lastIndexOf("/")),
                 "name": envFrom || regEnvironment,
                 "environment": envFrom || regEnvironment,
+                "profileOnly": true,
                 "coreDB": {
                     "provision": regFileObj
                 }
@@ -473,7 +474,6 @@ function loadProfile(envFrom) {
                 registry_struct[registry.name] = registry;
             else
                 registry_struct[registry.name].coreDB.provision = registry.coreDB.provision;
-
             return registry;
         }
         else {
@@ -508,6 +508,7 @@ function loadRegistry(param, cb) {
                         }
                     }
                     build.buildSpecificRegistry(param, registry, RegistryFromDB, function (err) {
+                        registry.profileOnly = false;
                         registry_struct[regEnvironment] = registry;
                         return cb(err);
                     });
@@ -522,7 +523,7 @@ function loadRegistry(param, cb) {
 
 var getRegistry = function (param, cb) {
     try {
-        if (param.reload || !registry_struct[regEnvironment]) {
+        if (param.reload || !registry_struct[regEnvironment] || registry_struct[regEnvironment].profileOnly) {
             loadRegistry(param, function (err) {
                 return cb(err, registry_struct[regEnvironment]);
             });
@@ -574,8 +575,9 @@ exports.register = function (param, cb) {
     }
     return cb(new Error("unable to register service. missing params"));
 };
-exports.get = function () {
-    return registry_struct[regEnvironment];
+exports.get = function (envCode) {
+    var env = envCode || regEnvironment;
+    return registry_struct[env];
 };
 exports.load = function (param, cb) {
     if (!param) param = {};
