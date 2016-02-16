@@ -34,13 +34,15 @@ function MongoDriver(dbConfig) {
     this.pending = false;
     this.ObjectId = mongoSkin.ObjectID;
     this.mongoSkin = mongoSkin;
-    if (this.config.registryLocation && this.config.registryLocation.l1 && this.config.registryLocation.l2) {
+    if (this.config.registryLocation && this.config.registryLocation.env && this.config.registryLocation.l1 && this.config.registryLocation.l2) {
         if (!cacheDB)
             cacheDB = {};
-        if (!cacheDB[this.config.registryLocation.l1])
-            cacheDB[this.config.registryLocation.l1] = {};
-        if (!cacheDB[this.config.registryLocation.l1][this.config.registryLocation.l2])
-            cacheDB[this.config.registryLocation.l1][this.config.registryLocation.l2] = {};
+        if (!cacheDB[this.config.registryLocation.env])
+            cacheDB[this.config.registryLocation.env] = {};
+        if (!cacheDB[this.config.registryLocation.env][this.config.registryLocation.l1])
+            cacheDB[this.config.registryLocation.env][this.config.registryLocation.l1] = {};
+        if (!cacheDB[this.config.registryLocation.env][this.config.registryLocation.l1][this.config.registryLocation.l2])
+            cacheDB[this.config.registryLocation.env][this.config.registryLocation.l1][this.config.registryLocation.l2] = {};
     }
 }
 /**
@@ -554,8 +556,8 @@ MongoDriver.prototype.closeDb = function () {
     if (self.db) {
         self.db.close();
         self.db = null;
-        if (self.config.registryLocation && self.config.registryLocation.l1 && self.config.registryLocation.l2)
-            cacheDB[self.config.registryLocation.l1][self.config.registryLocation.l2].db = null;
+        if (self.config.registryLocation && self.config.registryLocation.env && self.config.registryLocation.l1 && self.config.registryLocation.l2)
+            cacheDB[self.config.registryLocation.env][self.config.registryLocation.l1][self.config.registryLocation.l2].db = null;
     }
 };
 
@@ -570,8 +572,8 @@ MongoDriver.prototype.getMongoSkinDB = function (cb) {
         return cb(null, db);
     }
 
-    if (this.config.registryLocation && this.config.registryLocation.l1 && this.config.registryLocation.l2)
-        this.config = registry.get()[this.config.registryLocation.l1][this.config.registryLocation.l2];
+    if (this.config.registryLocation && this.config.registryLocation.env && this.config.registryLocation.l1 && this.config.registryLocation.l2)
+        this.config = registry.get(this.config.registryLocation.env)[this.config.registryLocation.l1][this.config.registryLocation.l2];
 
     buildDB(this, cb);
 };
@@ -586,14 +588,14 @@ MongoDriver.prototype.getMongoSkinDB = function (cb) {
 function connect(obj, cb) {
     var timeConnected = 0;
     var configCloneHash = null;
-    if (obj.config.registryLocation && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
-        obj.config = registry.get()[obj.config.registryLocation.l1][obj.config.registryLocation.l2];
-        if (!obj.db && cacheDB[obj.config.registryLocation.l1][obj.config.registryLocation.l2].db)
-            obj.db = cacheDB[obj.config.registryLocation.l1][obj.config.registryLocation.l2].db;
-        if (cacheDB[obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected)
-            timeConnected = cacheDB[obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected;
-        if (cacheDB[obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash)
-            configCloneHash = cacheDB[obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash;
+    if (obj.config.registryLocation && obj.config.registryLocation.env && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
+        obj.config = registry.get(obj.config.registryLocation.env)[obj.config.registryLocation.l1][obj.config.registryLocation.l2];
+        if (!obj.db && cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db)
+            obj.db = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db;
+        if (cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected)
+            timeConnected = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected;
+        if (cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash)
+            configCloneHash = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash;
     }
 
     if (obj.db && obj.config.timeConnected && (timeConnected === obj.config.timeConnected)) {
@@ -605,7 +607,7 @@ function connect(obj, cb) {
         currentConfObj = objectHash(currentConfObj);
         if (currentConfObj === configCloneHash) {
             obj.config.timeConnected = new Date().getTime();
-            cacheDB[obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected = obj.config.timeConnected;
+            cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected = obj.config.timeConnected;
             return cb();
         }
     }
@@ -631,12 +633,12 @@ function connect(obj, cb) {
             if (obj.db)
                 obj.db.close();
             obj.db = db;
-            if (obj.config.registryLocation && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
-                cacheDB[obj.config.registryLocation.l1][obj.config.registryLocation.l2].db = db;
-                cacheDB[obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash = merge(true, obj.config);
-                delete  cacheDB[obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash.timeConnected;
-                cacheDB[obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash = objectHash(cacheDB[obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash);
-                cacheDB[obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected = obj.config.timeConnected;
+            if (obj.config.registryLocation && obj.config.registryLocation.env && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
+                cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db = db;
+                cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash = merge(true, obj.config);
+                delete  cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash.timeConnected;
+                cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash = objectHash(cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash);
+                cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected = obj.config.timeConnected;
             }
             obj.pending = false;
             return cb();

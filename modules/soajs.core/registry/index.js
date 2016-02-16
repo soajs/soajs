@@ -19,7 +19,7 @@ var registry_struct = {};
 registry_struct[regEnvironment] = null;
 
 var build = {
-    "metaAndCoreDB": function (STRUCT) {
+    "metaAndCoreDB": function (STRUCT, envCode) {
         var metaAndCoreDB = {"metaDB": {}, "coreDB": {}};
 
         if (STRUCT && STRUCT.dbs && STRUCT.dbs.databases) {
@@ -35,14 +35,13 @@ var build = {
                             "URLParam": STRUCT.dbs.clusters[dbRec.cluster].URLParam,
                             "extraParam": STRUCT.dbs.clusters[dbRec.cluster].extraParam
                         };
+                        dbObj.registryLocation = {"l1": "metaDB", "l2": dbName, "env" : envCode};
                         if (dbRec.tenantSpecific) {
                             dbObj.name = "#TENANT_NAME#_" + dbName;
-                            dbObj.registryLocation = {"l1": "metaDB", "l2": dbName};
                             metaAndCoreDB.metaDB[dbName] = dbObj;
                         }
                         else {
                             dbObj.name = dbName;
-                            dbObj.registryLocation = {"l1": "coreDB", "l2": dbName};
                             metaAndCoreDB.coreDB[dbName] = dbObj;
                         }
                     }
@@ -303,10 +302,10 @@ var build = {
          * registry.services.controller.hosts   // if in service and awareness is true
          * registry.services.EVERYSERVICE.hosts // if in controller only and awareness is true
          */
-        var metaAndCoreDB = build.metaAndCoreDB(registryDBInfo.ENV_schema);
+        var metaAndCoreDB = build.metaAndCoreDB(registryDBInfo.ENV_schema, registry.environment);
         registry["tenantMetaDB"] = metaAndCoreDB.metaDB;
         if (!registryDBInfo.ENV_schema || !registryDBInfo.ENV_schema.services || !registryDBInfo.ENV_schema.services.config) {
-            var err = new Error('Unable to get [' + regEnvironment + '] environment services from db');
+            var err = new Error('Unable to get [' + registry.environment + '] environment services from db');
             return callback(err);
         }
         registry["serviceConfig"] = registryDBInfo.ENV_schema.services.config;
@@ -328,7 +327,7 @@ var build = {
         };
 
         registry["coreDB"]["session"] = build.sessionDB(registryDBInfo.ENV_schema);
-        registry["coreDB"]["session"].registryLocation = {"l1": "coreDB", "l2": "session"};
+        registry["coreDB"]["session"].registryLocation = {"l1": "coreDB", "l2": "session", "env" : registry.environment};
 
         registry["daemons"] = {};
         return callback(null);
@@ -468,12 +467,12 @@ function loadProfile(envFrom) {
                     "provision": regFileObj
                 }
             };
-            registry.coreDB.provision.registryLocation = {"l1": "coreDB", "l2": "provision"};
+            registry.coreDB.provision.registryLocation = {"l1": "coreDB", "l2": "provision", "env" : registry.environment};
 
-            if (!registry_struct[registry.name])
-                registry_struct[registry.name] = registry;
+            if (!registry_struct[registry.environment])
+                registry_struct[registry.environment] = registry;
             else
-                registry_struct[registry.name].coreDB.provision = registry.coreDB.provision;
+                registry_struct[registry.environment].coreDB.provision = registry.coreDB.provision;
             return registry;
         }
         else {
@@ -489,7 +488,7 @@ function loadProfile(envFrom) {
 function loadRegistry(param, cb) {
     var registry = loadProfile();
     if (registry) {
-        build.loadDBInformation(registry.coreDB.provision, regEnvironment, param, function (error, RegistryFromDB) {
+        build.loadDBInformation(registry.coreDB.provision, registry.environment, param, function (error, RegistryFromDB) {
             if (error || !RegistryFromDB) {
                 if (!param.reload) {
                     throw new Error('Unable to load Registry Db Info: ' + error.message);
@@ -509,7 +508,7 @@ function loadRegistry(param, cb) {
                     }
                     build.buildSpecificRegistry(param, registry, RegistryFromDB, function (err) {
                         registry.profileOnly = false;
-                        registry_struct[regEnvironment] = registry;
+                        registry_struct[registry.environment] = registry;
                         return cb(err);
                     });
                 });
