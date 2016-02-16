@@ -2,7 +2,6 @@
 
 var Mongo = require('../soajs.mongo');
 var util = require('util');
-var registry = require ("../soajs.core/registry/index.js");
 
 
 /**
@@ -26,23 +25,19 @@ module.exports = function (connect) {
         if (!options || typeof options !== 'object')
             throw new Error('MongoStore needs db info to connect : ' + options + ' ');
 
-        var dbOption = options;
-        if (options.registry && options.db)
-            dbOption = registry.get()[options.registry][options.db];
-
-        Store.call(this, dbOption.store);
+        Store.call(this, options.store);
 
         //NOTE: we cannot stringify the session object. we need to keep it an object in mongo in order to support multi tenancy in the set method below
         this._options = {
-            "collection": dbOption.collection,
+            "collection": options.collection,
             "stringify": false,
-            "expireAfter": dbOption.expireAfter
+            "expireAfter": options.expireAfter
         };
 
         this.mongo = new Mongo(options);
-        this.mongo.ensureIndex(dbOption.collection, {expires: 1}, {expireAfterSeconds: 0}, function (err, result) {
+        this.mongo.ensureIndex(options.collection, {expires: 1}, {expireAfterSeconds: 0}, function (err, result) {
             if (err) {
-                throw new Error('Error setting TTL index on collection : ' + dbOption.collection + ' <' + err + '>');
+                throw new Error('Error setting TTL index on collection : ' + options.collection + ' <' + err + '>');
             }
         });
     }
