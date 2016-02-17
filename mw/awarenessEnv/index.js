@@ -13,74 +13,78 @@ module.exports = function (param) {
     if (param.awarenessEnv) {
         var serviceAwarenessObj = {};
         var controllerHosts = null;
+        var timeLoaded = 0;
         var registry = core.registry.get();
-        core.registry.loadOtherEnvControllerHosts(function (error, hosts) {
-            if (error)
-                param.log.warn("Failed to load controller hosts. reusing from previous load. Reason: " + error.message);
-            else{
-                controllerHosts = hosts;
-	            controllerHosts.forEach(function(oneHost){
-		            oneHost.name = "controller";
-	            });
-            }
-        });
 
-        var fetchControllerHosts = function () {
+        var fetchControllerHosts = function (next) {
             registry = core.registry.get();
             core.registry.loadOtherEnvControllerHosts(function (error, hosts) {
                 if (error)
                     param.log.warn("Failed to load controller hosts. reusing from previous load. Reason: " + error.message);
-                else{
+                else {
                     controllerHosts = hosts;
-	                controllerHosts.forEach(function(oneHost){
-		                oneHost.name = "controller";
-	                });
+                    controllerHosts.forEach(function (oneHost) {
+                        oneHost.name = "controller";
+                    });
                 }
                 param.log.info("Self Awareness ENV reloaded controller hosts. next reload is in [" + registry.serviceConfig.awareness.autoRelaodRegistry + "] milliseconds");
                 setTimeout(fetchControllerHosts, registry.serviceConfig.awareness.autoRelaodRegistry);
+
+                if (next && typeof next === "function")
+                    next();
             });
         };
 
         var awareness_healthCheck = function () {
             registry = core.registry.get();
-            if (controllerHosts && Array.isArray(controllerHosts) && controllerHosts.length > 0) {
-                var controllerPort = registry.services.controller.port;
-                async.each(controllerHosts,
-                    function (sObj, callback) {
-                        if (!serviceAwarenessObj[sObj.env])
-                            serviceAwarenessObj[sObj.env] = {};
-                        if (!serviceAwarenessObj[sObj.env][sObj.name])
-                            serviceAwarenessObj[sObj.env][sObj.name] = {"healthy": {}, "indexes": {}, "latest": 1};
-                        if (!serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version])
-                            serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version] = [];
-                        if (!serviceAwarenessObj[sObj.env][sObj.name].indexes[sObj.version])
-                            serviceAwarenessObj[sObj.env][sObj.name].indexes[sObj.version] = 0;
-                        request({
-                            'uri': 'http://' + sObj.ip + ':' + (controllerPort + registry.serviceConfig.ports.maintenanceInc) + '/heartbeat'
-                        }, function (error, response, body) {
-                            if (serviceAwarenessObj[sObj.env][sObj.name].latest < sObj.version)
-                                serviceAwarenessObj[sObj.env][sObj.name].latest = sObj.version;
-                            if (!error && response.statusCode === 200) {
-                                if (serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version].indexOf(sObj.ip) === -1)
-                                    serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version].push(sObj.ip);
-                            }
-                            else {
-                                if (serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version].indexOf(sObj.ip) !== -1) {
-                                    //TODO: if we guarantee uniqueness we will not need the for loop
-                                    for (var ii = 0; ii < serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version].length; ii++) {
-                                        if (serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version][ii] === sObj.ip)
-                                            serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version].splice(ii, 1);
+
+            var resume = function () {
+                if (controllerHosts && Array.isArray(controllerHosts) && controllerHosts.length > 0) {
+                    var controllerPort = registry.services.controller.port;
+                    async.each(controllerHosts,
+                        function (sObj, callback) {
+                            if (!serviceAwarenessObj[sObj.env])
+                                serviceAwarenessObj[sObj.env] = {};
+                            if (!serviceAwarenessObj[sObj.env][sObj.name])
+                                serviceAwarenessObj[sObj.env][sObj.name] = {"healthy": {}, "indexes": {}, "latest": 1};
+                            if (!serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version])
+                                serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version] = [];
+                            if (!serviceAwarenessObj[sObj.env][sObj.name].indexes[sObj.version])
+                                serviceAwarenessObj[sObj.env][sObj.name].indexes[sObj.version] = 0;
+                            request({
+                                'uri': 'http://' + sObj.ip + ':' + (controllerPort + registry.serviceConfig.ports.maintenanceInc) + '/heartbeat'
+                            }, function (error, response, body) {
+                                if (serviceAwarenessObj[sObj.env][sObj.name].latest < sObj.version)
+                                    serviceAwarenessObj[sObj.env][sObj.name].latest = sObj.version;
+                                if (!error && response.statusCode === 200) {
+                                    if (serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version].indexOf(sObj.ip) === -1)
+                                        serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version].push(sObj.ip);
+                                }
+                                else {
+                                    if (serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version].indexOf(sObj.ip) !== -1) {
+                                        //TODO: if we guarantee uniqueness we will not need the for loop
+                                        for (var ii = 0; ii < serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version].length; ii++) {
+                                            if (serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version][ii] === sObj.ip)
+                                                serviceAwarenessObj[sObj.env][sObj.name].healthy[sObj.version].splice(ii, 1);
+                                        }
                                     }
                                 }
-                            }
-                            callback();
+                                callback();
+                            });
+                        }, function (err) {
+                            if (err)
+                                param.log.warn('Unable to build awareness ENV structure for controllers: ' + err);
                         });
-                    }, function (err) {
-                        if (err)
-                            param.log.warn('Unable to build awareness ENV structure for controllers: ' + err);
-                    });
-            }
-            setTimeout(awareness_healthCheck, registry.serviceConfig.awareness.healthCheckInterval);
+                }
+                setTimeout(awareness_healthCheck, registry.serviceConfig.awareness.healthCheckInterval);
+            };
+
+            if (timeLoaded !== registry.timeLoaded)
+                fetchControllerHosts(resume);
+            else
+                resume();
+
+            timeLoaded = registry.timeLoaded;
         };
         var roundRobin = function (env, v, cb) {
             if (!cb && typeof v === "function") {
