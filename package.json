@@ -55,6 +55,7 @@
     "nodemailer-sendmail-transport": "*",
     "nodemailer-smtp-transport": "*",
     "oauth2-server" : "*",
+    "object-hash": "*",
     "request": "*",
     "swig": "*",
     "useragent": "*",
