@@ -619,11 +619,8 @@ exports.loadByEnv = function (param, cb) {
 exports.loadOtherEnvControllerHosts = function (cb) {
     if (!mongo)
         mongo = new Mongo(registry.coreDB.provision);
-    mongo.find('hosts', {'name' : "controller", 'env': {'$ne' : regEnvironment}}, function (error, hostsRecords) {
-        if (error)
-            return cb(error);
-        return cb(null, hostsRecords);
-    });
+	var pattern  = new RegExp("controller", "i");
+    mongo.find('hosts', {'name' : {'$regex': pattern}, 'env': {'$ne' : regEnvironment}}, cb);
 };
 exports.autoRegisterService = function (name, serviceIp, serviceVersion, what, cb) {
     var controllerSRV = registry_struct[regEnvironment].services.controller;
