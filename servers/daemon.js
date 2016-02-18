@@ -72,6 +72,7 @@ daemon.prototype.init = function (callback) {
     var _self = this;
     var registry = null;
 
+    _self.soajs.param.serviceGroup = _self.soajs.param.serviceGroup || "daemon";
     _self.soajs.param.serviceVersion = _self.soajs.param.serviceVersion || 1;
     _self.soajs.param.servicePort = _self.soajs.param.servicePort || null;
     _self.soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
@@ -96,6 +97,7 @@ daemon.prototype.init = function (callback) {
     core.registry.load({
         "type": "daemon",
         "serviceName": _self.soajs.param.serviceName,
+        "serviceGroup": _self.soajs.param.serviceGroup,
         "serviceVersion": _self.soajs.param.serviceVersion,
         "designatedPort": _self.soajs.param.servicePort,
         "serviceIp": _self.soajs.param.serviceIp,
@@ -181,6 +183,7 @@ daemon.prototype.start = function (cb) {
                     core.registry.reload({
                         "type": "daemon",
                         "serviceName": _self.soajs.param.serviceName,
+                        "serviceGroup": _self.soajs.param.serviceGroup,
                         "serviceVersion": _self.soajs.param.serviceVersion,
                         "designatedPort": _self.soajs.param.servicePort,
                         "serviceIp": _self.soajs.param.serviceIp

@@ -91,6 +91,7 @@ service.prototype.init = function (callback) {
     var registry = null;
     var soajs = _self.app.soajs;
 
+    soajs.param.serviceGroup = soajs.param.serviceGroup || "service";
     soajs.param.serviceVersion = soajs.param.serviceVersion || 1;
     soajs.param.servicePort = soajs.param.servicePort || null;
     soajs.param.extKeyRequired = soajs.param.extKeyRequired || false;
@@ -119,6 +120,7 @@ service.prototype.init = function (callback) {
 
     core.registry.load({
         "serviceName": soajs.param.serviceName,
+        "serviceGroup": soajs.param.serviceGroup,
         "serviceVersion": soajs.param.serviceVersion,
         "designatedPort": soajs.param.servicePort,
         "extKeyRequired": soajs.param.extKeyRequired,
@@ -271,6 +273,7 @@ service.prototype.init = function (callback) {
             var awareness_mw = require("./../mw/awareness/index");
             _self.app.use(awareness_mw({
                 "serviceName": soajs.param.serviceName,
+                "serviceGroup": soajs.param.serviceGroup,
                 "serviceVersion": soajs.param.serviceVersion,
                 "designatedPort": soajs.param.servicePort,
                 "extKeyRequired": soajs.param.extKeyRequired,
@@ -379,6 +382,7 @@ service.prototype.start = function (cb) {
                 _self.appMaintenance.get("/reloadRegistry", function (req, res) {
                     core.registry.reload({
                         "serviceName": _self.app.soajs.param.serviceName,
+                        "serviceGroup": _self.app.soajs.param.serviceGroup,
                         "serviceVersion": _self.app.soajs.param.serviceVersion,
                         "designatedPort": _self.app.soajs.param.servicePort,
                         "extKeyRequired": _self.app.soajs.param.extKeyRequired,

@@ -176,6 +176,7 @@ controller.prototype.init = function (callback) {
                 /**
                  * if service
                  *      name
+                 *      group
                  *      port
                  *      ip
                  *      extKeyRequired
@@ -187,6 +188,7 @@ controller.prototype.init = function (callback) {
                 response = maintenanceResponse(req);
                 var regOptions = {
                     "name": parsedUrl.query.name,
+                    "group": parsedUrl.query.group,
                     "port": parseInt(parsedUrl.query.port),
                     "ip": parsedUrl.query.ip,
                     "type": parsedUrl.query.type,

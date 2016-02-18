@@ -84,6 +84,7 @@ var build = {
                     continue;
                 }
                 servicesObj[STRUCT[i].name] = {
+                    "group" : STRUCT[i].group || "service",
                     "extKeyRequired": STRUCT[i].extKeyRequired,
                     "port": STRUCT[i].port,
                     "requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
@@ -100,6 +101,7 @@ var build = {
                     continue;
                 }
                 servicesObj[STRUCT[i].name] = {
+                    "group" : STRUCT[i].group || "daemon",
                     "port": STRUCT[i].port
                 };
             }
@@ -132,40 +134,6 @@ var build = {
             }
         }
     },
-    /*
-     "service": function (STRUCT, serviceName) {
-     var serviceObj = null;
-     if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
-     for (var i = 0; i < STRUCT.length; i++) {
-     if (STRUCT[i].name === serviceName) {
-     serviceObj = {
-     "extKeyRequired": STRUCT[i].extKeyRequired,
-     "port": STRUCT[i].port,
-     "requestTimeoutRenewal": STRUCT[i].requestTimeoutRenewal || null,
-     "requestTimeout": STRUCT[i].requestTimeout || null
-     };
-     break;
-     }
-     }
-     }
-     return serviceObj;
-     },
-     "daemon": function (STRUCT, serviceName) {
-     var serviceObj = null;
-     if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
-     for (var i = 0; i < STRUCT.length; i++) {
-     if (STRUCT[i].name === serviceName) {
-     //TODO: add env specific info in object below ie: interval=3000, status=1||0,
-     serviceObj = {
-     "port": STRUCT[i].port
-     };
-     break;
-     }
-     }
-     }
-     return serviceObj;
-     },
-     */
     "controllerHosts": function (STRUCT, controllerObj) {
         if (STRUCT && Array.isArray(STRUCT) && STRUCT.length > 0) {
             for (var i = 0; i < STRUCT.length; i++) {
@@ -265,44 +233,9 @@ var build = {
             }
             return cb(null, true);
         });
-        /*
-         //check if this host has this ip in the env
-         mongo.findOne('hosts', hostObj, function (error, dbRecord) {
-         if (error || dbRecord) {
-         return cb(error, false);
-         }
-         if (!dbRecord) {
-         mongo.insert('hosts', hostObj, function (err) {
-         if (err) {
-         return cb(err, false);
-         }
-         return cb(null, true);
-         });
-         }
-         });
-         */
     },
 
     "buildRegistry": function (registry, registryDBInfo, callback) {
-        /**
-         * ENV_schema:
-         * --------------
-         * registry.tenantMetaDB             //tenantSpecific true
-         * registry.serviceConfig
-         * registry.coreDB.session
-         * registry.coreDB                   //tenantSpecific false
-         * registry.services.controller      // without the hosts array
-         *
-         * services_schema:
-         * -------------------
-         * registry.services.SERVICENAME     // if in service
-         * registry.services.EVERYSERVICE    // if in controller only and awareness is true
-         *
-         * ENV_hosts:
-         * -------------
-         * registry.services.controller.hosts   // if in service and awareness is true
-         * registry.services.EVERYSERVICE.hosts // if in controller only and awareness is true
-         */
         var metaAndCoreDB = build.metaAndCoreDB(registryDBInfo.ENV_schema, registry.environment);
         registry["tenantMetaDB"] = metaAndCoreDB.metaDB;
         if (!registryDBInfo.ENV_schema || !registryDBInfo.ENV_schema.services || !registryDBInfo.ENV_schema.services.config) {
@@ -319,6 +252,7 @@ var build = {
 
         registry["services"] = {
             "controller": {
+                "group" : "controller",
                 "maxPoolSize": registryDBInfo.ENV_schema.services.controller.maxPoolSize,
                 "authorization": registryDBInfo.ENV_schema.services.controller.authorization,
                 "port": registryDBInfo.ENV_schema.services.config.ports.controller,
@@ -346,6 +280,7 @@ var build = {
             if (param.type && param.type === "daemon") {
                 var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
                 registry["daemons"][param.serviceName] = {
+                    "group" : param.serviceGroup,
                     "port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc)
                 };
                 if (param.reload) {
@@ -355,6 +290,7 @@ var build = {
                     //adding daemon service for the first time to services collection
                     var newDaemonServiceObj = {
                         'name': param.serviceName,
+                        "group" : param.serviceGroup,
                         'port': registry["daemons"][param.serviceName].port,
                         'jobs': param.jobList,
                         'versions': {},
@@ -373,6 +309,7 @@ var build = {
             else {
                 var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
                 registry["services"][param.serviceName] = {
+                    "group" : param.serviceGroup,
                     "extKeyRequired": param.extKeyRequired || false,
                     "port": param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc),
                     "requestTimeout": param.requestTimeout,
@@ -385,6 +322,7 @@ var build = {
                     //adding service for the first time to services collection
                     var newServiceObj = {
                         'name': param.serviceName,
+                        "group" : param.serviceGroup,
                         'extKeyRequired': registry["services"][param.serviceName].extKeyRequired,
                         'port': registry["services"][param.serviceName].port,
                         'requestTimeout': registry["services"][param.serviceName].requestTimeout,
@@ -549,6 +487,7 @@ exports.register = function (param, cb) {
             }
             if (param.type === "service") {
                 registry_struct[regEnvironment][what][param.name] = {
+                    "group": param.group,
                     "port": param.port,
                     "extKeyRequired": param.extKeyRequired || false,
                     "requestTimeout": param.requestTimeout,
@@ -557,6 +496,7 @@ exports.register = function (param, cb) {
             }
             else {
                 registry_struct[regEnvironment][what][param.name] = {
+                    "group": param.group,
                     "port": param.port
                 };
             }
@@ -639,6 +579,7 @@ exports.autoRegisterService = function (name, serviceIp, serviceVersion, what, c
                 if (what === "daemons") {
                     requestOptions.qs = {
                         "name": name,
+                        "group": serviceSRV.group,
                         "port": serviceSRV.port,
                         "ip": serviceIp,
                         "type": "daemon",
@@ -648,6 +589,7 @@ exports.autoRegisterService = function (name, serviceIp, serviceVersion, what, c
                 else {
                     requestOptions.qs = {
                         "name": name,
+                        "group": serviceSRV.group,
                         "port": serviceSRV.port,
                         "ip": serviceIp,
                         "type": "service",
