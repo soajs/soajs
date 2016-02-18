@@ -41,6 +41,7 @@ var build = {
                             metaAndCoreDB.metaDB[dbName] = dbObj;
                         }
                         else {
+	                        dbObj.registryLocation.l1 = "coreDB";
                             dbObj.name = dbName;
                             metaAndCoreDB.coreDB[dbName] = dbObj;
                         }
