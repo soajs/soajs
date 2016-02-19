@@ -94,7 +94,7 @@ module.exports = function (param) {
                                             var sObj = {
                                                 "name": s,
                                                 "port": registry.daemons[s].port,
-                                                "group": registry.services[s].group,
+                                                "group": registry.daemons[s].group,
                                                 "host": registry.daemons[s].hosts[h_ver][i],
                                                 "what": "daemons",
                                                 "version": h_ver
