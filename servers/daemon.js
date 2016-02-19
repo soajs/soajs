@@ -246,14 +246,15 @@ daemon.prototype.start = function (cb) {
                             _self.daemonStats.step = "fetching";
 
                             var jobs_array = [];
-                            var buildJob = function (jobInfoObj) {
+                            var buildJob = function (jobInfoObj, _job) {
                                 var jobObj = {};
                                 if (jobInfoObj.type === "global") {
                                     jobObj = {
                                         "soajs": {
+                                            "meta": core.meta,
                                             "servicesConfig": jobInfoObj.serviceConfig
                                         },
-                                        "job": job,
+                                        "job": _job,
                                         "thread": "global"
                                     };
                                     jobs_array.push(jobObj);
@@ -261,8 +262,10 @@ daemon.prototype.start = function (cb) {
                                 else if (jobInfoObj.tenantExtKeys) { //type === "tenant"
                                     for (var tCount = 0; tCount < jobInfoObj.tenantExtKeys.length; tCount++) {
                                         jobObj = {
-                                            "soajs": {},
-                                            "job": job
+                                            "soajs": {
+                                                "meta": core.meta
+                                            },
+                                            "job": _job
                                         };
                                         var tExtKey = jobInfoObj.tenantExtKeys[tCount];
                                         jobObj.thread = tExtKey;
@@ -291,14 +294,14 @@ daemon.prototype.start = function (cb) {
                                 if (daemonConf.daemonConfigGroup.order && Array.isArray(daemonConf.daemonConfigGroup.order)) {
                                     for (var i = 0; i < daemonConf.daemonConfigGroup.order.length; i++) {
                                         if (daemonConf.jobs[daemonConf.daemonConfigGroup.order[i]])
-                                            buildJob(daemonConf.jobs[daemonConf.daemonConfigGroup.order[i]]);
+                                            buildJob(daemonConf.jobs[daemonConf.daemonConfigGroup.order[i]], daemonConf.daemonConfigGroup.order[i]);
                                     }
                                 }
                             }
                             else {
                                 for (var job in daemonConf.jobs) {
                                     if ((Object.hasOwnProperty.call(daemonConf.jobs, job)) && struct_jobs[job]) {
-                                        buildJob(daemonConf.jobs[job]);
+                                        buildJob(daemonConf.jobs[job], job);
                                     }
                                 }
                             }
