@@ -1,6 +1,8 @@
 'use strict';
 
 var path = require('path');
+var npm = require('npm');
+var os = require('os');
 
 var provision = require("./../modules/soajs.provision/index.js");
 var core = require("./../modules/soajs.core/index.js");
@@ -378,7 +380,6 @@ service.prototype.start = function (cb) {
                     response['result'] = true;
                     res.jsonp(response);
                 });
-
                 _self.appMaintenance.get("/reloadRegistry", function (req, res) {
                     core.registry.reload({
                         "serviceName": _self.app.soajs.param.serviceName,
@@ -407,6 +408,61 @@ service.prototype.start = function (cb) {
                         response['result'] = loaded;
                         res.jsonp(response);
                     });
+                });
+                _self.appMaintenance.get("/packageList", function (req, res) {
+                    var response = maintenanceResponse(req);
+                    npm.load({ parseable: true, loglevel: "error" }, function (err, npm) {
+                        if (err){
+                            _self._log.error(err);
+                            return res.jsonp(response);
+                        }
+                        npm.commands.ls(null, function (err, data) {
+                            if (err){
+                                var errArray = [];
+                                errArray = err.split('\n');
+                                response['error'] = errArray;
+                            }
+                            if (data) {
+                                response['result'] = true;
+                                var resObj = {};
+                                if (data.dependencies) {
+                                    data = data.dependencies;
+                                    var buildPackage = function (pdata, presObj) {
+                                        for (var p in pdata) {
+                                            if (pdata.hasOwnProperty(p)) {
+                                                presObj[p] = {"version": pdata[p].version, "dependencies": {}};
+                                                if (pdata[p].error)
+                                                    presObj[p].error = pdata[p].error;
+                                                if (pdata[p].invalid)
+                                                    presObj[p].invalid = pdata[p].invalid;
+                                                if (pdata[p].peerMissing)
+                                                    presObj[p].peerMissing = pdata[p].peerMissing;
+                                                if (pdata[p].dependencies && typeof pdata[p].dependencies === "object") {
+                                                    buildPackage(pdata[p].dependencies, presObj[p].dependencies);
+                                                }
+                                            }
+                                        }
+                                    };
+                                    buildPackage(data, resObj);
+                                }
+                                response['data'] = resObj;
+                            }
+                            res.jsonp(response);
+                        });
+                    });
+                });
+                _self.appMaintenance.get("/resourceInfo", function (req, res) {
+                    var response = maintenanceResponse(req);
+                    var data = {};
+                    data['hostname'] = os.hostname();
+                    data['uptime'] = os.uptime();
+                    data['cpus'] = os.cpus();
+                    data['net'] = os.networkInterfaces();
+                    data['mem'] = {'total': os.totalmem(), 'free': os.freemem()};
+                    data['load'] = os.loadavg();
+                    response['result'] = true;
+                    response['data'] = data;
+                    res.jsonp(response);
                 });
                 _self.appMaintenance.all('*', function (req, res) {
                     var response = maintenanceResponse(req, "heartbeat");
