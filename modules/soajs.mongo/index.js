@@ -523,6 +523,23 @@ MongoDriver.prototype.distinct = function () {
     });
 };
 
+MongoDriver.prototype.aggregate = function(){
+	var args = Array.prototype.slice.call(arguments)
+		, collectionName = args.shift()
+		, cb = args[args.length - 1]
+		, self = this;
+
+	if (!collectionName) {
+		return cb(generateError(191));
+	}
+	connect(self, function (err) {
+		if (err) {
+			return cb(err);
+		}
+		self.db.collection(collectionName).aggregate.apply(self.db.collection(collectionName), args);
+	});
+};
+
 /**
  * Removes the objects matching the criteria from the specified collection
  *
