@@ -508,7 +508,7 @@ function injectOauth(restApp, args) {
 	}
 
 	var oauthModelInjection = function(req, res, next) {
-		if(req.soajs && !req.soajs.servicesConfig[restApp.app.soajs.oauthService].disabled) {
+		if(req.soajs && !(req.soajs.servicesConfig && req.soajs.servicesConfig[restApp.app.soajs.oauthService] && req.soajs.servicesConfig[restApp.app.soajs.oauthService].disabled)) {
 			provision.getOauthToken(req.query.access_token, function(err, record) {
 				restApp.oauth.model["getAccessToken"] = function(bearerToken, callback) {
 					if(record && record.oauthAccessToken) {
@@ -533,13 +533,18 @@ function injectOauth(restApp, args) {
 			return next();
 		}
 	};
+    var oauthExec = function (req, res, next) {
+        if (req.soajs.servicesConfig && req.soajs.servicesConfig[restApp.app.soajs.oauthService] && req.soajs.servicesConfig[restApp.app.soajs.oauthService].disabled)
+            return next();
+        return restApp.app.soajs.oauth(req, res, next);
+    };
 
 	if(restApp.app.soajs.oauth) {
 		var len = args.length;
 		var argsNew = [];
 		argsNew.push(args[0]);
 		argsNew.push(oauthModelInjection);
-		argsNew.push(restApp.app.soajs.oauth);
+		argsNew.push(oauthExec);
 		for(var i = 1; i < len; i++) {
 			argsNew[i + 2] = args[i];
 		}
