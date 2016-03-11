@@ -508,7 +508,7 @@ function injectOauth(restApp, args) {
 	}
 
 	var oauthModelInjection = function(req, res, next) {
-		if(req.soajs) {
+		if(req.soajs && !req.soajs.servicesConfig[restApp.app.soajs.oauthService].disabled) {
 			provision.getOauthToken(req.query.access_token, function(err, record) {
 				restApp.oauth.model["getAccessToken"] = function(bearerToken, callback) {
 					if(record && record.oauthAccessToken) {
