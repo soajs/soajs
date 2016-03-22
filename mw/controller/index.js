@@ -92,10 +92,23 @@ module.exports = function () {
  */
 function extractBuildParameters(req, service, service_nv, version, url) {
     if (service && req.soajs.registry && req.soajs.registry.services && req.soajs.registry.services[service] && req.soajs.registry.services[service].port && req.soajs.registry.services[service].hosts) {
-        req.soajs.registry.services[service].url = url.substring(service_nv.length + 1);
-        req.soajs.registry.services[service].name = service;
-        req.soajs.registry.services[service].version = version;
-        return req.soajs.registry.services[service];
+
+        if (!version)
+            version = req.soajs.registry.services[service].hosts.latest;
+
+        var extKeyRequired = false;
+        if (req.soajs.registry.services[service].versions && req.soajs.registry.services[service].versions[version])
+            extKeyRequired = req.soajs.registry.services[service].versions[version].extKeyRequired || false
+
+        var serviceInfo = {
+            "registry" : req.soajs.registry.services[service],
+            "name" : service,
+            "url" : url.substring(service_nv.length + 1),
+            "version": version,
+            "extKeyRequired" : extKeyRequired
+        };
+
+        return serviceInfo;
     }
     return null;
 }
@@ -112,8 +125,8 @@ function redirectToService(req, res) {
     if (!config) {
         return req.soajs.controllerResponse(core.error.getError(131));
     }
-    var requestTOR = restServiceParams.requestTimeoutRenewal || config.requestTimeoutRenewal;
-    var requestTO = restServiceParams.requestTimeout || config.requestTimeout;
+    var requestTOR = restServiceParams.registry.requestTimeoutRenewal || config.requestTimeoutRenewal;
+    var requestTO = restServiceParams.registry.requestTimeout || config.requestTimeout;
 
     req.soajs.awareness.getHost(restServiceParams.name, restServiceParams.version, function (host) {
         if (!host) {
@@ -122,7 +135,7 @@ function redirectToService(req, res) {
         }
         var requestOptions = {
             'method': req.method,
-            'uri': 'http://' + host + ':' + restServiceParams.port + restServiceParams.url,
+            'uri': 'http://' + host + ':' + restServiceParams.registry.port + restServiceParams.url,
             'timeout': 1000 * 3600,
             //'pool': 'controller',
             'headers': req.headers,
@@ -142,7 +155,7 @@ function redirectToService(req, res) {
             if (req.soajs.controller.renewalCount <= requestTOR) {
                 req.soajs.log.info('Trying to keep request alive by checking the service heartbeat ...');
                 request({
-                    'uri': 'http://' + host + ':' + (restServiceParams.port + req.soajs.registry.serviceConfig.ports.maintenanceInc) + '/heartbeat',
+                    'uri': 'http://' + host + ':' + (restServiceParams.registry.port + req.soajs.registry.serviceConfig.ports.maintenanceInc) + '/heartbeat',
                     'headers': req.headers
                 }, function (error, response) {
                     if (!error && response.statusCode === 200) {
@@ -158,14 +171,6 @@ function redirectToService(req, res) {
                 return req.soajs.controllerResponse(core.error.getError(134));
             }
         });
-        /*
-        if (!req.headers.stream && (req.method === 'POST' || req.method === 'PUT')) {
-            requestOptions.body = body || "{}";
-            if (requestOptions.headers['content-length'] === '0') {
-                requestOptions.headers['content-length'] = requestOptions.body.length;
-            }
-        }
-        */
         if (config.authorization) {
             isRequestAuthorized(req, requestOptions);
         }

@@ -92,9 +92,12 @@ service.prototype.init = function (callback) {
     var _self = this;
     var registry = null;
     var soajs = _self.app.soajs;
-
-    soajs.param.serviceGroup = soajs.param.serviceGroup || "service";
+    soajs.param.serviceGroup = soajs.param.serviceGroup || "No Group Service";
     soajs.param.serviceVersion = soajs.param.serviceVersion || 1;
+    soajs.param.serviceVersion = parseInt(soajs.param.serviceVersion);
+    if (isNaN(soajs.param.serviceVersion)){
+        throw new Error('Service version must be integer: ['+soajs.param.serviceVersion+']');
+    }
     soajs.param.servicePort = soajs.param.servicePort || null;
     soajs.param.extKeyRequired = soajs.param.extKeyRequired || false;
     soajs.param.requestTimeout = soajs.param.requestTimeout || null;

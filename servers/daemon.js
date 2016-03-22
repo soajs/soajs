@@ -72,8 +72,12 @@ daemon.prototype.init = function (callback) {
     var _self = this;
     var registry = null;
 
-    _self.soajs.param.serviceGroup = _self.soajs.param.serviceGroup || "daemon";
+    _self.soajs.param.serviceGroup = _self.soajs.param.serviceGroup || "No Group Daemon";
     _self.soajs.param.serviceVersion = _self.soajs.param.serviceVersion || 1;
+    _self.soajs.param.serviceVersion = parseInt(_self.soajs.param.serviceVersion);
+    if (isNaN(_self.soajs.param.serviceVersion)){
+        throw new Error('Daemon Service version must be integer: ['+_self.soajs.param.serviceVersion+']');
+    }
     _self.soajs.param.servicePort = _self.soajs.param.servicePort || null;
     _self.soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
 
