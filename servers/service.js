@@ -40,10 +40,14 @@ function service(param) {
         param.multitenant = true;
         param.security = true;
         param.acl = true;
-        param.session = true;
+    }
+    else {
+        param.multitenant = false;
+        param.security = false;
+        param.acl = false;
     }
 
-    var defaultParam = ["bodyParser", "methodOverride", "cookieParser", "logger", "inputmask"];
+    var defaultParam = ["bodyParser", "methodOverride", "cookieParser", "logger", "inputmask", "awareness"];
     var len = defaultParam.length;
     for (var i = 0; i < len; i++) {
         if (!Object.hasOwnProperty.call(param, defaultParam[i])) {
@@ -102,7 +106,6 @@ service.prototype.init = function (callback) {
     soajs.param.extKeyRequired = soajs.param.extKeyRequired || false;
     soajs.param.requestTimeout = soajs.param.requestTimeout || null;
     soajs.param.requestTimeoutRenewal = soajs.param.requestTimeoutRenewal || null;
-    soajs.param.awareness = soajs.param.awareness || true;
     soajs.param.awarenessEnv = soajs.param.awarenessEnv || false;
     soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
 
