@@ -241,7 +241,6 @@ var build = {
                         }
                     }
                 }
-                console.log(s)
                 mongo.update(collection, {'name': serviceObj.name}, s, {'upsert': true}, function (error) {
                     return cb(error, serviceObj.port);
                 });
