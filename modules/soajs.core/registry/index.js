@@ -225,8 +225,24 @@ var build = {
                 return cb(error, null);
             }
             if (!record) {
-                //mongo.insert(collection, serviceObj, cb);
-                mongo.update(collection, {'name': serviceObj.name}, {'$set': serviceObj}, {'upsert': true}, function (error) {
+                var s = {
+                    '$set': {}
+                };
+                for (var p in serviceObj) {
+                    if (Object.hasOwnProperty.call(serviceObj, p)) {
+                        if (p !== "versions")
+                            s.$set[p] = serviceObj[p];
+                    }
+                }
+                if (serviceObj.versions) {
+                    for (var pv in serviceObj.versions) {
+                        if (Object.hasOwnProperty.call(serviceObj.versions, pv)) {
+                            s.$set['versions.' + pv] = serviceObj.versions[pv];
+                        }
+                    }
+                }
+                console.log(s)
+                mongo.update(collection, {'name': serviceObj.name}, s, {'upsert': true}, function (error) {
                     return cb(error, serviceObj.port);
                 });
             }
