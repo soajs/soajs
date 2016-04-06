@@ -213,7 +213,12 @@ var build = {
         });
     },
 
-    "registerNewService": function (dbConfiguration, serviceObj, ports, collection, cb) {
+    "registerNewService": function (dbConfiguration, serviceObj, collection, cb) {
+        var port = parseInt(serviceObj.port);
+        if (isNaN(port)){
+            var error = new Error('Service port must be integer: ['+serviceObj.port+']');
+            return cb(error);
+        }
         if (!mongo) {
             mongo = new Mongo(dbConfiguration);
         }
@@ -242,12 +247,12 @@ var build = {
                     }
                 }
                 mongo.update(collection, {'name': serviceObj.name}, s, {'upsert': true}, function (error) {
-                    return cb(error, serviceObj.port);
+                    return cb(error);
                 });
             }
             else {
-                serviceObj.port = randomInt(ports.controller + ports.randomInc, ports.controller + ports.maintenanceInc);
-                build.registerNewService(dbConfiguration, serviceObj, ports, collection, cb);
+                var error = new Error('Service port ['+serviceObj.port+'] is taken by another service ['+record.name+'].');
+                return cb(error);
             }
         });
     },
@@ -310,7 +315,7 @@ var build = {
                 var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
                 registry["daemons"][param.serviceName] = {
                     'group': param.serviceGroup,
-                    'port': param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc),
+                    'port': param.designatedPort,
                     'version': param.serviceVersion,
                 };
                 if (param.reload) {
@@ -327,11 +332,10 @@ var build = {
                     newDaemonServiceObj.versions[param.serviceVersion] = {
                         'jobs': param.jobList
                     };
-                    build.registerNewService(registry.coreDB.provision, newDaemonServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'daemons', function (error, port) {
+                    build.registerNewService(registry.coreDB.provision, newDaemonServiceObj, 'daemons', function (error) {
                         if (error) {
                             throw new Error('Unable to register new daemon service ' + param.serviceName + ' : ' + error.message);
                         }
-                        registry["daemons"][param.serviceName].port = port;
                         return resume("daemons");
                     });
                 }
@@ -340,7 +344,7 @@ var build = {
                 var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
                 registry["services"][param.serviceName] = {
                     'group': param.serviceGroup,
-                    'port': param.designatedPort || randomInt(schemaPorts.controller + schemaPorts.randomInc, schemaPorts.controller + schemaPorts.maintenanceInc),
+                    'port': param.designatedPort,
                     'requestTimeout': param.requestTimeout,
                     'requestTimeoutRenewal': param.requestTimeoutRenewal,
 
@@ -366,11 +370,10 @@ var build = {
                         "awareness": param.awareness
                     };
 
-                    build.registerNewService(registry.coreDB.provision, newServiceObj, registryDBInfo.ENV_schema.services.config.ports, 'services', function (error, port) {
+                    build.registerNewService(registry.coreDB.provision, newServiceObj, 'services', function (error) {
                         if (error) {
                             throw new Error('Unable to register new service ' + param.serviceName + ' : ' + error.message);
                         }
-                        registry["services"][param.serviceName].port = port;
                         return resume("services");
                     });
                 }
