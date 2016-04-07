@@ -66,6 +66,7 @@ var lib = {
 	startUrac: function(cb) {
 		var config = {
 			"serviceName": "urac",
+			"extKeyRequired": true,
 			"errors": {
 				"401": "error logging in try again"
 			},
@@ -109,7 +110,9 @@ var lib = {
 		holder.urac.init(function() {
 			holder.urac.get("/logout", function(req, res) {
 				req.soajs.session.clearURAC(function(err) {
-					res.json(req.soajs.buildResponse(null, true));
+					req.soajs.session.deleteTenantSession(function() {
+						res.json(req.soajs.buildResponse(err, true));
+					});
 				});
 			});
 
@@ -126,24 +129,68 @@ var lib = {
 							if(err || !response) {
 								return res.jsonp(req.soajs.buildResponse({"code": 401, "msg": config.errors[401]}));
 							}
-							var cloneRecord = utils.cloneObj(record);
-							req.soajs.session.setURAC(cloneRecord, function(err) {
-								if(err) {
-									return res.jsonp(req.soajs.buildRestResponse({
-										"code": 401,
-										"msg": config.errors[401]
-									}));
-								}
 
-								req.soajs.session.setSERVICE({'user': req.soajs.inputmaskData}, function(error) {
+							//Get Groups config
+							if (record.groups && Array.isArray(record.groups) && record.groups.length > 0) {
+								tenantMongo.find("groups", {
+									"code": {"$in": record.groups}
+								}, function (err, groups) {
+									record.groupsConfig = null;
+									if (err)
+										req.soajs.log.error(err);
+									else
+										record.groupsConfig = groups;
+
+									proceed(record);
+								});
+							}
+							else {
+								proceed(record);
+							}
+						});
+					} else {
+						return res.jsonp(req.soajs.buildResponse({"code": 401, "msg": config.errors[401]}));
+					}
+				});
+				
+				function proceed(record){
+					var cloneRecord = utils.cloneObj(record);
+					req.soajs.session.setURAC(cloneRecord, function(err) {
+						if(err) {
+							return res.jsonp(req.soajs.buildResponse({
+								"code": 401,
+								"msg": config.errors[401]
+							}));
+						}
+
+						var all = req.soajs.session.getUrac(true);
+						console.log('getUrac, _ALL');
+						console.log(all);
+
+						req.soajs.session.setSERVICE({'user': req.soajs.inputmaskData}, function(error) {
+							if(error) {
+								return res.jsonp(req.soajs.buildResponse({
+									"code": 401,
+									"msg": config.errors[401]
+								}));
+							}
+
+							var groups = req.soajs.session.getGroups();
+							console.log('getGroups');
+							console.log(groups);
+
+							if(cloneRecord.config.keys && Object.keys(cloneRecord.config.keys).length > 0){
+								var newKey = Object.keys(cloneRecord.config.keys)[0];
+								req.soajs.session.setURACKEYCONFIG(cloneRecord.config.keys[newKey].config, function(error) {
 									if(error) {
 										return res.jsonp(req.soajs.buildResponse({
 											"code": 401,
 											"msg": config.errors[401]
 										}));
 									}
-									var newKey = Object.keys(cloneRecord.config.keys)[0];
-									req.soajs.session.setURACKEYCONFIG(cloneRecord.config.keys[newKey].config, function(error) {
+
+									var newAcl = cloneRecord.config.keys[newKey].acl;
+									req.soajs.session.setURACKEYACL(newAcl, function(error) {
 										if(error) {
 											return res.jsonp(req.soajs.buildResponse({
 												"code": 401,
@@ -151,34 +198,66 @@ var lib = {
 											}));
 										}
 
-										var newAcl = cloneRecord.config.keys[newKey].acl;
-										req.soajs.session.setURACKEYACL(newAcl, function(error) {
-											if(error) {
-												return res.jsonp(req.soajs.buildResponse({
-													"code": 401,
-													"msg": config.errors[401]
-												}));
-											}
-
-											req.soajs.session.setURACPACKAGEACL(newAcl, function(error) {
-												if(error) {
-													return res.jsonp(req.soajs.buildResponse({
-														"code": 401,
-														"msg": config.errors[401]
-													}));
-												}
-
-												return res.jsonp(req.soajs.buildResponse(null, record));
-											});
-										});
+										proceedAgain(newAcl, record);
 									});
 								});
-							});
+							}
+							else{
+								var acl = {};
+								if(record.config && record.config.packags && record.config.packages['TPROD_BASIC'].acl){
+									acl = record.config.packages['TPROD_BASIC'].acl;
+								}
+								if(record.username === 'user10004'){
+									var cloneRecord2 = utils.cloneObj(record);
+									cloneRecord2.config = {key: {}, packages: {} };
+									req.soajs.session.setURAC(cloneRecord2, function(err) {
+										proceedAgain(acl, record, false);
+									});
+								}
+								else{
+									proceedAgain(acl, record, true);
+								}
+							}
 						});
-					} else {
-						return res.jsonp(req.soajs.buildResponse({"code": 401, "msg": config.errors[401]}));
+					});
+				}
+
+				function proceedAgain(newAcl, record, updatepackageAcl){
+					if(updatepackageAcl){
+						req.soajs.session.setURACPACKAGEACL(newAcl, function(error) {
+							if(error) {
+								return res.jsonp(req.soajs.buildResponse({
+									"code": 401,
+									"msg": config.errors[401]
+								}));
+							}
+							leave(record);
+						});
 					}
-				});
+					else{
+						leave(record);
+					}
+				}
+
+				function leave(record){
+					var acl = req.soajs.session.getAcl();
+					console.log('getAcl');
+					console.log(acl);
+
+					var packageAcl = req.soajs.session.getPackageAcl();
+					console.log('getPackageAcl');
+					console.log(packageAcl);
+
+					var onePackageAcl = req.soajs.session.getPackageAcl('TPROD_BASIC');
+					console.log('getPackageAcl', 'TPROD_BASIC');
+					console.log(onePackageAcl);
+
+					var getAclAllEnv = req.soajs.session.getAclAllEnv();
+					console.log('getAclAllEnv');
+					console.log(getAclAllEnv);
+
+					return res.jsonp(req.soajs.buildResponse(null, record));
+				}
 			});
 
 			holder.urac.start(function() {
@@ -347,7 +426,7 @@ var lib = {
 	}
 };
 
-describe("testing multi tenantcy", function() {
+describe("testing multi tenancy", function() {
 	var auth;
 
 	before(function(done) {
@@ -365,18 +444,6 @@ describe("testing multi tenantcy", function() {
 		});
 	});
 
-	after(function(done) {
-		lib.stopTestService(function() {
-			lib.stopTestService2(function() {
-				lib.stopUrac(function() {
-					lib.stopController(function() {
-						done();
-					});
-				});
-			});
-		});
-	});
-
 	it('will add user to db', function(done) {
 		var userRecord = {
 			"username": "user10001",
@@ -386,6 +453,10 @@ describe("testing multi tenantcy", function() {
 			"email": "user.one@mydomain.com",
 			"status": "active",
 			"profile": {},
+			"tenant":{
+				"id": testTenant._id.toString(),
+				"code": testTenant.code
+			},
 			"groups": ['vip', 'admin'],
 			"config": {
 				"packages": {
@@ -440,7 +511,69 @@ describe("testing multi tenantcy", function() {
 		tenantMongo.insert('users', userRecord, function(error, response) {
 			assert.ifError(error);
 			assert.ok(response);
-			done();
+			var groupRecord = {
+				"code": "admin",
+				"name": "administrator",
+				"description": "admin test group",
+				"tenant":{
+					"id": testTenant._id.toString(),
+					"code": testTenant.code
+				},
+				"config": {
+					"packages": {
+						"TPROD_BASIC": { //URACPACKAGE
+							"acl": { //URACPACKAGEACL
+								"urac": {},
+								"example03": {},
+								"example02": {}
+							}
+						}
+					},
+					"keys": {
+						"695d3456de70fddc9e1e60a6d85b97d3": { //URACKEY
+							"config": { //URACKEYCONFIG
+								"urac": {}
+							},
+							"acl": { //URACKEYACL
+								"urac": {},
+								"example03": {
+									"access": ['admin'],
+									"apis": {
+										"/testRoute": {'access': ['admin']}
+									}
+								},
+								"example02": {
+									'access': true,
+									"apisPermission": 'restricted',
+									"apis": {
+										"/testRoute2": {"access": ['admin']}
+									},
+									"apisRegExp": [
+										{
+											'regExp': /^\/testRoute$/,
+											'access': true
+										}
+									]
+								}
+							}
+						}
+					},
+					"dashboard": [
+						"members",
+						"environments",
+						"productization",
+						"productization_packages",
+						"multi-tenancy",
+						"multi-tenancy_applications",
+						"multi-tenancy_keys"
+					]
+				}
+			};
+			tenantMongo.insert('groups', groupRecord, function(error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
 		});
 	});
 
@@ -708,6 +841,347 @@ describe("testing multi tenantcy", function() {
 		});
 	});
 
+	describe("additional multi tests", function(){
+		it('will add another user to db', function(done) {
+			var userRecord = {
+				"username": "user10002",
+				"password": "$2a$04$yn9yaxQysIeH2VCixdovJ.TLuOEjFjS5D2Otd7sO7uMkzi9bXX1tq",
+				"firstName": "User",
+				"lastName": "One",
+				"email": "user.one@mydomain.com",
+				"status": "active",
+				"profile": {},
+				"tenant":{
+					"id": testTenant._id.toString(),
+					"code": testTenant.code
+				},
+				"groups": ['vip', 'admin'],
+				"config": {
+					"packages": {
+						"TPROD_BASIC": { //URACPACKAGE
+							"acl": { //URACPACKAGEACL
+								"dev":{
+									"urac": {},
+									"example03": {},
+									"example02": {}
+								}
+							}
+						}
+					},
+					"keys": {
+						"695d3456de70fddc9e1e60a6d85b97d3": { //URACKEY
+							"config": { //URACKEYCONFIG
+								"urac": {}
+							},
+							"acl": {
+								"dev":{
+									"urac": {},
+									"example03": {
+										"access": ['admin'],
+										"apis": {
+											"/testRoute": {'access': ['admin']}
+										}
+									},
+									"example02": {
+										'access': true,
+										"apisPermission": 'restricted',
+										"apis": {
+											"/testRoute2": {"access": ['admin']}
+										},
+										"apisRegExp": [
+											{
+												'regExp': /^\/testRoute$/,
+												'access': true
+											}
+										]
+									}
+								}
+							}
+						}
+					},
+					"dashboard": [
+						"members",
+						"environments",
+						"productization",
+						"productization_packages",
+						"multi-tenancy",
+						"multi-tenancy_applications",
+						"multi-tenancy_keys"
+					]
+				}
+			};
+			tenantMongo.insert('users', userRecord, function(error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				var groupRecord = {
+					"code": "admin",
+					"name": "administrator",
+					"description": "admin test group",
+					"tenant":{
+						"id": testTenant._id.toString(),
+						"code": testTenant.code
+					},
+					"config": {
+						"packages": {
+							"TPROD_BASIC": { //URACPACKAGE
+								"acl": { //URACPACKAGEACL
+									"urac": {},
+									"example03": {},
+									"example02": {}
+								}
+							}
+						},
+						"keys": {
+							"695d3456de70fddc9e1e60a6d85b97d3": { //URACKEY
+								"config": { //URACKEYCONFIG
+									"urac": {}
+								},
+								"acl": {
+									"dev":{
+										"urac": {},
+										"example03": {
+											"access": ['admin'],
+											"apis": {
+												"/testRoute": {'access': ['admin']}
+											}
+										},
+										"example02": {
+											'access': true,
+											"apisPermission": 'restricted',
+											"apis": {
+												"/testRoute2": {"access": ['admin']}
+											},
+											"apisRegExp": [
+												{
+													'regExp': /^\/testRoute$/,
+													'access': true
+												}
+											]
+										}
+									}
+								}
+							}
+						},
+						"dashboard": [
+							"members",
+							"environments",
+							"productization",
+							"productization_packages",
+							"multi-tenancy",
+							"multi-tenancy_applications",
+							"multi-tenancy_keys"
+						]
+					}
+				};
+				tenantMongo.remove("groups", {"name":"administrator"}, function(error){
+					assert.ifError(error);
+					tenantMongo.insert('groups', groupRecord, function(error, response) {
+						assert.ifError(error);
+						assert.ok(response);
+						done();
+					});
+				});
+			});
+		});
+
+		it("login another user", function(done) {
+			requester('post', {
+				uri: 'http://localhost:4000/urac/login',
+				headers: {
+					key: testTenant.applications[1].keys[0].extKeys[0].extKey
+				},
+				body: {
+					'username': 'user10002',
+					'password': '123456'
+				}
+			}, function(err, body) {
+				assert.ifError(err);
+				assert.ok(body);
+				auth = body.soajsauth;
+				done();
+			});
+		});
+
+		it('will add third user to db', function(done) {
+			var userRecord = {
+				"username": "user10003",
+				"password": "$2a$04$yn9yaxQysIeH2VCixdovJ.TLuOEjFjS5D2Otd7sO7uMkzi9bXX1tq",
+				"firstName": "User",
+				"lastName": "Three",
+				"email": "user.three@mydomain.com",
+				"status": "active",
+				"profile": {},
+				"tenant":{
+					"id": testTenant._id.toString(),
+					"code": testTenant.code
+				},
+				"groups": ['vip', 'admin'],
+				"config": {
+					"packages": {
+						"TPROD_BASIC": { //URACPACKAGE
+							"acl": { //URACPACKAGEACL
+								"dev":{
+									"urac": {},
+									"example03": {},
+									"example02": {}
+								}
+							}
+						}
+					}
+				}
+			};
+			tenantMongo.insert('users', userRecord, function(error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				var groupRecord = {
+					"code": "admin",
+					"name": "administrator",
+					"description": "admin test group",
+					"tenant":{
+						"id": testTenant._id.toString(),
+						"code": testTenant.code
+					},
+					"config": {
+						"packages": {
+							"TPROD_BASIC": { //URACPACKAGE
+								"acl": { //URACPACKAGEACL
+									"urac": {},
+									"example03": {},
+									"example02": {}
+								}
+							}
+						}
+					}
+				};
+				tenantMongo.remove("groups", {"name":"administrator"}, function(error){
+					assert.ifError(error);
+					tenantMongo.insert('groups', groupRecord, function(error, response) {
+						assert.ifError(error);
+						assert.ok(response);
+						done();
+					});
+				});
+			});
+		});
+
+		it("login third user", function(done) {
+			requester('post', {
+				uri: 'http://localhost:4000/urac/login',
+				headers: {
+					key: testTenant.applications[1].keys[0].extKeys[0].extKey
+				},
+				body: {
+					'username': 'user10003',
+					'password': '123456'
+				}
+			}, function(err, body) {
+				assert.ifError(err);
+				assert.ok(body);
+				auth = body.soajsauth;
+				done();
+			});
+		});
+
+		it('will add fourth user to db', function(done) {
+			var userRecord = {
+				"username": "user10004",
+				"password": "$2a$04$yn9yaxQysIeH2VCixdovJ.TLuOEjFjS5D2Otd7sO7uMkzi9bXX1tq",
+				"firstName": "User",
+				"lastName": "Three",
+				"email": "user.three@mydomain.com",
+				"status": "active",
+				"profile": {},
+				"tenant":{
+					"id": testTenant._id.toString(),
+					"code": testTenant.code
+				},
+				"groups": ['vip', 'admin'],
+				"config": {}
+			};
+			tenantMongo.insert('users', userRecord, function(error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				var groupRecord = {
+					"code": "admin",
+					"name": "administrator",
+					"description": "admin test group",
+					"tenant":{
+						"id": testTenant._id.toString(),
+						"code": testTenant.code
+					},
+					"config": {
+						"packages": {
+							"TPROD_BASIC": { //URACPACKAGE
+								"acl": { //URACPACKAGEACL
+									"urac": {},
+									"example03": {},
+									"example02": {}
+								}
+							}
+						},
+						"keys": {
+							"695d3456de70fddc9e1e60a6d85b97d3": { //URACKEY
+								"config": { //URACKEYCONFIG
+									"urac": {}
+								},
+								"acl": {
+									"dev":{
+										"urac": {},
+										"example03": {
+											"access": ['admin'],
+											"apis": {
+												"/testRoute": {'access': ['admin']}
+											}
+										},
+										"example02": {
+											'access': true,
+											"apisPermission": 'restricted',
+											"apis": {
+												"/testRoute2": {"access": ['admin']}
+											},
+											"apisRegExp": [
+												{
+													'regExp': /^\/testRoute$/,
+													'access': true
+												}
+											]
+										}
+									}
+								}
+							}
+						},
+					}
+				};
+				tenantMongo.remove("groups", {"name":"administrator"}, function(error){
+					assert.ifError(error);
+					tenantMongo.insert('groups', groupRecord, function(error, response) {
+						assert.ifError(error);
+						assert.ok(response);
+						done();
+					});
+				});
+			});
+		});
+
+		it("login fourth user", function(done) {
+			requester('post', {
+				uri: 'http://localhost:4000/urac/login',
+				headers: {
+					key: testTenant.applications[1].keys[0].extKeys[0].extKey
+				},
+				body: {
+					'username': 'user10004',
+					'password': '123456'
+				}
+			}, function(err, body) {
+				assert.ifError(err);
+				assert.ok(body);
+				auth = body.soajsauth;
+				done();
+			});
+		});
+	});
+
 	describe("logout and hit the apis", function() {
 		it("logout user", function(done) {
 			requester('get', {
@@ -745,6 +1219,20 @@ describe("testing multi tenantcy", function() {
 				assert.ok(!body.result);
 				assert.ok(body.errors);
 				done();
+			});
+		});
+	});
+
+	describe("stopping services", function(){
+		it("do stop", function(done) {
+			lib.stopTestService(function() {
+				lib.stopTestService2(function() {
+					lib.stopUrac(function() {
+						lib.stopController(function() {
+							done();
+						});
+					});
+				});
 			});
 		});
 	});
