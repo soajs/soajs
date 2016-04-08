@@ -49,7 +49,8 @@ var holder = {
 	controller: null,
 	urac: null,
 	service: null,
-	service2: null
+	service2: null,
+	daemon: null
 };
 
 var lib = {
@@ -164,8 +165,6 @@ var lib = {
 						}
 
 						var all = req.soajs.session.getUrac(true);
-						console.log('getUrac, _ALL');
-						console.log(all);
 
 						req.soajs.session.setSERVICE({'user': req.soajs.inputmaskData}, function(error) {
 							if(error) {
@@ -176,8 +175,6 @@ var lib = {
 							}
 
 							var groups = req.soajs.session.getGroups();
-							console.log('getGroups');
-							console.log(groups);
 
 							if(cloneRecord.config.keys && Object.keys(cloneRecord.config.keys).length > 0){
 								var newKey = Object.keys(cloneRecord.config.keys)[0];
@@ -241,20 +238,12 @@ var lib = {
 
 				function leave(record){
 					var acl = req.soajs.session.getAcl();
-					console.log('getAcl');
-					console.log(acl);
 
 					var packageAcl = req.soajs.session.getPackageAcl();
-					console.log('getPackageAcl');
-					console.log(packageAcl);
 
 					var onePackageAcl = req.soajs.session.getPackageAcl('TPROD_BASIC');
-					console.log('getPackageAcl', 'TPROD_BASIC');
-					console.log(onePackageAcl);
 
 					var getAclAllEnv = req.soajs.session.getAclAllEnv();
-					console.log('getAclAllEnv');
-					console.log(getAclAllEnv);
 
 					return res.jsonp(req.soajs.buildResponse(null, record));
 				}
@@ -423,6 +412,38 @@ var lib = {
 				//}, 500);
 			});
 		});
+	},
+
+	stopDaemon: function(cb){
+		holder.daemon.stop(cb);
+	},
+	startDaemon: function(cb){
+		holder.daemon = new soajs.server.daemon({
+			"config": {
+				serviceName: "helloDaemon",
+				"serviceVersion": 1,
+				servicePort: 4200,
+				"errors": {},
+				"schema": {
+					"hello": {
+						"l": "hello world"
+					}
+				}
+			}
+		});
+
+		holder.daemon.init(function() {
+			holder.daemon.job("hello", function(soajs, next) {
+				soajs.log.info ("HELLO daemon");
+				next();
+			});
+			holder.daemon.start(function(err){
+				assert.ifError(err);
+				setTimeout(function() {
+					cb();
+				}, 500);
+			});
+		});
 	}
 };
 
@@ -433,10 +454,15 @@ describe("testing multi tenancy", function() {
 		lib.startUrac(function() {
 			lib.startTestService(function() {
 				lib.startTestService2(function() {
-					lib.startController(function() {
-						tenantMongo.remove('users', {}, function(error) {
-							assert.ifError(error);
-							done();
+					lib.startDaemon(function(){
+						lib.startController(function() {
+							tenantMongo.remove('users', {}, function(error) {
+								assert.ifError(error);
+								setTimeout(function(){
+									console.log("services started, waiting 6 sec to proceed...");
+									done();
+								},6000);
+							});
 						});
 					});
 				});
@@ -833,7 +859,6 @@ describe("testing multi tenancy", function() {
 			}, function(err, body) {
 				assert.ifError(err);
 				assert.ok(body);
-				console.log(JSON.stringify(body));
 				assert.ok(!body.result);
 				assert.ok(body.errors);
 				done();
@@ -1193,7 +1218,6 @@ describe("testing multi tenancy", function() {
 			}, function(err, body) {
 				assert.ifError(err);
 				assert.ok(body);
-				console.log(body);
 				done();
 			});
 		});
@@ -1215,7 +1239,6 @@ describe("testing multi tenancy", function() {
 			}, function(err, body) {
 				assert.ifError(err);
 				assert.ok(body);
-				console.log(JSON.stringify(body));
 				assert.ok(!body.result);
 				assert.ok(body.errors);
 				done();
@@ -1225,14 +1248,14 @@ describe("testing multi tenancy", function() {
 
 	describe("stopping services", function(){
 		it("do stop", function(done) {
-			lib.stopTestService(function() {
-				lib.stopTestService2(function() {
-					lib.stopUrac(function() {
-						lib.stopController(function() {
-							done();
-						});
-					});
-				});
+			async.parallel([
+				lib.stopController,
+				lib.stopTestService,
+				lib.stopTestService2,
+				lib.stopUrac,
+				lib.stopDaemon
+			], function(){
+				done();
 			});
 		});
 	});
