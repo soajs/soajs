@@ -458,10 +458,13 @@ describe("testing multi tenancy", function() {
 						lib.startController(function() {
 							tenantMongo.remove('users', {}, function(error) {
 								assert.ifError(error);
-								setTimeout(function(){
-									console.log("services started, waiting 6 sec to proceed...");
-									done();
-								},6000);
+								tenantMongo.remove('groups', {}, function(error) {
+									assert.ifError(error);
+									setTimeout(function(){
+										console.log("services started, waiting 6 sec to proceed...");
+										done();
+									},6000);
+								});
 							});
 						});
 					});
@@ -873,7 +876,7 @@ describe("testing multi tenancy", function() {
 				"password": "$2a$04$yn9yaxQysIeH2VCixdovJ.TLuOEjFjS5D2Otd7sO7uMkzi9bXX1tq",
 				"firstName": "User",
 				"lastName": "One",
-				"email": "user.one@mydomain.com",
+				"email": "user.two@mydomain.com",
 				"status": "active",
 				"profile": {},
 				"tenant":{
@@ -1113,7 +1116,7 @@ describe("testing multi tenancy", function() {
 				"password": "$2a$04$yn9yaxQysIeH2VCixdovJ.TLuOEjFjS5D2Otd7sO7uMkzi9bXX1tq",
 				"firstName": "User",
 				"lastName": "Three",
-				"email": "user.three@mydomain.com",
+				"email": "user.four@mydomain.com",
 				"status": "active",
 				"profile": {},
 				"tenant":{
