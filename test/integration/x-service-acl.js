@@ -398,131 +398,132 @@ describe("testing multi tenancy", function() {
 		});
 	});
 
-	it('will add another user to db', function (done) {
-		var userRecord = {
-			"username": "user10002",
-			"password": "$2a$04$yn9yaxQysIeH2VCixdovJ.TLuOEjFjS5D2Otd7sO7uMkzi9bXX1tq",
-			"firstName": "User",
-			"lastName": "One",
-			"email": "user.two@mydomain.com",
-			"status": "active",
-			"profile": {},
-			"tenant": {
-				"id": testTenant._id.toString(),
-				"code": testTenant.code
-			},
-			"groups": ['admin'],
-			"config": {}
-		};
-		tenantMongo.insert('users', userRecord, function (error, response) {
-			assert.ifError(error);
-			assert.ok(response);
-			var groupRecord = {
-				"code": "admin",
-				"name": "administrator",
-				"description": "admin test group",
-				"tenant":{
-					"id": testTenant._id.toString(),
-					"code": testTenant.code
-				},
-				"config": {
-					"packages": {
-						"TPROD_BASI2": {
-							"acl": {
-								"dev":{
-									"example03": {
-										"access": ['admin'],
-										"apis":{
-											"/info2":{
-												"access":["owner"]
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			};
-			tenantMongo.remove("groups", {"name":"administrator"}, function(error) {
-				assert.ifError(error);
-				tenantMongo.insert('groups', groupRecord, function (error, response) {
-					assert.ifError(error);
-					done();
-				});
-			});
-		});
-	});
-
-	it("reload Provisioning", function(done){
-		requester('get', {
-			uri: 'http://localhost:5001/loadProvision',
-			headers: {
-
-			}
-		}, function(err, body) {
-			assert.ifError(err);
-			assert.ok(body);
-			requester('get', {
-				uri: 'http://localhost:5012/loadProvision',
-				headers: {
-
-				}
-			}, function(err, body) {
-				assert.ifError(err);
-				assert.ok(body);
-				done();
-			});
-		});
-	});
-
-	it("login another user", function (done) {
-		requester('post', {
-			uri: 'http://localhost:4000/urac/login',
-			headers: {
-				key: testTenant.applications[3].keys[0].extKeys[0].extKey
-			},
-			body: {
-				'username': 'user10002',
-				'password': '123456'
-			}
-		}, function (err, body) {
-			assert.ifError(err);
-			assert.ok(body);
-			auth = body.soajsauth;
-			done();
-		});
-	});
-
-	it("call info api another user", function(done){
-		requester('get', {
-			uri: 'http://localhost:4000/example03/info',
-			headers: {
-				key: testTenant.applications[3].keys[0].extKeys[0].extKey,
-				soajsauth: auth
-			}
-		}, function(err, body) {
-			assert.ifError(err);
-			assert.ok(body);
-			assert.ok(body.data);
-			done();
-		});
-	});
-
-	it("call info2 api another user", function(done){
-		requester('get', {
-			uri: 'http://localhost:4000/example03/info2',
-			headers: {
-				key: testTenant.applications[3].keys[0].extKeys[0].extKey,
-				soajsauth: auth
-			}
-		}, function(err, body) {
-			assert.ifError(err);
-			assert.ok(body);
-			assert.ok(body.errors);
-			done();
-		});
-	});
+	//
+	// it('will add another user to db', function (done) {
+	// 	var userRecord = {
+	// 		"username": "user10002",
+	// 		"password": "$2a$04$yn9yaxQysIeH2VCixdovJ.TLuOEjFjS5D2Otd7sO7uMkzi9bXX1tq",
+	// 		"firstName": "User",
+	// 		"lastName": "One",
+	// 		"email": "user.two@mydomain.com",
+	// 		"status": "active",
+	// 		"profile": {},
+	// 		"tenant": {
+	// 			"id": testTenant._id.toString(),
+	// 			"code": testTenant.code
+	// 		},
+	// 		"groups": ['admin'],
+	// 		"config": {}
+	// 	};
+	// 	tenantMongo.insert('users', userRecord, function (error, response) {
+	// 		assert.ifError(error);
+	// 		assert.ok(response);
+	// 		var groupRecord = {
+	// 			"code": "admin",
+	// 			"name": "administrator",
+	// 			"description": "admin test group",
+	// 			"tenant":{
+	// 				"id": testTenant._id.toString(),
+	// 				"code": testTenant.code
+	// 			},
+	// 			"config": {
+	// 				"packages": {
+	// 					"TPROD_BASI2": {
+	// 						"acl": {
+	// 							"dev":{
+	// 								"example03": {
+	// 									"access": ['admin'],
+	// 									"apis":{
+	// 										"/info2":{
+	// 											"access":["owner"]
+	// 										}
+	// 									}
+	// 								}
+	// 							}
+	// 						}
+	// 					}
+	// 				}
+	// 			}
+	// 		};
+	// 		tenantMongo.remove("groups", {"name":"administrator"}, function(error) {
+	// 			assert.ifError(error);
+	// 			tenantMongo.insert('groups', groupRecord, function (error, response) {
+	// 				assert.ifError(error);
+	// 				done();
+	// 			});
+	// 		});
+	// 	});
+	// });
+	//
+	// it("reload Provisioning", function(done){
+	// 	requester('get', {
+	// 		uri: 'http://localhost:5001/loadProvision',
+	// 		headers: {
+	//
+	// 		}
+	// 	}, function(err, body) {
+	// 		assert.ifError(err);
+	// 		assert.ok(body);
+	// 		requester('get', {
+	// 			uri: 'http://localhost:5012/loadProvision',
+	// 			headers: {
+	//
+	// 			}
+	// 		}, function(err, body) {
+	// 			assert.ifError(err);
+	// 			assert.ok(body);
+	// 			done();
+	// 		});
+	// 	});
+	// });
+	//
+	// it("login another user", function (done) {
+	// 	requester('post', {
+	// 		uri: 'http://localhost:4000/urac/login',
+	// 		headers: {
+	// 			key: testTenant.applications[3].keys[0].extKeys[0].extKey
+	// 		},
+	// 		body: {
+	// 			'username': 'user10002',
+	// 			'password': '123456'
+	// 		}
+	// 	}, function (err, body) {
+	// 		assert.ifError(err);
+	// 		assert.ok(body);
+	// 		auth = body.soajsauth;
+	// 		done();
+	// 	});
+	// });
+	//
+	// it("call info api another user", function(done){
+	// 	requester('get', {
+	// 		uri: 'http://localhost:4000/example03/info',
+	// 		headers: {
+	// 			key: testTenant.applications[3].keys[0].extKeys[0].extKey,
+	// 			soajsauth: auth
+	// 		}
+	// 	}, function(err, body) {
+	// 		assert.ifError(err);
+	// 		assert.ok(body);
+	// 		assert.ok(body.data);
+	// 		done();
+	// 	});
+	// });
+	//
+	// it("call info2 api another user", function(done){
+	// 	requester('get', {
+	// 		uri: 'http://localhost:4000/example03/info2',
+	// 		headers: {
+	// 			key: testTenant.applications[3].keys[0].extKeys[0].extKey,
+	// 			soajsauth: auth
+	// 		}
+	// 	}, function(err, body) {
+	// 		assert.ifError(err);
+	// 		assert.ok(body);
+	// 		assert.ok(body.errors);
+	// 		done();
+	// 	});
+	// });
 
 	describe("stopping services", function(){
 		it("do stop", function(done) {
