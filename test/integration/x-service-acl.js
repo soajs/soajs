@@ -74,6 +74,7 @@ var lib = {
 			"serviceVersion": 1,
 			"serviceName": "urac",
 			"serviceGroup": "uracGroup",
+			"servicePort": 4001,
 			"extKeyRequired": true,
 			"errors": {
 				"401": "error logging in try again"
@@ -201,6 +202,7 @@ var lib = {
 			"requestTimeout": 2,
 			"requestTimeoutRenewal": 2,
 			"serviceName": "example03",
+			"servicePort": 4012,
 			"serviceGroup": "exampleGroup",
 			"extKeyRequired": true,
 			"errors": {
@@ -448,6 +450,28 @@ describe("testing multi tenancy", function() {
 					assert.ifError(error);
 					done();
 				});
+			});
+		});
+	});
+
+	it("reload Provisioning", function(done){
+		requester('get', {
+			uri: 'http://localhost:5001/loadProvision',
+			headers: {
+
+			}
+		}, function(err, body) {
+			assert.ifError(err);
+			assert.ok(body);
+			requester('get', {
+				uri: 'http://localhost:5012/loadProvision',
+				headers: {
+
+				}
+			}, function(err, body) {
+				assert.ifError(err);
+				assert.ok(body);
+				done();
 			});
 		});
 	});
