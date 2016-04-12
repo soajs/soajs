@@ -3,38 +3,6 @@
 var Mongo = require('../soajs.mongo');
 var util = require('util');
 
-/**
- *
- * @type {{name: string, prefix: string, servers: {host: string, port: number}[], credentials: null, URLParam: {connectTimeoutMS: number, socketTimeoutMS: number, maxPoolSize: number, w: number, wtimeoutMS: number, slaveOk: boolean}, extraParam: {db: {native_parser: boolean}, server: {auto_reconnect: boolean}}, store: {}, collection: string, stringify: boolean, expireAfter: number}}
- */
-var defaultOptions = {
-    "name": "sessionDB",
-    "prefix": "",
-    "servers": [
-        {"host": "127.0.0.1", "port": 27017 }
-    ],
-    "credentials": null,
-    "URLParam": {
-        "connectTimeoutMS": 0,
-        "socketTimeoutMS": 0,
-        "maxPoolSize": 5,
-        "w": 1,
-        "wtimeoutMS": 0,
-        "slaveOk": true
-    },
-    "extraParam": {
-        "db": {
-            "native_parser": true
-        },
-        "server": {
-            "auto_reconnect": true
-        }
-    },
-    'store': {},
-    "collection": "sessions",
-    'stringify': false,
-    'expireAfter': 1000 * 60 * 60 * 24 * 14 // 2 weeks
-};
 
 /**
  *
@@ -54,38 +22,24 @@ module.exports = function (connect) {
      */
 
     function MongoStore(options) {
-        options = options || {};
-
-        for (var property in defaultOptions) {
-            if (Object.hasOwnProperty.call(defaultOptions,property)) {
-                if (!Object.hasOwnProperty.call(options, property) || (typeof defaultOptions[property] !== typeof options[property])) {
-                    options[property] = defaultOptions[property];
-                }
-            }
-        }
+        if (!options || typeof options !== 'object')
+            throw new Error('MongoStore needs db info to connect : ' + options + ' ');
 
         Store.call(this, options.store);
 
-        var dbProperties = ["name", "prefix", "servers", "credentials", "URLParam", "extraParam"];
-        var dbPropertiesLen = dbProperties.length;
-        var dbOptions = {};
-        for (var i = 0; i < dbPropertiesLen; i++) {
-            dbOptions[dbProperties[i]] = options[dbProperties[i]];
-        }
+        //NOTE: we cannot stringify the session object. we need to keep it an object in mongo in order to support multi tenancy in the set method below
+        this._options = {
+            "collection": options.collection,
+            "stringify": false,
+            "expireAfter": options.expireAfter
+        };
 
-        this.mongo = new Mongo(dbOptions);
+        this.mongo = new Mongo(options);
         this.mongo.ensureIndex(options.collection, {expires: 1}, {expireAfterSeconds: 0}, function (err, result) {
             if (err) {
                 throw new Error('Error setting TTL index on collection : ' + options.collection + ' <' + err + '>');
             }
         });
-
-        //NOTE: we cannot stringify the session object. we need to keep it an object in mongo in order to support multi tenancy in the set method below
-         this._options = {
-            "collection": options.collection,
-            "stringify": false,
-            "expireAfter": options.expireAfter
-        };
     }
 
     /**
@@ -143,7 +97,7 @@ module.exports = function (connect) {
         var tenant = null;
         if (!(session.persistSession.state.ALL || session.persistSession.state.TENANT ) &&
             (session.persistSession.state.KEY || session.persistSession.state.SERVICE || session.persistSession.state.CLIENTINFO ||
-                session.persistSession.state.URAC || session.persistSession.state.URACPACKAGE || session.persistSession.state.URACPACKAGEACL || session.persistSession.state.URACKEY || session.persistSession.state.URACKEYCONFIG || session.persistSession.state.URACKEYACL)) {
+            session.persistSession.state.URAC || session.persistSession.state.URACPACKAGE || session.persistSession.state.URACPACKAGEACL || session.persistSession.state.URACKEY || session.persistSession.state.URACKEYCONFIG || session.persistSession.state.URACKEYACL)) {
             tenant = getTenant(session);
             if (!tenant) {
                 return cb();
@@ -229,7 +183,10 @@ module.exports = function (connect) {
             };
         }
         if (session.persistSession.state.DONE) {
-            this.mongo.update(self._options.collection, filter, s, { 'upsert': true, 'safe': true }, function (err, data) {
+            this.mongo.update(self._options.collection, filter, s, {
+                'upsert': true,
+                'safe': true
+            }, function (err, data) {
                 if (err) {
                     return cb(err, null);
                 } else {

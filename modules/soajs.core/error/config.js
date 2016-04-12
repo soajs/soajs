@@ -36,8 +36,10 @@ module.exports = {
         '166': "Roaming: Something blew up @ service core!",
         '167': "Roaming: Unable to load you product package information. Check provision configuration for this key.",
         '168': "Roaming: Unable to load provision information for the provided key.",
+		'169': "Roaming: Unable to find any logged in user to roam!",
+		'170': "Roaming: Unable to load registry for roam to env",
 
-		'170': "INPUTMASK",
+		'175': "INPUTMASK",
 
 		'20x': "PROVISION",
 		'200': 'You need to provide an external key.',

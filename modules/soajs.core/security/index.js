@@ -22,7 +22,10 @@ var authorization = {
 	},
 	"set": function(src, sid) {
 		var securityIdMask = authorization.mask(sid);
-		src.set('soajsauth', "Basic " + (new Buffer("soajs:" + securityIdMask).toString('base64')));
+		if (src)
+			src.set('soajsauth', "Basic " + (new Buffer("soajs:" + securityIdMask).toString('base64')));
+		else
+			return ({'soajsauth': "Basic " + (new Buffer("soajs:" + securityIdMask).toString('base64'))});
 	},
 	"get": function(auth) {
 		var base64 = decodeURIComponent(auth);

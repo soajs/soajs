@@ -563,6 +563,27 @@ describe("TESTING soajs.mongo", function() {
 
 	});
 
+	describe("testing aggregate", function() {
+		it("fail - no collectionName", function(done) {
+			mongo.aggregate(null, null, function(error) {
+				assert.ok(error);
+				assert.ok(error.message);
+				//assert.equal(error.message, 'Wrong input param form mongo function');
+				done();
+			});
+		});
+
+		it('success - all working', function(done) {
+			mongo.aggregate("myCollection", { $match: { a: "c" } }, function(error, response) {
+				console.log(error, response);
+				assert.ifError(error);
+				assert.equal(response.length, 1);
+				done();
+			});
+		});
+
+	});
+
 	describe("testing remove", function() {
 		it("fail - no collectionName", function(done) {
 			mongo.remove(null, null, function(error) {

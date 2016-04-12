@@ -22,6 +22,7 @@ module.exports = function (param) {
             registry = core.registry.get();
             core.registry.reload({
                 "serviceName": param.serviceName,
+                "serviceGroup": param.serviceGroup,
                 "serviceVersion": param.serviceVersion,
                 "designatedPort": param.designatedPort,
                 "extKeyRequired": param.extKeyRequired,
@@ -60,6 +61,7 @@ module.exports = function (param) {
                                         for (var i = 0; i < registry.services[s].hosts[h_ver].length; i++) {
                                             var sObj = {
                                                 "name": s,
+                                                "group": registry.services[s].group,
                                                 "port": registry.services[s].port,
                                                 "host": registry.services[s].hosts[h_ver][i],
                                                 "what": "services",
@@ -92,6 +94,7 @@ module.exports = function (param) {
                                             var sObj = {
                                                 "name": s,
                                                 "port": registry.daemons[s].port,
+                                                "group": registry.daemons[s].group,
                                                 "host": registry.daemons[s].hosts[h_ver][i],
                                                 "what": "daemons",
                                                 "version": h_ver

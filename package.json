@@ -1,7 +1,7 @@
 {
   "name": "soajs",
   "description": "soajs framework",
-  "version": "0.2.8",
+  "version": "0.3.0",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -21,13 +21,13 @@
   "devDependencies": {
     "soajs.mongodb.data": "0.1.*",
     "bcrypt": "*",
-    "grunt":"0.4.5",
-    "grunt-contrib-jshint":"0.10.0",
+    "grunt":"*",
+    "grunt-contrib-jshint":"*",
     "grunt-jsdoc" : "*",
     "grunt-contrib-clean" : "*",
     "grunt-mocha-test" : "*",
     "grunt-env" : "*",
-    "grunt-istanbul" : "0.3.0",
+    "grunt-istanbul" : "*",
     "grunt-coveralls" : "*",
     "jshint" : "*",
     "lodash": "*",
@@ -54,7 +54,9 @@
     "nodemailer-direct-transport": "*",
     "nodemailer-sendmail-transport": "*",
     "nodemailer-smtp-transport": "*",
+    "npm": "*",
     "oauth2-server" : "*",
+    "object-hash": "*",
     "request": "*",
     "swig": "*",
     "useragent": "*",

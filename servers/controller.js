@@ -87,27 +87,7 @@ controller.prototype.init = function (callback) {
             setImmediate(function () {
                 req.soajs.controller.gotoservice(req, res, null);
             });
-            /*
-             if(req.headers.stream) {
-             setImmediate(function() {req.soajs.controller.gotoservice(req, res, null);});
-             } else {
-             var body = '';
 
-             req.on("data", function (chunk) {
-             body += chunk;
-             });
-             req.on("end", function () {
-             process.nextTick(function () {
-             try {
-             req.soajs.controller.gotoservice(req, res, body);
-             } catch (err) {
-             _self.log.error(err);
-             return req.soajs.controllerResponse(core.error.getError(136));
-             }
-             });
-             });
-             }
-             */
             req.on("error", function (error) {
                 req.soajs.log.error("Error @ controller:", error);
                 if (req.soajs.controller.redirectedRequest) {
@@ -176,6 +156,7 @@ controller.prototype.init = function (callback) {
                 /**
                  * if service
                  *      name
+                 *      group
                  *      port
                  *      ip
                  *      extKeyRequired
@@ -187,6 +168,7 @@ controller.prototype.init = function (callback) {
                 response = maintenanceResponse(req);
                 var regOptions = {
                     "name": parsedUrl.query.name,
+                    "group": parsedUrl.query.group,
                     "port": parseInt(parsedUrl.query.port),
                     "ip": parsedUrl.query.ip,
                     "type": parsedUrl.query.type,
