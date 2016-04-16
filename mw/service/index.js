@@ -376,6 +376,7 @@ module.exports = function (configuration) {
                                 var serviceCheckArray = [function (cb) {
                                     cb(null, {"app": app, "res": res, "req": req, "keyObj": keyObj, "packObj": packObj});
                                 }];
+                                
                                 if (!param.session && param.multitenant)
                                     serviceCheckArray.push(serviceCheck);
 
@@ -384,12 +385,13 @@ module.exports = function (configuration) {
                                     serviceCheckArray.push(securityDeviceCheck);
                                 }
 
-                                if (param.session) {
+                                if (param.session)
                                     serviceCheckArray.push(sessionCheck);
-                                    if (param.multitenant) {
-                                        serviceCheckArray.push(uracCheck);
+
+                                if (param.multitenant) {
+                                    serviceCheckArray.push(uracCheck);
+                                    if (param.session)
                                         serviceCheckArray.push(serviceCheck);
-                                    }
                                 }
 
                                 if (param.multitenant && param.acl)
@@ -397,6 +399,7 @@ module.exports = function (configuration) {
 
                                 if (param.session)
                                     serviceCheckArray.push(persistSession);
+
                                 async.waterfall(serviceCheckArray, function (err, data) {
                                     if (err)
                                         return next(err);
