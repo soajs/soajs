@@ -34,7 +34,7 @@ function MongoDriver(dbConfig) {
     this.pending = false;
     this.ObjectId = mongoSkin.ObjectID;
     this.mongoSkin = mongoSkin;
-    if (this.config.registryLocation && this.config.registryLocation.env && this.config.registryLocation.l1 && this.config.registryLocation.l2) {
+    if (this.config && this.config.registryLocation && this.config.registryLocation.env && this.config.registryLocation.l1 && this.config.registryLocation.l2) {
         if (!cacheDB)
             cacheDB = {};
         if (!cacheDB[this.config.registryLocation.env])
@@ -605,7 +605,11 @@ MongoDriver.prototype.getMongoSkinDB = function (cb) {
 function connect(obj, cb) {
     var timeConnected = 0;
     var configCloneHash = null;
-    if (obj.config.registryLocation && obj.config.registryLocation.env && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
+    if (!obj.config){
+        return cb(generateError(195));
+    }
+    
+    if (obj.config && obj.config.registryLocation && obj.config.registryLocation.env && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
         obj.config = registry.get(obj.config.registryLocation.env)[obj.config.registryLocation.l1][obj.config.registryLocation.l2];
         if (!obj.db && cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db)
             obj.db = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db;
