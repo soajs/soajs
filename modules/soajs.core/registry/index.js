@@ -215,9 +215,9 @@ var build = {
 
     "registerNewService": function (dbConfiguration, serviceObj, collection, cb) {
         var port = parseInt(serviceObj.port);
-        if (isNaN(port)){
-            var error = new Error('Service port must be integer: ['+serviceObj.port+']');
-            return cb(error);
+        if (isNaN(port)) {
+            var error1 = new Error('Service port must be integer: [' + serviceObj.port + ']');
+            return cb(error1);
         }
         if (!mongo) {
             mongo = new Mongo(dbConfiguration);
@@ -251,8 +251,8 @@ var build = {
                 });
             }
             else {
-                var error = new Error('Service port ['+serviceObj.port+'] is taken by another service ['+record.name+'].');
-                return cb(error);
+                var error2 = new Error('Service port [' + serviceObj.port + '] is taken by another service [' + record.name + '].');
+                return cb(error2);
             }
         });
     },
@@ -312,7 +312,7 @@ var build = {
         }
         else {
             if (param.type && param.type === "daemon") {
-                var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
+                //var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
                 registry["daemons"][param.serviceName] = {
                     'group': param.serviceGroup,
                     'port': param.designatedPort,
@@ -341,7 +341,7 @@ var build = {
                 }
             }
             else {
-                var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
+                //var schemaPorts = registryDBInfo.ENV_schema.services.config.ports;
                 registry["services"][param.serviceName] = {
                     'group': param.serviceGroup,
                     'port': param.designatedPort,
@@ -608,13 +608,24 @@ exports.loadByEnv = function (param, cb) {
             }
         });
     }
+    else
+        return cb(new Error("unable to find provision config information to connect to!"));
 };
 exports.loadOtherEnvControllerHosts = function (cb) {
-    if (!mongo)
-        mongo = new Mongo(registry.coreDB.provision);
-    var pattern = new RegExp("controller", "i");
-    var condition = (process.env.SOAJS_TEST) ? {'name': {'$regex': pattern}} : {'name': {'$regex': pattern}, 'env': {'$ne': regEnvironment}};
-    mongo.find('hosts', condition, cb);
+    var registry = loadProfile();
+    if (registry) {
+        if (!mongo) {
+            mongo = new Mongo(registry.coreDB.provision);
+        }
+        var pattern = new RegExp("controller", "i");
+        var condition = (process.env.SOAJS_TEST) ? {'name': {'$regex': pattern}} : {
+            'name': {'$regex': pattern},
+            'env': {'$ne': regEnvironment}
+        };
+        mongo.find('hosts', condition, cb);
+    }
+    else
+        return cb(new Error("unable to find provision config information to connect to!"));
 };
 exports.autoRegisterService = function (name, serviceIp, serviceVersion, what, cb) {
     var controllerSRV = registry_struct[regEnvironment].services.controller;

@@ -113,7 +113,7 @@ module.exports = function (configuration) {
                 "envCode": envCode
             }, function (err, reg) {
                 if (err){
-                    obj.req.soajs.log.error(err);
+                    req.req.soajs.log.error(err);
                     return cb(core.error.getError(170));
                 }
                 var uracRecord = req.soajs.session.getUrac(true);

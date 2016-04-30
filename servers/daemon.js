@@ -32,8 +32,8 @@ function extractJOBsList(schema) {
             if (schema[job].groupMain) {
                 oneJob.groupMain = schema[job].groupMain;
             }
+            jobList[job] = oneJob;
         }
-        jobList[job] = oneJob;
     }
     return jobList;
 }

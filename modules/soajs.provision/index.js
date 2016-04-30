@@ -111,8 +111,10 @@ var provision = {
                         return cb(false);
                     }
                     else {
-                        struct_keys = keysOauths.keyData;
-                        struct_oauths = keysOauths.oauthData;
+                        if (keysOauths) {
+                            struct_keys = keysOauths.keyData;
+                            struct_oauths = keysOauths.oauthData;
+                        }
                         cb(true);
                     }
                 });

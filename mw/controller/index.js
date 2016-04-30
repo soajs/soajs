@@ -98,7 +98,7 @@ function extractBuildParameters(req, service, service_nv, version, url) {
 
         var extKeyRequired = false;
         if (req.soajs.registry.services[service].versions && req.soajs.registry.services[service].versions[version])
-            extKeyRequired = req.soajs.registry.services[service].versions[version].extKeyRequired || false
+            extKeyRequired = req.soajs.registry.services[service].versions[version].extKeyRequired || false;
 
         var serviceInfo = {
             "registry" : req.soajs.registry.services[service],
