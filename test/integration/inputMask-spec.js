@@ -635,7 +635,7 @@ describe('testing inputMask', function() {
 			}, function(err, body) {
 				assert.ifError(err);
 				assert.ok(body);
-				console.log (body)
+				console.log (body);
 				assert.equal(body.result, false);
 				done();
 			});
@@ -652,7 +652,7 @@ describe('testing inputMask', function() {
 			}, function(err, body) {
 				assert.ifError(err);
 				assert.ok(body);
-				console.log (body)
+				console.log (body);
 				assert.equal(body.result, true);
 				assert.deepEqual(body.data, {
 					name: 'john',

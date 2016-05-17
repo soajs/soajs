@@ -2,13 +2,16 @@
 var models = {};
 models.mongo = require("./mongo.js");
 models.local = require("./local.js");
+var modelName = "mongo";
 
 var provision = {
     "model": null,
     "init": function (dbConfig) {
-        var modelName = "mongo";
+        if (!models[modelName])
+            modelName = "mongo";
         models[modelName].init(dbConfig);
         provision.model = models[modelName];
+
     },
     "getOauthToken": function (access_token, cb) {
         return provision.model.getOauthToken(access_token, cb);
