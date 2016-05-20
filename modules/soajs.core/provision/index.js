@@ -1,7 +1,6 @@
 'use strict';
 var models = {};
 models.mongo = require("./mongo.js");
-models.local = require("./local.js");
 
 var provision = {
     "model": null,
