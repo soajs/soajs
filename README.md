@@ -1,4 +1,6 @@
 # soajs
+
+[![Join the chat at https://gitter.im/soajs/soajs](https://badges.gitter.im/soajs/soajs.svg)](https://gitter.im/soajs/soajs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/soajs/soajs.svg?branch=master)](https://travis-ci.org/soajs/soajs)
 [![Coverage Status](https://coveralls.io/repos/soajs/soajs/badge.png)](https://coveralls.io/r/soajs/soajs)
 
