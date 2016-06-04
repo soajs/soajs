@@ -490,11 +490,17 @@ MongoDriver.prototype.count = function (collectionName, criteria, cb) {
     if (!collectionName) {
         return cb(generateError(191));
     }
+	var options = {};
+	var args = Array.prototype.slice.call(arguments)
+	if(args.length === 4){
+		options = cb = args[args.length - 2];
+		cb = args[args.length - 1]
+	}
     connect(self, function (err) {
         if (err) {
             return cb(err);
         }
-        self.db.collection(collectionName).count(criteria, cb);
+        self.db.collection(collectionName).count(criteria, options, cb);
     });
 };
 
