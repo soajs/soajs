@@ -16,7 +16,7 @@ function response(result, data) {
     } else {
         this.result = result;
     }
-    if (data) {
+    if( typeof data !== 'undefined' ) {
         this.data = data;
     }
 }
