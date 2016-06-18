@@ -66,29 +66,43 @@ function service(param) {
 
 function extractAPIsList(schema) {
     var excluded = ['commonFields'];
+    var METHOD = ['_GET', '_POST', '_PUT', '_DEL'];
     var apiList = [];
-    for (var route in schema) {
-        if (Object.hasOwnProperty.call(schema, route)) {
-            if (excluded.indexOf(route) !== -1) {
-                continue;
-            }
 
-            var oneApi = {
-                'l': schema[route]._apiInfo.l,
-                'v': route
-            };
+    var processRoute = function (routeObj, routeName) {
+        var oneApi = {
+            'l': routeObj._apiInfo.l,
+            'v': routeName
+        };
 
-            if (schema[route]._apiInfo.group) {
-                oneApi.group = schema[route]._apiInfo.group;
-            }
-
-            if (schema[route]._apiInfo.groupMain) {
-                oneApi.groupMain = schema[route]._apiInfo.groupMain;
-            }
-
-            apiList.push(oneApi);
+        if (routeObj._apiInfo.group) {
+            oneApi.group = routeObj._apiInfo.group;
         }
+
+        if (routeObj._apiInfo.groupMain) {
+            oneApi.groupMain = routeObj._apiInfo.groupMain;
+        }
+        return (oneApi);
     }
+    var processRoutes = function (routes) {
+        for (var route in routes) {
+            if (Object.hasOwnProperty.call(routes, route)) {
+                if (excluded.indexOf(route) !== -1) {
+                    continue;
+                }
+
+                if (METHOD.indexOf(route) !== -1) {
+                    processRoutes (routes[route]);
+                }
+                else {
+                    var oneApi = processRoute(routes[route], route);
+                    apiList.push(oneApi);
+                }
+            }
+        }
+    };
+    processRoutes(schema);
+    console.log(apiList);
     return apiList;
 }
 
@@ -99,8 +113,8 @@ service.prototype.init = function (callback) {
     soajs.param.serviceGroup = soajs.param.serviceGroup || "No Group Service";
     soajs.param.serviceVersion = soajs.param.serviceVersion || 1;
     soajs.param.serviceVersion = parseInt(soajs.param.serviceVersion);
-    if (isNaN(soajs.param.serviceVersion)){
-        throw new Error('Service version must be integer: ['+soajs.param.serviceVersion+']');
+    if (isNaN(soajs.param.serviceVersion)) {
+        throw new Error('Service version must be integer: [' + soajs.param.serviceVersion + ']');
     }
     soajs.param.servicePort = soajs.param.servicePort || null;
     soajs.param.extKeyRequired = soajs.param.extKeyRequired || false;
@@ -417,13 +431,13 @@ service.prototype.start = function (cb) {
                 });
                 _self.appMaintenance.get("/packageList", function (req, res) {
                     var response = maintenanceResponse(req);
-                    npm.load({ parseable: true, loglevel: "error" }, function (err, npm) {
-                        if (err){
+                    npm.load({parseable: true, loglevel: "error"}, function (err, npm) {
+                        if (err) {
                             _self._log.error(err);
                             return res.jsonp(response);
                         }
                         npm.commands.ls(null, function (err, data) {
-                            if (err){
+                            if (err) {
                                 var errArray = [];
                                 errArray = err.split('\n');
                                 response['error'] = errArray;
@@ -509,55 +523,55 @@ service.prototype.stop = function (cb) {
  * @returns {*}
  */
 function injectOauth(restApp, args) {
-	if(restApp.app.soajs.oauthService && restApp.app.soajs.param.serviceName === restApp.app.soajs.oauthService.name && args[0] === restApp.app.soajs.oauthService.tokenApi) {
-		return args;
-	}
+    if (restApp.app.soajs.oauthService && restApp.app.soajs.param.serviceName === restApp.app.soajs.oauthService.name && args[0] === restApp.app.soajs.oauthService.tokenApi) {
+        return args;
+    }
 
-	var oauthModelInjection = function(req, res, next) {
-		if(req.soajs && !(req.soajs.servicesConfig && req.soajs.servicesConfig[restApp.app.soajs.oauthService] && req.soajs.servicesConfig[restApp.app.soajs.oauthService].disabled)) {
-			provision.getOauthToken(req.query.access_token, function(err, record) {
-				restApp.oauth.model["getAccessToken"] = function(bearerToken, callback) {
-					if(record && record.oauthAccessToken) {
-						if(record.oauthAccessToken.accessToken === bearerToken) {
-							return callback(false, record.oauthAccessToken);
-						}
-					}
-					return callback(false, false);
-				};
-				restApp.oauth.model["getRefreshToken"] = function(bearerToken, callback) {
-					if(record && record.oauthRefreshToken) {
-						if(record.oauthRefreshToken.refreshToken === bearerToken) {
-							return callback(false, record.oauthRefreshToken);
-						}
-					}
-					return callback(false, false);
-				};
-				return next();
-			});
-		}
-		else {
-			return next();
-		}
-	};
+    var oauthModelInjection = function (req, res, next) {
+        if (req.soajs && !(req.soajs.servicesConfig && req.soajs.servicesConfig[restApp.app.soajs.oauthService] && req.soajs.servicesConfig[restApp.app.soajs.oauthService].disabled)) {
+            provision.getOauthToken(req.query.access_token, function (err, record) {
+                restApp.oauth.model["getAccessToken"] = function (bearerToken, callback) {
+                    if (record && record.oauthAccessToken) {
+                        if (record.oauthAccessToken.accessToken === bearerToken) {
+                            return callback(false, record.oauthAccessToken);
+                        }
+                    }
+                    return callback(false, false);
+                };
+                restApp.oauth.model["getRefreshToken"] = function (bearerToken, callback) {
+                    if (record && record.oauthRefreshToken) {
+                        if (record.oauthRefreshToken.refreshToken === bearerToken) {
+                            return callback(false, record.oauthRefreshToken);
+                        }
+                    }
+                    return callback(false, false);
+                };
+                return next();
+            });
+        }
+        else {
+            return next();
+        }
+    };
     var oauthExec = function (req, res, next) {
         if (req.soajs.servicesConfig && req.soajs.servicesConfig[restApp.app.soajs.oauthService] && req.soajs.servicesConfig[restApp.app.soajs.oauthService].disabled)
             return next();
         return restApp.app.soajs.oauth(req, res, next);
     };
 
-	if(restApp.app.soajs.oauth) {
-		var len = args.length;
-		var argsNew = [];
-		argsNew.push(args[0]);
-		argsNew.push(oauthModelInjection);
-		argsNew.push(oauthExec);
-		for(var i = 1; i < len; i++) {
-			argsNew[i + 2] = args[i];
-		}
+    if (restApp.app.soajs.oauth) {
+        var len = args.length;
+        var argsNew = [];
+        argsNew.push(args[0]);
+        argsNew.push(oauthModelInjection);
+        argsNew.push(oauthExec);
+        for (var i = 1; i < len; i++) {
+            argsNew[i + 2] = args[i];
+        }
 
-		return argsNew;
-	}
-	return args;
+        return argsNew;
+    }
+    return args;
 }
 /**
  *
@@ -566,17 +580,17 @@ function injectOauth(restApp, args) {
  * @returns {*}
  */
 function injectInputmask(restApp, args) {
-	if(restApp.app.soajs.inputmask) {
-		var len = args.length;
-		var argsNew = [];
-		argsNew.push(args[0]);
-		argsNew.push(restApp.app.soajs.inputmask);
-		for(var i = 1; i < len; i++) {
-			argsNew[i + 1] = args[i];
-		}
-		return argsNew;
-	}
-	return args;
+    if (restApp.app.soajs.inputmask) {
+        var len = args.length;
+        var argsNew = [];
+        argsNew.push(args[0]);
+        argsNew.push(restApp.app.soajs.inputmask);
+        for (var i = 1; i < len; i++) {
+            argsNew[i + 1] = args[i];
+        }
+        return argsNew;
+    }
+    return args;
 }
 /**
  *
@@ -584,62 +598,62 @@ function injectInputmask(restApp, args) {
  * @returns {boolean}
  */
 function isSOAJready(app, _log) {
-	if(app && app.soajs) {
-		return true;
-	}
-	_log.info("Can't attach route because soajs express app is not defined");
-	return false;
+    if (app && app.soajs) {
+        return true;
+    }
+    _log.info("Can't attach route because soajs express app is not defined");
+    return false;
 }
 /**
  *
  */
-service.prototype.all = function() {
-	var _self = this;
-	if(!isSOAJready(_self.app, _self._log)) return;
-	var args = injectOauth(_self, arguments);
-	args = injectInputmask(_self, args);
-	_self.app.all.apply(_self.app, args);
+service.prototype.all = function () {
+    var _self = this;
+    if (!isSOAJready(_self.app, _self._log)) return;
+    var args = injectOauth(_self, arguments);
+    args = injectInputmask(_self, args);
+    _self.app.all.apply(_self.app, args);
 };
 /**
  *
  */
-service.prototype.get = function() {
-	var _self = this;
-	if(!isSOAJready(_self.app, _self._log)) return;
-	var args = injectOauth(_self, arguments);
-	args = injectInputmask(_self, args);
-	_self.app.get.apply(_self.app, args);
+service.prototype.get = function () {
+    var _self = this;
+    if (!isSOAJready(_self.app, _self._log)) return;
+    var args = injectOauth(_self, arguments);
+    args = injectInputmask(_self, args);
+    _self.app.get.apply(_self.app, args);
 };
 /**
  *
  */
-service.prototype.post = function() {
-	var _self = this;
-	if(!isSOAJready(_self.app, _self._log)) return;
-	var args = injectOauth(_self, arguments);
-	args = injectInputmask(_self, args);
-	_self.app.post.apply(_self.app, args);
+service.prototype.post = function () {
+    var _self = this;
+    if (!isSOAJready(_self.app, _self._log)) return;
+    var args = injectOauth(_self, arguments);
+    args = injectInputmask(_self, args);
+    _self.app.post.apply(_self.app, args);
 };
 
 /**
  *
  */
-service.prototype.put = function() {
-	var _self = this;
-	if(!isSOAJready(_self.app, _self._log)) return;
-	var args = injectOauth(_self, arguments);
-	args = injectInputmask(_self, args);
-	_self.app.put.apply(_self.app, args);
+service.prototype.put = function () {
+    var _self = this;
+    if (!isSOAJready(_self.app, _self._log)) return;
+    var args = injectOauth(_self, arguments);
+    args = injectInputmask(_self, args);
+    _self.app.put.apply(_self.app, args);
 };
 /**
  *
  */
-service.prototype.delete = function() {
-	var _self = this;
-	if(!isSOAJready(_self.app, _self._log)) return;
-	var args = injectOauth(_self, arguments);
-	args = injectInputmask(_self, args);
-	_self.app.delete.apply(_self.app, args);
+service.prototype.delete = function () {
+    var _self = this;
+    if (!isSOAJready(_self.app, _self._log)) return;
+    var args = injectOauth(_self, arguments);
+    args = injectInputmask(_self, args);
+    _self.app.delete.apply(_self.app, args);
 };
 
 
@@ -652,26 +666,26 @@ service.prototype.delete = function() {
  * @param next
  */
 function logErrors(err, req, res, next) {
-	if(typeof err === "number") {
-		req.soajs.log.error(core.error.generate(err));
-		return next(err);
-	}
-	if(typeof err === "object") {
-		if(err.code && err.message) {
-			req.soajs.log.error(err);
-			return next({"code": err.code, "msg": err.message});
-		}
-		else {
-			req.soajs.log.error(err);
-			req.soajs.log.error(core.error.generate(164));
-		}
-	}
-	else {
-		req.soajs.log.error(err);
-		req.soajs.log.error(core.error.generate(164));
-	}
+    if (typeof err === "number") {
+        req.soajs.log.error(core.error.generate(err));
+        return next(err);
+    }
+    if (typeof err === "object") {
+        if (err.code && err.message) {
+            req.soajs.log.error(err);
+            return next({"code": err.code, "msg": err.message});
+        }
+        else {
+            req.soajs.log.error(err);
+            req.soajs.log.error(core.error.generate(164));
+        }
+    }
+    else {
+        req.soajs.log.error(err);
+        req.soajs.log.error(core.error.generate(164));
+    }
 
-	return next(core.error.getError(164));
+    return next(core.error.getError(164));
 }
 /**
  *
@@ -681,12 +695,12 @@ function logErrors(err, req, res, next) {
  * @param next
  */
 function clientErrorHandler(err, req, res, next) {
-	if(req.xhr) {
-		req.soajs.log.error(core.error.generate(150));
-		res.status(500).send(req.soajs.buildResponse(core.error.getError(150)));
-	} else {
-		return next(err);
-	}
+    if (req.xhr) {
+        req.soajs.log.error(core.error.generate(150));
+        res.status(500).send(req.soajs.buildResponse(core.error.getError(150)));
+    } else {
+        return next(err);
+    }
 }
 /**
  *
@@ -696,12 +710,12 @@ function clientErrorHandler(err, req, res, next) {
  * @param next
  */
 function errorHandler(err, req, res, next) {
-	res.status(500);
-	if(err.code && err.msg) {
-		res.jsonp(req.soajs.buildResponse(err));
-	} else {
-		res.jsonp(req.soajs.buildResponse(core.error.getError(err)));
-	}
+    res.status(500);
+    if (err.code && err.msg) {
+        res.jsonp(req.soajs.buildResponse(err));
+    } else {
+        res.jsonp(req.soajs.buildResponse(core.error.getError(err)));
+    }
 }
 
 module.exports = service;
