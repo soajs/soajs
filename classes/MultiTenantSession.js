@@ -251,7 +251,7 @@ MultiTenantSession.prototype.setURAC = function (urac, cb) {
                 var ACL = urac.config.packages[packageCode].acl;
                 urac.config.packages[packageCode].acl_all_env = urac.config.packages[packageCode].acl;
                 if (ACL && typeof ACL === "object") {
-                    if (ACL[regEnvironment] && (!ACL[regEnvironment].access && !ACL[regEnvironment].apis && !ACL[regEnvironment].apisRegExp && !ACL[regEnvironment].apisPermission))
+	                if (ACL[regEnvironment] && (ACL[regEnvironment].access || ACL[regEnvironment].apis || ACL[regEnvironment].apisRegExp || ACL[regEnvironment].apisPermission))
                         urac.config.packages[packageCode].acl = ACL[regEnvironment];
                 }
             }
@@ -266,7 +266,7 @@ MultiTenantSession.prototype.setURAC = function (urac, cb) {
                 var ACL = urac.config.keys[key].acl;
                 urac.config.keys[key].acl_all_env = urac.config.keys[key].acl;
                 if (ACL && typeof ACL === "object") {
-                    if (ACL[regEnvironment] && (!ACL[regEnvironment].access && !ACL[regEnvironment].apis && !ACL[regEnvironment].apisRegExp && !ACL[regEnvironment].apisPermission))
+	                if (ACL[regEnvironment] && (ACL[regEnvironment].access || ACL[regEnvironment].apis || ACL[regEnvironment].apisRegExp || ACL[regEnvironment].apisPermission))
                         urac.config.keys[key].acl = ACL[regEnvironment];
                 }
             }

@@ -1,17 +1,13 @@
 'use strict';
 var models = {};
 models.mongo = require("./mongo.js");
-models.local = require("./local.js");
-var modelName = "mongo";
 
 var provision = {
     "model": null,
     "init": function (dbConfig) {
-        if (!models[modelName])
-            modelName = "mongo";
+        var modelName = "mongo";
         models[modelName].init(dbConfig);
         provision.model = models[modelName];
-
     },
     "getOauthToken": function (access_token, cb) {
         return provision.model.getOauthToken(access_token, cb);

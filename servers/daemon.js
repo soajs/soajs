@@ -18,7 +18,7 @@ if (autoRegHost && typeof(autoRegHost) !== 'boolean') {
 }
 
 function extractJOBsList(schema) {
-    var jobList = [];
+    var jobList = {};
     for (var job in schema) {
         if (Object.hasOwnProperty.call(schema, job)) {
             var oneJob = {
