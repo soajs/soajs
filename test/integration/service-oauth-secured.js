@@ -59,6 +59,7 @@ var lib = {
 		start: function(cb) {
 			var config = {
 				"serviceName": "example02",
+				"servicePort": 4011,
 				"errors": {},
 				"schema": {
 					"/testRoute": {
@@ -111,6 +112,7 @@ var lib = {
 		start: function(cb) {
 			var config = {
 				"serviceName": "oauth",
+				"servicePort": 4002,
 				"hashIterations": 1024,
 				"seedLength": 32,
 				"errors": {
