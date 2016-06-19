@@ -58,10 +58,7 @@ var schemas = [
         'label': '/soajs/route',
         'schema': {
             "type": "object",
-            "patternProperties": {
-                '^(?!commonFields)[_a-z\/][_a-zA-Z0-9\/:]*$': {"$ref": "/soajs/input"}
-            },
-            "additionalProperties": false
+            '^(?!commonFields)[_a-z\/][_a-zA-Z0-9\/:]*$': {"$ref": "/soajs/input"}
         }
     },
     {
@@ -89,12 +86,7 @@ var schemas = [
                 "schema": {
                     "properties": {
                         "commonFields": {"$ref": "/soajs/CommonFields/input"},
-                        "_GET": {
-                            "type": "object"
-                            //"patternProperties": {
-                                //'^(?!commonFields)[_a-z\/][_a-zA-Z0-9\/:]*$': {"$ref": "/soajs/input"}
-                            //}
-                        }
+                        "_get": {"$ref": "/soajs/route"}
                     },
                     "patternProperties": {
                         '^(?!commonFields)[_a-z\/][_a-zA-Z0-9\/:]*$': {"$ref": "/soajs/input"}

@@ -66,7 +66,7 @@ function service(param) {
 
 function extractAPIsList(schema) {
     var excluded = ['commonFields'];
-    var METHOD = ['_GET', '_POST', '_PUT', '_DEL'];
+    var METHOD = ['_get', '_post', '_put', '_del'];
     var apiList = [];
 
     var processRoute = function (routeObj, routeName) {
@@ -102,7 +102,6 @@ function extractAPIsList(schema) {
         }
     };
     processRoutes(schema);
-    console.log(apiList);
     return apiList;
 }
 
