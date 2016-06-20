@@ -5,6 +5,8 @@ var regFile = (process.env.SOAJS_PROFILE || __dirname + "/../../../profiles/sing
 var mongo;
 
 module.exports = {
+    "init": function () {
+    },
     "loadData": function (dbConfiguration, envCode, param, callback) {
         if (!mongo) {
             mongo = new Mongo(dbConfiguration);
@@ -126,7 +128,6 @@ module.exports = {
             if (regFileObj && typeof regFileObj === 'object') {
                 var registry = {
                     "timeLoaded": new Date().getTime(),
-                    "projectPath": regFile.substr(0, regFile.lastIndexOf("/")),
                     "name": envFrom,
                     "environment": envFrom,
                     "profileOnly": true,

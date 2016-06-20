@@ -1,8 +1,9 @@
 'use strict';
-var regFile = (process.env.SOAJS_PROFILE || __dirname + "/../../../profiles/single.js");
 
 
 module.exports = {
+    "init": function () {
+    },
     "loadData": function (dbConfiguration, envCode, param, callback) {
         var obj = {};
         return callback(null, obj);
@@ -25,7 +26,6 @@ module.exports = {
         var regFileObj = {};
         var registry = {
             "timeLoaded": new Date().getTime(),
-            "projectPath": regFile.substr(0, regFile.lastIndexOf("/")),
             "name": envFrom,
             "environment": envFrom,
             "profileOnly": true,

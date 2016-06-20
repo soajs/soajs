@@ -4,7 +4,6 @@ var mongoSkin = require('mongoskin');
 var merge = require('merge');
 var objectHash = require("object-hash");
 var config = require('./config');
-var registry = require("../soajs.core/registry/index.js");
 
 var cacheDB = {};
 
@@ -589,7 +588,7 @@ MongoDriver.prototype.getMongoSkinDB = function (cb) {
     }
 
     if (this.config.registryLocation && this.config.registryLocation.env && this.config.registryLocation.l1 && this.config.registryLocation.l2)
-        this.config = registry.get(this.config.registryLocation.env)[this.config.registryLocation.l1][this.config.registryLocation.l2];
+        this.config = core.registry.get(this.config.registryLocation.env)[this.config.registryLocation.l1][this.config.registryLocation.l2];
 
     buildDB(this, cb);
 };
@@ -609,7 +608,7 @@ function connect(obj, cb) {
     }
     
     if (obj.config && obj.config.registryLocation && obj.config.registryLocation.env && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
-        obj.config = registry.get(obj.config.registryLocation.env)[obj.config.registryLocation.l1][obj.config.registryLocation.l2];
+        obj.config = core.registry.get(obj.config.registryLocation.env)[obj.config.registryLocation.l1][obj.config.registryLocation.l2];
         if (!obj.db && cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db)
             obj.db = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db;
         if (cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected)

@@ -1,6 +1,8 @@
 'use strict';
 
-exports.registry = require('./registry/index');
+var registry = require('./registry/index');
+registry.init();
+exports.registry = registry;
 
 exports.getLogger = require('./logger/index');
 exports.meta = require('./meta/index');
