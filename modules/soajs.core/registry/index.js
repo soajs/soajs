@@ -278,6 +278,8 @@ var build = {
         }
         registry["serviceConfig"] = registryDBInfo.ENV_schema.services.config;
 
+        registry["custom"] = registryDBInfo.ENV_schema.custom || {};
+
         for (var coreDBName in metaAndCoreDB.coreDB) {
             if (Object.hasOwnProperty.call(metaAndCoreDB.coreDB, coreDBName)) {
                 registry["coreDB"][coreDBName] = metaAndCoreDB.coreDB[coreDBName];
