@@ -32,7 +32,7 @@ describe("core provision tests", function() {
 			}
 		}
 	};
-
+/*
 	describe("getOAuthToken", function() {
 		it("fail - no params", function(done) {
 			coreProvision.init(metaData);
@@ -61,7 +61,7 @@ describe("core provision tests", function() {
 			});
 		});
 	});
-
+*/
 	describe("getPackages", function() {
 		it("success - returns packages", function(done) {
 			coreProvision.init(metaData);

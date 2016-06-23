@@ -460,6 +460,10 @@ var registryModule = {
         }
         return cb(new Error("unable to register service. missing params"));
     },
+    "getCustom": function (envCode) {
+        var env = envCode || regEnvironment;
+        return registry_struct[env].custom;
+    },
     "get": function (envCode) {
         var env = envCode || regEnvironment;
         return registry_struct[env];

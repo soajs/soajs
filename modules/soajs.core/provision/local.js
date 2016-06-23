@@ -2,19 +2,30 @@
 
 
 module.exports = {
-    init: function (config) {
+    "init": function (config) {
 
     },
-    getOauthToken: function (access_token, cb) {
+    
+    "getAccessToken": function (bearerToken, cb) {
+        return cb(false, false);
+    },
+    "getRefreshToken": function (bearerToken, cb) {
+        return cb(false, false);
+    },
+    "saveAccessToken": function (accessToken, clientId, expires, userId, cb) {
+        return cb(false);
+    },
+    "saveRefreshToken": function (refreshToken, clientId, expires, userId, cb) {
+        return cb(false);
+    },
+
+    "getDaemonGrpConf": function (grp, name, cb) {
         return cb();
     },
-    getDaemonGrpConf: function (grp, name, cb) {
+    "getPackagesFromDb": function (code, cb) {
         return cb();
     },
-    getPackagesFromDb: function (code, cb) {
-        return cb();
-    },
-    getKeyFromDb: function (key, tId, oauth, cb) {
+    "getKeyFromDb": function (key, tId, oauth, cb) {
         return cb();
     }
 };

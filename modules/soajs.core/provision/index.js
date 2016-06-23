@@ -9,9 +9,19 @@ var provision = {
         models[modelName].init(dbConfig);
         provision.model = models[modelName];
     },
-    "getOauthToken": function (access_token, cb) {
-        return provision.model.getOauthToken(access_token, cb);
+    "getAccessToken": function (bearerToken, cb){
+        return provision.model.getAccessToken(bearerToken, cb);
     },
+    "getRefreshToken": function (bearerToken, cb){
+        return provision.model.getRefreshToken(bearerToken, cb);
+    },
+    "saveAccessToken": function (accessToken, clientId, expires, userId, cb){
+        return provision.model.saveAccessToken(accessToken, clientId, expires, userId, cb);
+    },
+    "saveRefreshToken": function (refreshToken, clientId, expires, userId, cb){
+        return provision.model.saveRefreshToken(refreshToken, clientId, expires, userId, cb);
+    },
+
     "getPackages": function (cb) {
         return provision.model.getPackagesFromDb(null, cb);
     },
