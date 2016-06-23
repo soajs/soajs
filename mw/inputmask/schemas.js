@@ -89,13 +89,13 @@ var schemas = [
                 "schema": {
                     "properties": {
                         "commonFields": {"$ref": "/soajs/CommonFields/input"},
-                        "_get": {"$ref": "/soajs/route"},
-                        "_post": {"$ref": "/soajs/route"},
-                        "_put": {"$ref": "/soajs/route"},
-                        "_del": {"$ref": "/soajs/route"}
+                        "get": {"$ref": "/soajs/route"},
+                        "post": {"$ref": "/soajs/route"},
+                        "put": {"$ref": "/soajs/route"},
+                        "delete": {"$ref": "/soajs/route"}
                     },
                     "patternProperties": {
-                        '^(?!commonFields)(?!_get)(?!_post)(?!_put)(?!_del)[_a-z\/][_a-zA-Z0-9\/:]*$': {"$ref": "/soajs/input"}
+                        '^(?!commonFields)(?!get)(?!post)(?!put)(?!delete)[_a-z\/][_a-zA-Z0-9\/:]*$': {"$ref": "/soajs/input"}
                     },
                     "additionalProperties": false
                 }

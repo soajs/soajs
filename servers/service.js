@@ -66,13 +66,14 @@ function service(param) {
 
 function extractAPIsList(schema) {
     var excluded = ['commonFields'];
-    var METHOD = ['_get', '_post', '_put', '_del'];
+    var METHOD = ['get', 'post', 'put', 'delete'];
     var apiList = [];
 
-    var processRoute = function (routeObj, routeName) {
+    var processRoute = function (routeObj, routeName, method) {
         var oneApi = {
             'l': routeObj._apiInfo.l,
-            'v': routeName
+            'v': routeName,
+            'm': method
         };
 
         if (routeObj._apiInfo.group) {
@@ -84,7 +85,7 @@ function extractAPIsList(schema) {
         }
         return (oneApi);
     }
-    var processRoutes = function (routes) {
+    var processRoutes = function (routes, method) {
         for (var route in routes) {
             if (Object.hasOwnProperty.call(routes, route)) {
                 if (excluded.indexOf(route) !== -1) {
@@ -92,16 +93,16 @@ function extractAPIsList(schema) {
                 }
 
                 if (METHOD.indexOf(route) !== -1) {
-                    processRoutes (routes[route]);
+                    processRoutes(routes[route], route);
                 }
                 else {
-                    var oneApi = processRoute(routes[route], route);
+                    var oneApi = processRoute(routes[route], route, method);
                     apiList.push(oneApi);
                 }
             }
         }
     };
-    processRoutes(schema);
+    processRoutes(schema, "");
     return apiList;
 }
 
@@ -154,51 +155,51 @@ service.prototype.init = function (callback) {
         registry = reg;
         soajs.serviceConf = lib.registry.getServiceConf(soajs.param.serviceName, registry);
 
-        _self._log = core.getLogger(soajs.param.serviceName, registry.serviceConfig.logger);
+        _self.log = core.getLogger(soajs.param.serviceName, registry.serviceConfig.logger);
         if (soajs.param.oldStyleConfiguration)
-            _self._log.warn("Old style configuration detected. Please start using the new way of passing param when creating a new service.");
-        _self._log.info("Registry has been loaded successfully from environment: " + registry.environment);
+            _self.log.warn("Old style configuration detected. Please start using the new way of passing param when creating a new service.");
+        _self.log.info("Registry has been loaded successfully from environment: " + registry.environment);
 
         if (fetchedHostIp) {
             if (!fetchedHostIp.result) {
-                _self._log.warn("Unable to find the service host ip. The service will NOT be registered for awareness.");
-                _self._log.info("IPs found: ", fetchedHostIp.ips);
+                _self.log.warn("Unable to find the service host ip. The service will NOT be registered for awareness.");
+                _self.log.info("IPs found: ", fetchedHostIp.ips);
                 if (serviceIpNotDetected) {
-                    _self._log.warn("The default service IP has been used [" + soajs.param.serviceIp + "]");
+                    _self.log.warn("The default service IP has been used [" + soajs.param.serviceIp + "]");
                 }
             }
             else {
-                _self._log.info("The IP registered for service [" + soajs.param.serviceName + "] awareness : ", fetchedHostIp.ip);
+                _self.log.info("The IP registered for service [" + soajs.param.serviceName + "] awareness : ", fetchedHostIp.ip);
             }
         }
 
         if (!soajs.param.serviceName || !soajs.serviceConf) {
             if (!soajs.param.serviceName) {
-                _self._log.error('Service failed to start, serviceName is empty [' + soajs.param.serviceName + ']');
+                _self.log.error('Service failed to start, serviceName is empty [' + soajs.param.serviceName + ']');
             } else {
-                _self._log.error('Service [' + soajs.param.serviceName + '] failed to start. Unable to find the service entry in registry');
+                _self.log.error('Service [' + soajs.param.serviceName + '] failed to start. Unable to find the service entry in registry');
             }
             return callback(new Error("Service shutdown due to failure!"));
         }
 
-        _self._log.info("Service middleware initialization started...");
+        _self.log.info("Service middleware initialization started...");
 
         var favicon_mw = require("./../mw/favicon/index");
         _self.app.use(favicon_mw());
         _self.appMaintenance.use(favicon_mw());
-        _self._log.info("Favicon middleware initialization done.");
+        _self.log.info("Favicon middleware initialization done.");
 
         if (soajs.param.logger) {
             var logger = require('morgan');
             _self.app.use(logger('combined'));
-            _self._log.info("Morgan Logger middleware initialization done.");
+            _self.log.info("Morgan Logger middleware initialization done.");
         }
         else {
-            _self._log.info("Morgan Logger middleware initialization skipped.");
+            _self.log.info("Morgan Logger middleware initialization skipped.");
         }
 
         var soajs_mw = require("./../mw/soajs/index");
-        _self.app.use(soajs_mw({"log": _self._log}));
+        _self.app.use(soajs_mw({"log": _self.log}));
 
         var response_mw = require("./../mw/response/index");
         _self.app.use(response_mw({}));
@@ -207,35 +208,35 @@ service.prototype.init = function (callback) {
             var bodyParser = require('body-parser');
             _self.app.use(bodyParser.json());
             _self.app.use(bodyParser.urlencoded({extended: true}));
-            _self._log.info("Body-Parse middleware initialization done.");
+            _self.log.info("Body-Parse middleware initialization done.");
         }
         else {
-            _self._log.info("Body-Parser middleware initialization skipped.");
+            _self.log.info("Body-Parser middleware initialization skipped.");
         }
 
         if (soajs.param.methodOverride) {
             var methodOverride = require('method-override');
             _self.app.use(methodOverride());
-            _self._log.info("Method-Override middleware initialization done.");
+            _self.log.info("Method-Override middleware initialization done.");
         }
         else {
-            _self._log.info("Method-Override middleware initialization skipped.");
+            _self.log.info("Method-Override middleware initialization skipped.");
         }
 
         if (soajs.param.cookieParser) {
             var cookieParser = require('cookie-parser');
             _self.app.use(cookieParser(soajs.serviceConf._conf.cookie.secret));
-            _self._log.info("CookieParser middleware initialization done.");
+            _self.log.info("CookieParser middleware initialization done.");
         }
         else {
-            _self._log.info("CookieParser middleware initialization skipped.");
+            _self.log.info("CookieParser middleware initialization skipped.");
         }
 
         if (soajs.param.session) {
             var session = require('express-session');
             var MongoStore = require('./../modules/soajs.mongoStore/index.js')(session);
             var store = new MongoStore(registry.coreDB.session);
-            _self._log.info(registry.coreDB.session);
+            _self.log.info(registry.coreDB.session);
             var sessConf = {};
             for (var key in soajs.serviceConf._conf.session) {
                 if (Object.hasOwnProperty.call(soajs.serviceConf._conf.session, key)) {
@@ -244,10 +245,10 @@ service.prototype.init = function (callback) {
             }
             sessConf.store = store;
             _self.app.use(session(sessConf));
-            _self._log.info("Express-Session middleware initialization done.");
+            _self.log.info("Express-Session middleware initialization done.");
         }
         else {
-            _self._log.info("Express-Session middleware initialization skipped.");
+            _self.log.info("Express-Session middleware initialization skipped.");
         }
 
         if (soajs.param.inputmask && soajs.param.schema) {
@@ -261,10 +262,10 @@ service.prototype.init = function (callback) {
             }
 
             soajs.inputmask = inputmask_mw(soajs.param, inputmaskSrc);
-            _self._log.info("IMFV middleware initialization done.");
+            _self.log.info("IMFV middleware initialization done.");
         }
         else {
-            _self._log.info("IMFV middleware initialization skipped.");
+            _self.log.info("IMFV middleware initialization skipped.");
         }
 
         if (soajs.param.bodyParser && soajs.param.oauth) {
@@ -284,10 +285,10 @@ service.prototype.init = function (callback) {
             }
 
             soajs.oauth = _self.oauth.authorise();
-            _self._log.info("oAuth middleware initialization done.");
+            _self.log.info("oAuth middleware initialization done.");
         }
         else {
-            _self._log.info("oAuth middleware initialization skipped.");
+            _self.log.info("oAuth middleware initialization skipped.");
         }
 
         if (soajs.param.awareness) {
@@ -303,35 +304,41 @@ service.prototype.init = function (callback) {
                 "awareness": soajs.param.awareness,
                 "serviceIp": soajs.param.serviceIp,
                 "apiList": soajs.apiList,
-                "log": _self._log
+                "log": _self.log
             }));
-            _self._log.info("Awareness middleware initialization done.");
+            _self.log.info("Awareness middleware initialization done.");
         }
         else {
-            _self._log.info("Awareness middleware initialization skipped.");
+            _self.log.info("Awareness middleware initialization skipped.");
         }
 
         if (soajs.param.awarenessEnv) {
             var awarenessEnv_mw = require("./../mw/awarenessEnv/index");
             _self.app.use(awarenessEnv_mw({
                 "awarenessEnv": soajs.param.awarenessEnv,
-                "log": _self._log
+                "log": _self.log
             }));
-            _self._log.info("AwarenessEnv middleware initialization done.");
+            _self.log.info("AwarenessEnv middleware initialization done.");
         }
         else {
-            _self._log.info("AwarenessEnv middleware initialization skipped.");
+            _self.log.info("AwarenessEnv middleware initialization skipped.");
         }
 
         var service_mw = require("./../mw/service/index");
         _self.app.use(service_mw({"soajs": soajs, "app": _self.app, "param": soajs.param}));
-        _self._log.info("SOAJS Service middleware initialization done.");
+        _self.log.info("SOAJS Service middleware initialization done.");
 
         if (soajs.param.roaming) {
             var roaming_mw = require("./../mw/roaming/index");
             _self.app.use(roaming_mw({"app": _self.app}));
-            _self._log.info("SOAJS Roaming middleware initialization done.");
+            _self.log.info("SOAJS Roaming middleware initialization done.");
         }
+
+        //Expose some core function after init
+        _self.getCustomRegistry = function () {
+            return core.registry.getCustom();
+        };
+
         callback();
     });
 };
@@ -342,7 +349,7 @@ service.prototype.init = function (callback) {
 service.prototype.start = function (cb) {
     var _self = this;
     if (_self.app && _self.app.soajs) {
-        _self._log.info("Service about to start ...");
+        _self.log.info("Service about to start ...");
         var registry = core.registry.get();
         _self.app.all('*', function (req, res) {
             req.soajs.log.error(151, 'Unknown API : ' + req.path);
@@ -353,26 +360,26 @@ service.prototype.start = function (cb) {
         _self.app.use(clientErrorHandler);
         _self.app.use(errorHandler);
 
-        _self._log.info("Loading Service Provision ...");
-        provision.init(registry.coreDB.provision, _self._log);
+        _self.log.info("Loading Service Provision ...");
+        provision.init(registry.coreDB.provision, _self.log);
         provision.loadProvision(function (loaded) {
             if (loaded) {
-                _self._log.info("Service provision loaded.");
-                _self._log.info("Starting Service ...");
+                _self.log.info("Service provision loaded.");
+                _self.log.info("Starting Service ...");
                 _self.app.httpServer = _self.app.listen(_self.app.soajs.serviceConf.info.port, function (err) {
-                    _self._log.info(_self.app.soajs.param.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
+                    _self.log.info(_self.app.soajs.param.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
                     if (autoRegHost) {
-                        _self._log.info("Initiating service auto register for awareness ...");
+                        _self.log.info("Initiating service auto register for awareness ...");
                         core.registry.autoRegisterService(_self.app.soajs.param.serviceName, _self.app.soajs.param.serviceIp, _self.app.soajs.param.serviceVersion, "services", function (err, registered) {
                             if (err) {
-                                _self._log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
+                                _self.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
                             } else if (registered) {
-                                _self._log.info('The autoRegisterService @ controllers for [' + _self.app.soajs.param.serviceName + '@' + _self.app.soajs.param.serviceIp + '] successfully finished.');
+                                _self.log.info('The autoRegisterService @ controllers for [' + _self.app.soajs.param.serviceName + '@' + _self.app.soajs.param.serviceIp + '] successfully finished.');
                             }
                         });
                     }
                     else {
-                        _self._log.info("Service auto register for awareness, skipped.");
+                        _self.log.info("Service auto register for awareness, skipped.");
                     }
                     if (cb) {
                         cb(err);
@@ -380,7 +387,7 @@ service.prototype.start = function (cb) {
                 });
 
                 //MAINTENANCE Service Routes
-                _self._log.info("Adding Service Maintenance Routes ...");
+                _self.log.info("Adding Service Maintenance Routes ...");
                 var maintenancePort = _self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
                 var maintenanceResponse = function (req, route) {
                     var response = {
@@ -412,7 +419,7 @@ service.prototype.start = function (cb) {
                         "serviceIp": _self.app.soajs.param.serviceIp
                     }, function (err, reg) {
                         if (err) {
-                            _self._log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
+                            _self.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
                         }
                         var response = maintenanceResponse(req);
                         response['result'] = true;
@@ -432,7 +439,7 @@ service.prototype.start = function (cb) {
                     var response = maintenanceResponse(req);
                     npm.load({parseable: true, loglevel: "error"}, function (err, npm) {
                         if (err) {
-                            _self._log.error(err);
+                            _self.log.error(err);
                             return res.jsonp(response);
                         }
                         npm.commands.ls(null, function (err, data) {
@@ -489,7 +496,7 @@ service.prototype.start = function (cb) {
                     res.jsonp(response);
                 });
                 _self.appMaintenance.httpServer = _self.appMaintenance.listen(maintenancePort, function (err) {
-                    _self._log.info(_self.app.soajs.param.serviceName + " service maintenance is listening on port: " + maintenancePort);
+                    _self.log.info(_self.app.soajs.param.serviceName + " service maintenance is listening on port: " + maintenancePort);
                 });
             }
         });
@@ -504,7 +511,7 @@ service.prototype.start = function (cb) {
 
 service.prototype.stop = function (cb) {
     var _self = this;
-    _self._log.info('stopping service[' + _self.app.soajs.param.serviceName + '] on port:', _self.app.soajs.serviceConf.info.port);
+    _self.log.info('stopping service[' + _self.app.soajs.param.serviceName + '] on port:', _self.app.soajs.serviceConf.info.port);
     _self.app.httpServer.close(function (err) {
         _self.appMaintenance.httpServer.close(function (err) {
             if (cb) {
@@ -526,32 +533,6 @@ function injectOauth(restApp, args) {
         return args;
     }
 
-    var oauthModelInjection = function (req, res, next) {
-        if (req.soajs && !(req.soajs.servicesConfig && req.soajs.servicesConfig[restApp.app.soajs.oauthService] && req.soajs.servicesConfig[restApp.app.soajs.oauthService].disabled)) {
-            provision.getOauthToken(req.query.access_token, function (err, record) {
-                restApp.oauth.model["getAccessToken"] = function (bearerToken, callback) {
-                    if (record && record.oauthAccessToken) {
-                        if (record.oauthAccessToken.accessToken === bearerToken) {
-                            return callback(false, record.oauthAccessToken);
-                        }
-                    }
-                    return callback(false, false);
-                };
-                restApp.oauth.model["getRefreshToken"] = function (bearerToken, callback) {
-                    if (record && record.oauthRefreshToken) {
-                        if (record.oauthRefreshToken.refreshToken === bearerToken) {
-                            return callback(false, record.oauthRefreshToken);
-                        }
-                    }
-                    return callback(false, false);
-                };
-                return next();
-            });
-        }
-        else {
-            return next();
-        }
-    };
     var oauthExec = function (req, res, next) {
         if (req.soajs.servicesConfig && req.soajs.servicesConfig[restApp.app.soajs.oauthService] && req.soajs.servicesConfig[restApp.app.soajs.oauthService].disabled)
             return next();
@@ -562,10 +543,9 @@ function injectOauth(restApp, args) {
         var len = args.length;
         var argsNew = [];
         argsNew.push(args[0]);
-        argsNew.push(oauthModelInjection);
         argsNew.push(oauthExec);
         for (var i = 1; i < len; i++) {
-            argsNew[i + 2] = args[i];
+            argsNew[i + 1] = args[i];
         }
 
         return argsNew;
@@ -596,11 +576,11 @@ function injectInputmask(restApp, args) {
  * @param app
  * @returns {boolean}
  */
-function isSOAJready(app, _log) {
+function isSOAJready(app, log) {
     if (app && app.soajs) {
         return true;
     }
-    _log.info("Can't attach route because soajs express app is not defined");
+    log.info("Can't attach route because soajs express app is not defined");
     return false;
 }
 /**
@@ -608,7 +588,7 @@ function isSOAJready(app, _log) {
  */
 service.prototype.all = function () {
     var _self = this;
-    if (!isSOAJready(_self.app, _self._log)) return;
+    if (!isSOAJready(_self.app, _self.log)) return;
     var args = injectOauth(_self, arguments);
     args = injectInputmask(_self, args);
     _self.app.all.apply(_self.app, args);
@@ -618,7 +598,7 @@ service.prototype.all = function () {
  */
 service.prototype.get = function () {
     var _self = this;
-    if (!isSOAJready(_self.app, _self._log)) return;
+    if (!isSOAJready(_self.app, _self.log)) return;
     var args = injectOauth(_self, arguments);
     args = injectInputmask(_self, args);
     _self.app.get.apply(_self.app, args);
@@ -628,7 +608,7 @@ service.prototype.get = function () {
  */
 service.prototype.post = function () {
     var _self = this;
-    if (!isSOAJready(_self.app, _self._log)) return;
+    if (!isSOAJready(_self.app, _self.log)) return;
     var args = injectOauth(_self, arguments);
     args = injectInputmask(_self, args);
     _self.app.post.apply(_self.app, args);
@@ -639,7 +619,7 @@ service.prototype.post = function () {
  */
 service.prototype.put = function () {
     var _self = this;
-    if (!isSOAJready(_self.app, _self._log)) return;
+    if (!isSOAJready(_self.app, _self.log)) return;
     var args = injectOauth(_self, arguments);
     args = injectInputmask(_self, args);
     _self.app.put.apply(_self.app, args);
@@ -649,7 +629,7 @@ service.prototype.put = function () {
  */
 service.prototype.delete = function () {
     var _self = this;
-    if (!isSOAJready(_self.app, _self._log)) return;
+    if (!isSOAJready(_self.app, _self.log)) return;
     var args = injectOauth(_self, arguments);
     args = injectInputmask(_self, args);
     _self.app.delete.apply(_self.app, args);
