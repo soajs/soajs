@@ -67,6 +67,7 @@ var lib = {
 	startUrac: function(cb) {
 		var config = {
 			"serviceName": "urac",
+			"servicePort": 4001,
 			"extKeyRequired": true,
 			"errors": {
 				"401": "error logging in try again"
@@ -266,6 +267,7 @@ var lib = {
 	startTestService: function(cb) {
 		var config = {
 			"serviceName": "example03",
+			"servicePort": 4012,
 			"errors": {
 				"401": "error logging in try again"
 			},
@@ -342,6 +344,7 @@ var lib = {
 	startTestService2: function(cb) {
 		var config = {
 			"serviceName": "example02",
+			"servicePort": 4011,
 			"errors": {
 				"401": "error logging in try again"
 			},
@@ -422,7 +425,7 @@ var lib = {
 			"config": {
 				serviceName: "helloDaemon",
 				"serviceVersion": 1,
-				servicePort: 4200,
+				"servicePort": 4200,
 				"errors": {},
 				"schema": {
 					"hello": {

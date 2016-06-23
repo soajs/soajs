@@ -467,6 +467,7 @@ var lib = {
         console.log("**** start service");
 		var config = {
 			"serviceName": serviceName,
+			"servicePort": 4010,
 			"errors": {},
 			"schema": {}
 		};
@@ -518,6 +519,7 @@ var lib = {
 		console.log("**** start service2");
 		var config = {
 			"serviceName": serviceName2,
+			"servicePort": 4018,
 			"requestTimeout": 30,
 			"requestTimeoutRenewal": 5,
 			"extKeyRequired": true,
