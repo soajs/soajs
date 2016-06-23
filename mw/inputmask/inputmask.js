@@ -48,6 +48,7 @@ var castFunctions = {
                 }
             }
         }
+        return arr;
     },
     'object': function castToObject(obj, cfg) {
         var objCfg = null;
@@ -81,15 +82,14 @@ var castFunctions = {
                 }
             }
         }
+        return obj;
     }
 };
 
 function castType(value, type, cfg) {
     try {
-        let retValue = castFunctions[type](value, cfg);
-        return typeof retValue !== 'undefined' && retValue !== null? retValue : value;
+        return castFunctions[type](value, cfg);
     }catch(error){
-        console.log(error)
         return value;
     }
 }
