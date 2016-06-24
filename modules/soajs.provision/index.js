@@ -177,34 +177,31 @@ var provision = {
             });
         });
     },
-    "getOauthToken": function (access_token, cb) {
-        core.provision.getOauthToken(access_token, cb);
-    },
     "oauthModel": {
-        "getClient": function (clientId, clientSecret, callback) {
+        "getClient": function (clientId, clientSecret, cb) {
             if (struct_oauths[clientId]) {
                 if (clientSecret === null || struct_oauths[clientId].secret === clientSecret)
-                    return callback(false, {"clientId": clientId});
+                    return cb(false, {"clientId": clientId});
             }
-            return callback(false, false);
+            return cb(false, false);
         },
-        "grantTypeAllowed": function (clientId, grantType, callback) {
+        "grantTypeAllowed": function (clientId, grantType, cb) {
             if (struct_oauths[clientId] && struct_oauths[clientId].grants && (struct_oauths[clientId].grants.indexOf(grantType) >= 0))
-                return callback(false, true);
+                return cb(false, true);
             else
-                return callback(false, false);
+                return cb(false, false);
         },
-        "getAccessToken": function (bearerToken, callback) {
-            callback(false, false);
+        "getAccessToken": function (bearerToken, cb) {
+            core.provision.getAccessToken(bearerToken, cb);
         },
-        "getRefreshToken": function (bearerToken, callback) {
-            callback(false, false);
+        "getRefreshToken": function (bearerToken, cb) {
+            core.provision.getRefreshToken(bearerToken, cb);
         },
-        "saveAccessToken": function (accessToken, clientId, expires, userId, callback) {
-            callback(false);
+        "saveAccessToken": function (accessToken, clientId, expires, userId, cb) {
+            core.provision.saveAccessToken(accessToken, clientId, expires, userId, cb);
         },
-        "saveRefreshToken": function (refreshToken, clientId, expires, userId, callback) {
-            callback(false);
+        "saveRefreshToken": function (refreshToken, clientId, expires, userId, cb) {
+            core.provision.saveRefreshToken(refreshToken, clientId, expires, userId, cb);
         },
         "getUser": function (username, password, callback) {
             callback(false, false);

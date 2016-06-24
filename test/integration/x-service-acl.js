@@ -125,7 +125,7 @@ var lib = {
 				var user = req.soajs.session.getUrac();
 				req.soajs.awarenessEnv.getHost(process.env.SOAJS_ENV, function (host) {
 					console.log(host);
-					console.log('************')
+					console.log('************');
 					res.json(req.soajs.buildResponse(null, user));
 				});
 			});

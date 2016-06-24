@@ -124,11 +124,16 @@ module.exports = {
         sources['session'] = (obj.req.soajs && obj.req.soajs.session) ? obj.req.soajs.session.getSERVICE() : {};
 
         var paramsLocalConfig = obj.config.schema[obj.apiName];
+        if (obj.config.schema[obj.method] && obj.config.schema[obj.method][obj.apiName])
+            paramsLocalConfig = obj.config.schema[obj.method][obj.apiName];
         var paramsServiceConfigAPI = null;
         var paramsServiceConfigCommonFields = null;
         if (obj.req.soajs.servicesConfig && obj.req.soajs.servicesConfig[obj.config.serviceName] && obj.req.soajs.servicesConfig[obj.config.serviceName].SOAJS && obj.req.soajs.servicesConfig[obj.config.serviceName].SOAJS.IMFV && obj.req.soajs.servicesConfig[obj.config.serviceName].SOAJS.IMFV.schema) {
-            paramsServiceConfigAPI = obj.req.soajs.servicesConfig[obj.config.serviceName].SOAJS.IMFV.schema[obj.apiName];
             paramsServiceConfigCommonFields = obj.req.soajs.servicesConfig[obj.config.serviceName].SOAJS.IMFV.schema.commonFields;
+            if (obj.req.soajs.servicesConfig[obj.config.serviceName].SOAJS.IMFV.schema[obj.method])
+                paramsServiceConfigAPI = obj.req.soajs.servicesConfig[obj.config.serviceName].SOAJS.IMFV.schema[obj.method][obj.apiName];
+            if (!paramsServiceConfigAPI)
+                paramsServiceConfigAPI = obj.req.soajs.servicesConfig[obj.config.serviceName].SOAJS.IMFV.schema[obj.apiName];
         }
         var params = paramsLocalConfig;
         if (paramsServiceConfigAPI) {
