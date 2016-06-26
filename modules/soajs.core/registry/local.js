@@ -1,61 +1,30 @@
 'use strict';
-
+var fs = require('fs');
+var regFile = (process.env.SOAJS_PROFILE || __dirname + "/../../../profiles/solo.js");
 
 module.exports = {
     "init": function () {
     },
     "loadData": function (dbConfiguration, envCode, param, callback) {
-        var obj = {};
-        obj['ENV_schema'] = {
-            "services" : {
-                "controller": {
-                    "maxPoolSize": 100,
-                    "authorization": true,
-                    "requestTimeout": 30,
-                    "requestTimeoutRenewal": 0
-                },
-                "config": {
-                    "awareness": {
-                    },
-                    "key": {
-                        "algorithm": "aes256",
-                        "password": "soajs key lal massa"
-                    },
-                    "logger": {
-                        "src": true,
-                        "level": "debug",
-                        "formatter": {
-                            "outputMode": "long"
-                        }
-                    },
-                    "cors": {
-                        "enabled": true,
-                        "origin": "*",
-                        "credentials": "true",
-                        "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
-                        "headers": "key,soajsauth,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type",
-                        "maxage": 1728000
-                    },
-                    "oauth": {
-                        "grants": [
-                            "password",
-                            "refresh_token"
-                        ],
-                        "debug": false
-                    },
-                    "ports": {
-                        "controller": 4000,
-                        "maintenanceInc": 1000,
-                        "randomInc": 100
-                    },
-                    "cookie": {
-                    },
-                    "session": {
-                    }
-                }
+        var error;
+        if (fs.existsSync(regFile)) {
+            delete require.cache[require.resolve(regFile)];
+            var regFileObj = require(regFile);
+            if (regFileObj && typeof regFileObj === 'object' && !(Object.keys(regFileObj).length === 0 && regFileObj.constructor === Object)) {
+                var obj = {};
+                obj['ENV_schema'] = regFileObj;
+                return callback(null, obj);
             }
-        };
-        return callback(null, obj);
+            else {
+                error = new Error('Invalid profile file: ' + regFile);
+                throw error;
+            }
+        }
+        else {
+            error = new Error('Invalid profile path: ' + regFile);
+            throw error;
+        }
+        return callback(error, null);
     },
     "registerNewService": function (dbConfiguration, serviceObj, collection, cb) {
         return cb(null);
