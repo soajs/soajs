@@ -35,7 +35,15 @@ function service(param) {
         }
         delete param.config;
     }
-
+    if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true") {
+        param.extKeyRequired = false;
+        param.roaming = false;
+        param.session = false;
+        param.oauth = false;
+        param.awareness = false;
+        param.awarenessEnv = false;
+        param.roaming = false;
+    }
     if (param.extKeyRequired === true) {
         param.multitenant = true;
         param.security = true;
@@ -156,6 +164,10 @@ service.prototype.init = function (callback) {
         soajs.serviceConf = lib.registry.getServiceConf(soajs.param.serviceName, registry);
 
         _self.log = core.getLogger(soajs.param.serviceName, registry.serviceConfig.logger);
+
+        if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true")
+            _self.log.info("SOAJS is in SOLO mode, the following got turned OFF [extKeyRequired, roaming, session, oauth, awareness, awarenessEnv, roaming].");
+
         if (soajs.param.oldStyleConfiguration)
             _self.log.warn("Old style configuration detected. Please start using the new way of passing param when creating a new service.");
         _self.log.info("Registry has been loaded successfully from environment: " + registry.environment);

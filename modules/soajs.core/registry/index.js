@@ -53,7 +53,7 @@ var build = {
         return metaAndCoreDB;
     },
 
-    "sessionDB": function (STRUCT) {
+    "sessionDB": function (STRUCT, env) {
         var sessionDB = null;
         if (STRUCT && STRUCT.dbs && STRUCT.dbs.config && STRUCT.dbs.config.session) {
             if (STRUCT.dbs.config.session) {
@@ -69,11 +69,15 @@ var build = {
                         'store': STRUCT.dbs.config.session.store,
                         "collection": STRUCT.dbs.config.session.collection,
                         'stringify': STRUCT.dbs.config.session.stringify,
-                        'expireAfter': STRUCT.dbs.config.session.expireAfter
+                        'expireAfter': STRUCT.dbs.config.session.expireAfter,
+                        'registryLocation': {
+                            "l1": "coreDB", "l2": "session", "env": env
+                        }
                     };
                 }
             }
         }
+
         return sessionDB;
     },
 
@@ -210,8 +214,7 @@ var build = {
             }
         };
 
-        registry["coreDB"]["session"] = build.sessionDB(registryDBInfo.ENV_schema);
-        registry["coreDB"]["session"].registryLocation = {"l1": "coreDB", "l2": "session", "env": registry.environment};
+        registry["coreDB"]["session"] = build.sessionDB(registryDBInfo.ENV_schema, registry.environment);
 
         registry["daemons"] = {};
         return callback(null);
@@ -337,7 +340,7 @@ var build = {
     }
 };
 
-function loadProfile(envFrom){
+function loadProfile(envFrom) {
     var registry = registryModule.model.loadProfile(envFrom);
     if (!registry_struct[registry.environment])
         registry_struct[registry.environment] = registry;
@@ -398,7 +401,15 @@ var getRegistry = function (param, cb) {
 
 var registryModule = {
     "init": function (modelName) {
-        modelName = "mongo";
+        var modelName = "mongo";
+        if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true") {
+            models.local = require("./local.js");
+            modelName = "local";
+        }
+        else {
+            models.mongo = require("./mongo.js");
+            modelName = "mongo";
+        }
         models[modelName].init();
         registryModule.model = models[modelName];
     },

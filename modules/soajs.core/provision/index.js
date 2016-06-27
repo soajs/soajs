@@ -1,24 +1,31 @@
 'use strict';
 var models = {};
-models.mongo = require("./mongo.js");
 
 var provision = {
     "model": null,
     "init": function (dbConfig) {
         var modelName = "mongo";
+        if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true") {
+            models.local = require("./local.js");
+            modelName = "local";
+        }
+        else {
+            models.mongo = require("./mongo.js");
+            modelName = "mongo";
+        }
         models[modelName].init(dbConfig);
         provision.model = models[modelName];
     },
-    "getAccessToken": function (bearerToken, cb){
+    "getAccessToken": function (bearerToken, cb) {
         return provision.model.getAccessToken(bearerToken, cb);
     },
-    "getRefreshToken": function (bearerToken, cb){
+    "getRefreshToken": function (bearerToken, cb) {
         return provision.model.getRefreshToken(bearerToken, cb);
     },
-    "saveAccessToken": function (accessToken, clientId, expires, userId, cb){
+    "saveAccessToken": function (accessToken, clientId, expires, userId, cb) {
         return provision.model.saveAccessToken(accessToken, clientId, expires, userId, cb);
     },
-    "saveRefreshToken": function (refreshToken, clientId, expires, userId, cb){
+    "saveRefreshToken": function (refreshToken, clientId, expires, userId, cb) {
         return provision.model.saveRefreshToken(refreshToken, clientId, expires, userId, cb);
     },
 
