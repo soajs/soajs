@@ -46,8 +46,6 @@
     "jsonschema": "*",
     "merge": "*",
     "method-override": "*",
-    //"mongoskin": "2.0.3",
-    //"mongodb": "2.0.49",
     "mongoskin": "2.1.*",
     "mongodb": "2.1.*",
     "morgan": "*",
