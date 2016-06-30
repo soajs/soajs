@@ -19,10 +19,13 @@ module.exports = {
     },
     "extraParam": {
         "db": {
-            "native_parser": true
+            "native_parser": true,
+            "bufferMaxEntries": 0
         },
         "server": {
-            "auto_reconnect": true
+            "socketOptions": {
+                "autoReconnect": false
+            }
         }
     }
 };

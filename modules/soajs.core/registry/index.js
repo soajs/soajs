@@ -344,8 +344,13 @@ function loadProfile(envFrom) {
     var registry = registryModule.model.loadProfile(envFrom);
     if (!registry_struct[registry.environment])
         registry_struct[registry.environment] = registry;
-    else
+    else {
+        registry_struct[registry.environment].timeLoaded = registry.timeLoaded;
+        registry_struct[registry.environment].name = registry.name;
+        registry_struct[registry.environment].environment = registry.environment;
+        registry_struct[registry.environment].profileOnly = registry.profileOnly;
         registry_struct[registry.environment].coreDB.provision = registry.coreDB.provision;
+    }
     return registry;
 };
 
