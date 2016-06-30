@@ -499,7 +499,14 @@ var registryModule = {
             return registryModule.model.loadRegistryByEnv({
                 "envCode": param.envCode,
                 "dbConfig": registry.coreDB.provision
-            }, cb);
+            }, function (err, obj){
+                build.buildRegistry(registry, obj, function (err) {
+                    if (err) {
+                        return cb(err);
+                    }
+                    return cb(null, registry);
+                });
+            });
         }
         else
             return cb(new Error("unable to find provision config information to connect to!"));
