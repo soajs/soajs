@@ -606,30 +606,32 @@ function connect(obj, cb) {
     if (!obj.config){
         return cb(core.error.generate(195));
     }
-    
-    if (obj.config && obj.config.registryLocation && obj.config.registryLocation.env && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
-        obj.config = core.registry.get(obj.config.registryLocation.env)[obj.config.registryLocation.l1][obj.config.registryLocation.l2];
-        if (!obj.db && cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db)
-            obj.db = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db;
-        if (cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected)
-            timeConnected = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected;
-        if (cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash)
-            configCloneHash = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash;
-    }
 
-    if (obj.db && obj.config.timeConnected && (timeConnected === obj.config.timeConnected)) {
-        return cb();
-    }
-    if (obj.db && (!obj.config.timeConnected || (timeConnected !== obj.config.timeConnected))) {
-        var currentConfObj = merge(true, obj.config);
-        delete currentConfObj.timeConnected;
-        currentConfObj = objectHash(currentConfObj);
-        if (currentConfObj === configCloneHash) {
-            obj.config.timeConnected = new Date().getTime();
-            cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected = obj.config.timeConnected;
-            return cb();
-        }
-    }
+	if(obj.healthy){
+		if (obj.config && obj.config.registryLocation && obj.config.registryLocation.env && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
+			obj.config = core.registry.get(obj.config.registryLocation.env)[obj.config.registryLocation.l1][obj.config.registryLocation.l2];
+			if (!obj.db && cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db)
+				obj.db = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db;
+			if (cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected)
+				timeConnected = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected;
+			if (cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash)
+				configCloneHash = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash;
+		}
+
+		if (obj.db && obj.config.timeConnected && (timeConnected === obj.config.timeConnected)) {
+			return cb();
+		}
+		if (obj.db && (!obj.config.timeConnected || (timeConnected !== obj.config.timeConnected))) {
+			var currentConfObj = merge(true, obj.config);
+			delete currentConfObj.timeConnected;
+			currentConfObj = objectHash(currentConfObj);
+			if (currentConfObj === configCloneHash) {
+				obj.config.timeConnected = new Date().getTime();
+				cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected = obj.config.timeConnected;
+				return cb();
+			}
+		}
+	}
 
     if (obj.pending) {
         return setImmediate(function () {
@@ -649,18 +651,31 @@ function connect(obj, cb) {
             obj.pending = false;
             return cb(err);
         } else {
-            if (obj.db)
-                obj.db.close();
-            obj.db = db;
-            if (obj.config.registryLocation && obj.config.registryLocation.env && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
-                cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db = db;
-                cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash = merge(true, obj.config);
-                delete  cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash.timeConnected;
-                cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash = objectHash(cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash);
-                cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected = obj.config.timeConnected;
-            }
-            obj.pending = false;
-            return cb();
+
+	        db.open(function(error, c) {
+		        if (error) {
+			        return cb(error);
+		        }
+
+		        c.on('close', function () {
+			        obj.healthy = false;
+		        });
+
+		        if (obj.db)
+			        obj.db.close();
+
+		        obj.db = db;
+		        if (obj.config.registryLocation && obj.config.registryLocation.env && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
+			        cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db = db;
+			        cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash = merge(true, obj.config);
+			        delete  cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash.timeConnected;
+			        cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash = objectHash(cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash);
+			        cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected = obj.config.timeConnected;
+		        }
+		        obj.pending = false;
+		        obj.healthy = true;
+		        return cb();
+	        });
         }
     });
 }
