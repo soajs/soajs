@@ -21,26 +21,28 @@ var lib = require("../../../lib");
  *
  * REF: https://www.npmjs.com/package/bunyan
  */
-module.exports = function getLogger(name, config) {
-    if(!_log) {
-        var configClone = lib.utils.cloneObj(config);
-        configClone["name"] = name;
+module.exports = {
+    "getLogger": function (name, config) {
+        if (!_log) {
+            var configClone = lib.utils.cloneObj(config);
+            configClone["name"] = name;
 
-        if(config.formatter && Object.keys(config.formatter).length > 0){
-            var bformat = require('bunyan-format');
-            var formatOut = bformat(config.formatter);
-            configClone['stream'] = formatOut;
-            delete configClone.formatter;
+            if (config.formatter && Object.keys(config.formatter).length > 0) {
+                var bformat = require('bunyan-format');
+                var formatOut = bformat(config.formatter);
+                configClone['stream'] = formatOut;
+                delete configClone.formatter;
+            }
+
+            _log = new bunyan.createLogger(configClone);
         }
-
-        _log = new bunyan.createLogger(configClone);
-    }
-    return _log;
-};
-
-module.exports = function getLog() {
-    if (_log) {
         return _log;
+    },
+
+    "getLog": function () {
+        if (_log) {
+            return _log;
+        }
+        return null;
     }
-    return null;
 };
