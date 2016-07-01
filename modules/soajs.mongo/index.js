@@ -576,9 +576,9 @@ MongoDriver.prototype.closeDb = function () {
 
 MongoDriver.prototype.flushDb = function () {
     var self = this;
-    if (self.db) {
-        self.db = null;
-    }
+
+    self.db = null;
+
     if (self.config.registryLocation && self.config.registryLocation.env && self.config.registryLocation.l1 && self.config.registryLocation.l2){
         cacheDB[self.config.registryLocation.env][self.config.registryLocation.l1][self.config.registryLocation.l2].db = null;
     }
@@ -669,13 +669,6 @@ function connect(obj, cb) {
 	        });
 
 	        db.on('close', function(){
-		        // if (this._callBackStore) {
-			     //    for(var key in this._callBackStore._notReplied) {
-				 //        console.log("key: ", key);
-				 //        this._callHandler(key, null, 'Connection Closed!');
-			     //    }
-		        // }
-
 		        var logger = core.getLog();
 		        if(logger){
 			        logger.warn("Connection To Mongo has been closed!");
@@ -685,16 +678,6 @@ function connect(obj, cb) {
 		        }
 		        obj.flushDb();
 	        });
-
-	        // db.on('error', function(error){
-		     //    console.log("Connection To Mongo has encountered an error!");
-			 //    console.log(error);
-	        // });
-	        //
-	        // db.on('parseError', function(error){
-		     //    console.log("Connection To Mongo has encountered a parseError!");
-		     //    console.log(error);
-	        // });
 
 	        if (obj.db)
 		        obj.db.close();
