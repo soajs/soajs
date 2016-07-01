@@ -607,29 +607,27 @@ function connect(obj, cb) {
         return cb(core.error.generate(195));
     }
 
-	if(obj.healthy){
-		if (obj.config && obj.config.registryLocation && obj.config.registryLocation.env && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
-			obj.config = core.registry.get(obj.config.registryLocation.env)[obj.config.registryLocation.l1][obj.config.registryLocation.l2];
-			if (!obj.db && cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db)
-				obj.db = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db;
-			if (cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected)
-				timeConnected = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected;
-			if (cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash)
-				configCloneHash = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash;
-		}
+	if (obj.config && obj.config.registryLocation && obj.config.registryLocation.env && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
+		obj.config = core.registry.get(obj.config.registryLocation.env)[obj.config.registryLocation.l1][obj.config.registryLocation.l2];
+		if (!obj.db && cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db)
+			obj.db = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db;
+		if (cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected)
+			timeConnected = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected;
+		if (cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash)
+			configCloneHash = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash;
+	}
 
-		if (obj.db && obj.config.timeConnected && (timeConnected === obj.config.timeConnected)) {
+	if (obj.db && obj.config.timeConnected && (timeConnected === obj.config.timeConnected)) {
+		return cb();
+	}
+	if (obj.db && (!obj.config.timeConnected || (timeConnected !== obj.config.timeConnected))) {
+		var currentConfObj = merge(true, obj.config);
+		delete currentConfObj.timeConnected;
+		currentConfObj = objectHash(currentConfObj);
+		if (currentConfObj === configCloneHash) {
+			obj.config.timeConnected = new Date().getTime();
+			cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected = obj.config.timeConnected;
 			return cb();
-		}
-		if (obj.db && (!obj.config.timeConnected || (timeConnected !== obj.config.timeConnected))) {
-			var currentConfObj = merge(true, obj.config);
-			delete currentConfObj.timeConnected;
-			currentConfObj = objectHash(currentConfObj);
-			if (currentConfObj === configCloneHash) {
-				obj.config.timeConnected = new Date().getTime();
-				cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected = obj.config.timeConnected;
-				return cb();
-			}
 		}
 	}
 
@@ -659,16 +657,8 @@ function connect(obj, cb) {
 		        }
 
 		        c.on('close', function () {
-			        var logger = core.getLogger('soajs.mongo', {
-				        "src": true,
-				        "level": "debug",
-				        "formatter": {
-					        outputMode: 'long'
-				        }
-			        });
-			        logger.error("Connection To Mongo has been closed unexpectidly !");
-
-			        obj.healthy = false;
+			        console.log("Connection To Mongo has been closed!");
+			        obj.closeDb();
 		        });
 
 		        if (obj.db)
@@ -683,7 +673,6 @@ function connect(obj, cb) {
 			        cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected = obj.config.timeConnected;
 		        }
 		        obj.pending = false;
-		        obj.healthy = true;
 		        return cb();
 	        });
         }
