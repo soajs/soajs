@@ -37,3 +37,10 @@ module.exports = function getLogger(name, config) {
     }
     return _log;
 };
+
+module.exports = function getLog(name, config) {
+    if (_log) {
+        return _log;
+    }
+    return null;
+};
