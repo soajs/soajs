@@ -657,7 +657,13 @@ function connect(obj, cb) {
 		        }
 
 		        c.on('close', function () {
-			        console.log("Connection To Mongo has been closed!");
+			        var logger = core.getLog();
+			        if(logger){
+			            logger.warn("Connection To Mongo has been closed!");
+			        }
+			        else{
+				        console.log("Connection To Mongo has been closed!");
+			        }
 			        obj.closeDb();
 		        });
 
