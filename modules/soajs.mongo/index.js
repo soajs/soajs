@@ -659,6 +659,15 @@ function connect(obj, cb) {
 		        }
 
 		        c.on('close', function () {
+			        var logger = core.getLogger('soajs.mongo', {
+				        "src": true,
+				        "level": "debug",
+				        "formatter": {
+					        outputMode: 'long'
+				        }
+			        });
+			        logger.error("Connection To Mongo has been closed unexpectidly !");
+
 			        obj.healthy = false;
 		        });
 
