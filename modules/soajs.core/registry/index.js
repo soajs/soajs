@@ -505,6 +505,8 @@ var registryModule = {
                 "envCode": param.envCode,
                 "dbConfig": registry.coreDB.provision
             }, function (err, obj){
+                if (err || !obj)
+                    return cb(err);
                 build.buildRegistry(registry, obj, function (err) {
                     if (err) {
                         return cb(err);
