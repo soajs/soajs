@@ -38,7 +38,7 @@ module.exports = function getLogger(name, config) {
     return _log;
 };
 
-module.exports = function getLog(name, config) {
+module.exports = function getLog() {
     if (_log) {
         return _log;
     }

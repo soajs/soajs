@@ -4,7 +4,10 @@ var registry = require('./registry/index');
 registry.init();
 exports.registry = registry;
 
-exports.getLogger = require('./logger/index');
+var soajsLogger = require('./logger/index');
+exports.getLogger = soajsLogger.getLogger;
+exports.getLog = soajsLogger.getLog;
+
 exports.meta = require('./meta/index');
 exports.error = require('./error/index');
 exports.key = require('./key/index');
