@@ -570,9 +570,17 @@ MongoDriver.prototype.closeDb = function () {
     var self = this;
     if (self.db) {
         self.db.close();
+        self.flushDb();
+    }
+};
+
+MongoDriver.prototype.flushDb = function () {
+    var self = this;
+    if (self.db) {
         self.db = null;
-        if (self.config.registryLocation && self.config.registryLocation.env && self.config.registryLocation.l1 && self.config.registryLocation.l2)
-            cacheDB[self.config.registryLocation.env][self.config.registryLocation.l1][self.config.registryLocation.l2].db = null;
+    }
+    if (self.config.registryLocation && self.config.registryLocation.env && self.config.registryLocation.l1 && self.config.registryLocation.l2){
+        cacheDB[self.config.registryLocation.env][self.config.registryLocation.l1][self.config.registryLocation.l2].db = null;
     }
 };
 
@@ -649,38 +657,58 @@ function connect(obj, cb) {
             obj.pending = false;
             return cb(err);
         } else {
-
-	        db.open(function(error, c) {
-		        if (error) {
-			        obj.pending = false;
-			        return cb(error);
+	        db.on('timeout', function(){
+		        var logger = core.getLog();
+		        if(logger){
+			        logger.warn("Connection To Mongo has timed out!");
 		        }
-
-		        c.on('close', function () {
-			        var logger = core.getLog();
-			        if(logger){
-			            logger.warn("Connection To Mongo has been closed!");
-			        }
-			        else{
-				        console.log("Connection To Mongo has been closed!");
-			        }
-			        obj.closeDb();
-		        });
-
-		        if (obj.db)
-			        obj.db.close();
-
-		        obj.db = db;
-		        if (obj.config.registryLocation && obj.config.registryLocation.env && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
-			        cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db = db;
-			        cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash = merge(true, obj.config);
-			        delete  cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash.timeConnected;
-			        cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash = objectHash(cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash);
-			        cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected = obj.config.timeConnected;
+		        else{
+			        console.log("Connection To Mongo has timed out!");
 		        }
-		        obj.pending = false;
-		        return cb();
+		        obj.flushDb();
 	        });
+
+	        db.on('close', function(){
+		        // if (this._callBackStore) {
+			     //    for(var key in this._callBackStore._notReplied) {
+				 //        console.log("key: ", key);
+				 //        this._callHandler(key, null, 'Connection Closed!');
+			     //    }
+		        // }
+
+		        var logger = core.getLog();
+		        if(logger){
+			        logger.warn("Connection To Mongo has been closed!");
+		        }
+		        else{
+			        console.log("Connection To Mongo has been closed!");
+		        }
+		        obj.flushDb();
+	        });
+
+	        // db.on('error', function(error){
+		     //    console.log("Connection To Mongo has encountered an error!");
+			 //    console.log(error);
+	        // });
+	        //
+	        // db.on('parseError', function(error){
+		     //    console.log("Connection To Mongo has encountered a parseError!");
+		     //    console.log(error);
+	        // });
+
+	        if (obj.db)
+		        obj.db.close();
+
+	        obj.db = db;
+	        if (obj.config.registryLocation && obj.config.registryLocation.env && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
+		        cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db = db;
+		        cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash = merge(true, obj.config);
+		        delete  cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash.timeConnected;
+		        cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash = objectHash(cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash);
+		        cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].timeConnected = obj.config.timeConnected;
+	        }
+	        obj.pending = false;
+	        return cb();
         }
     });
 }
