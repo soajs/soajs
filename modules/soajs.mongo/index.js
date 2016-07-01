@@ -654,6 +654,7 @@ function connect(obj, cb) {
 
 	        db.open(function(error, c) {
 		        if (error) {
+			        obj.pending = false;
 			        return cb(error);
 		        }
 
