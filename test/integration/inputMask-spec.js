@@ -568,11 +568,14 @@ var lib = {
 describe('testing inputMask', function() {
 
 	before(function(done) {
-		async.series([lib.startTestService2, lib.startTestService, lib.startController], function(err) {
+		//async.series([lib.startTestService2, lib.startTestService, lib.startController], function(err) {
+		async.series([lib.startController, lib.startTestService2, lib.startTestService], function(err) {
 			//lib.startTestService(function(err) {
 			console.log(err);
 			assert.ifError(err);
+			setTimeout(function() {
 			done();
+			}, 500);
 		});
 	});
 	after(function(done) {
