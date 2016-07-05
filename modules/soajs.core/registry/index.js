@@ -352,7 +352,7 @@ function loadProfile(envFrom) {
         registry_struct[registry.environment].coreDB.provision = registry.coreDB.provision;
     }
     return registry;
-};
+}
 
 function loadRegistry(param, cb) {
     var registry = loadProfile(regEnvironment);
@@ -406,7 +406,7 @@ var getRegistry = function (param, cb) {
 
 var registryModule = {
     "init": function (modelName) {
-        var modelName = "mongo";
+        modelName = "mongo";
         if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true") {
             models.local = require("./local.js");
             modelName = "local";

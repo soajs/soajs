@@ -220,7 +220,7 @@ var lib = {
                     service.oauth.model["getUser"] = function (username, password, callback) {
                         login(req, function (errCode, record) {
                             if (errCode) {
-                                var error = new Error(config.errors[errCode])
+                                var error = new Error(config.errors[errCode]);
                                 return callback(error);
                             }
                             else {
@@ -321,8 +321,6 @@ describe("testing secured service with oauth", function () {
     });
 
     it('hit service with a valid token', function (done) {
-        console.log("ANTOINE")
-        console.log(buildNameParams)
         helper.requester('get', buildNameParams, function (err, body, req) {
             assert.ifError(err);
             assert.ok(body);

@@ -129,7 +129,7 @@ daemon.prototype.init = function (callback) {
         }
 
         if (!_self.soajs.param.serviceName || !_self.soajs.daemonServiceConf) {
-            if (!_self.soajs.serviceName) {
+            if (!_self.soajs.param.serviceName) {
                 _self.soajs.log.error('Daemon Service failed to start, serviceName is empty [' + _self.soajs.param.serviceName + ']');
             } else {
                 _self.soajs.log.error('Daemon Service [' + _self.soajs.param.serviceName + '] failed to start. Unable to find the daemon service entry in registry');

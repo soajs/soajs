@@ -483,10 +483,10 @@ MongoDriver.prototype.count = function (collectionName, criteria, cb) {
         return cb(core.error.generate(191));
     }
 	var options = {};
-	var args = Array.prototype.slice.call(arguments)
+	var args = Array.prototype.slice.call(arguments);
 	if(args.length === 4){
 		options = cb = args[args.length - 2];
-		cb = args[args.length - 1]
+		cb = args[args.length - 1];
 	}
     connect(self, function (err) {
         if (err) {

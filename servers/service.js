@@ -91,7 +91,7 @@ function extractAPIsList(schema) {
             oneApi.groupMain = routeObj._apiInfo.groupMain;
         }
         return (oneApi);
-    }
+    };
     var processRoutes = function (routes, method) {
         for (var route in routes) {
             if (Object.hasOwnProperty.call(routes, route)) {
