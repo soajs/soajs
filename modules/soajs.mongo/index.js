@@ -660,10 +660,10 @@ function connect(obj, cb) {
 	        db.on('timeout', function(){
 		        var logger = core.getLog();
 		        if(logger){
-			        logger.warn("Connection To Mongo has timed out!");
+			        logger.warn("Connection To Mongo has timed out!", obj.config.name);
 		        }
 		        else{
-			        console.log("Connection To Mongo has timed out!");
+			        console.log("Connection To Mongo has timed out!", obj.config.name);
 		        }
 		        obj.flushDb();
 	        });
@@ -671,10 +671,10 @@ function connect(obj, cb) {
 	        db.on('close', function(){
 		        var logger = core.getLog();
 		        if(logger){
-			        logger.warn("Connection To Mongo has been closed!");
+			        logger.warn("Connection To Mongo has been closed!", obj.config.name);
 		        }
 		        else{
-			        console.log("Connection To Mongo has been closed!");
+			        console.log("Connection To Mongo has been closed!", obj.config.name);
 		        }
 		        obj.flushDb();
 	        });
