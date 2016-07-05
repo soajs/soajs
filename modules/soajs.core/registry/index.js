@@ -532,7 +532,7 @@ var registryModule = {
     "autoRegisterService": function (name, serviceIp, serviceVersion, what, cb) {
         var controllerSRV = registry_struct[regEnvironment].services.controller;
         var serviceSRV = registry_struct[regEnvironment][what][name];
-        if (!serviceSRV.newServiceOrHost) {
+        if (!serviceSRV || !serviceSRV.newServiceOrHost) {
             return cb(null, false);
         }
 
