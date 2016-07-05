@@ -625,7 +625,7 @@ function connect(obj, cb) {
 			configCloneHash = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash;
 	}
 
-	if (obj.db && obj.config.timeConnected && (timeConnected === obj.config.timeConnected)) {
+	if ((obj.db && obj.config.timeConnected && (timeConnected === obj.config.timeConnected)) || (obj.db && ! obj.config.registryLocation)) {
 		return cb();
 	}
 	if (obj.db && (!obj.config.timeConnected || (timeConnected !== obj.config.timeConnected))) {
