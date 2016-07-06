@@ -363,7 +363,17 @@ MongoDriver.prototype.findStream = MongoDriver.prototype.findFieldsStream = func
         if (err) {
             return cb(err);
         }
-        return cb(null, self.db.collection(collectionName).find.apply(self.db.collection(collectionName), args).stream());
+        var batchSize = 0;
+        if (self.config && self.config.streaming) {
+            if (self.config.streaming[collectionName] && self.config.streaming[collectionName].batchSize)
+                batchSize = self.config.streaming[collectionName].batchSize;
+            else if (self.config.streaming[collectionName] && self.config.streaming.batchSize)
+                batchSize = self.config.streaming.batchSize;
+        }
+        if (batchSize)
+            return cb(null, self.db.collection(collectionName).find.apply(self.db.collection(collectionName), args).batchSize(batchSize).stream());
+        else
+            return cb(null, self.db.collection(collectionName).find.apply(self.db.collection(collectionName), args).stream());
     });
 };
 

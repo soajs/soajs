@@ -18,6 +18,12 @@ module.exports = {
         }
     ],
     "credentials": null,
+    "streaming": {
+        "batchSize" : 10000,
+        "colName":{
+            "batchSize" : 10000
+        }
+    },
     "URLParam": {
         "connectTimeoutMS": 0,
         "socketTimeoutMS": 0,
