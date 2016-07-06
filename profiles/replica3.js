@@ -28,7 +28,8 @@ module.exports = {
     "extraParam": {
         "db": {
             "native_parser": true,
-            "w": "majority"
+            "w": "majority",
+            "bufferMaxEntries": 0
         },
         "replSet": {
             "ha": true,
