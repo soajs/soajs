@@ -111,7 +111,7 @@ module.exports = {
         });
     },
     "loadRegistryByEnv": function (param, cb) {
-        initMongo(dbConfiguration);
+        initMongo(param.dbConfig);
         mongo.findOne(environmentCollectionName, {'code': param.envCode.toUpperCase()}, function (err, envRecord) {
             if (err) {
                 return cb(err);
@@ -124,7 +124,7 @@ module.exports = {
         });
     },
     "loadOtherEnvHosts": function (param, cb) {
-        initMongo(dbConfiguration);
+        initMongo(param.dbConfig);
         var pattern = new RegExp("controller", "i");
         var condition = (process.env.SOAJS_TEST) ? {'name': {'$regex': pattern}} : {
             'name': {'$regex': pattern},

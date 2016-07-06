@@ -17,6 +17,7 @@ describe("core meta tests", function() {
 				}
 			],
 			"credentials": "",
+			"streaming": {},
 			"URLParam": {
 				"connectTimeoutMS": 0,
 				"socketTimeoutMS": 0,
@@ -46,6 +47,7 @@ describe("core meta tests", function() {
 			prefix: 'testdb_',
 			servers: [{host: '127.0.0.1', port: 27017}],
 			credentials: '',
+			streaming: {},
 			URLParam: {
 				connectTimeoutMS: 0,
 				socketTimeoutMS: 0,
