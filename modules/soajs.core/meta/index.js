@@ -8,6 +8,7 @@ module.exports = {
 				"prefix": metaDB[systemName].prefix,
 				"servers": metaDB[systemName].servers,
 				"credentials": metaDB[systemName].credentials,
+				"streaming": metaDB[systemName].streaming,
 				"URLParam": metaDB[systemName].URLParam,
 				"extraParam": metaDB[systemName].extraParam
 			};

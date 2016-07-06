@@ -32,6 +32,7 @@ var build = {
                             "prefix": STRUCT.dbs.config.prefix,
                             "servers": STRUCT.dbs.clusters[dbRec.cluster].servers,
                             "credentials": STRUCT.dbs.clusters[dbRec.cluster].credentials,
+                            "streaming": STRUCT.dbs.clusters[dbRec.cluster].streaming,
                             "URLParam": STRUCT.dbs.clusters[dbRec.cluster].URLParam,
                             "extraParam": STRUCT.dbs.clusters[dbRec.cluster].extraParam
                         };
