@@ -3,15 +3,34 @@ var fs = require('fs');
 var Mongo = require('../../soajs.mongo');
 var regFile = (process.env.SOAJS_PROFILE || __dirname + "/../../../profiles/single.js");
 var mongo;
+var environmentCollectionName = 'environment';
+var hostCollectionName = 'hosts';
+var servicesCollectionName = 'services';
+var daemonsCollectionName = 'daemons';
+
+function initMongo(dbConfiguration) {
+    if (!mongo) {
+        mongo = new Mongo(dbConfiguration);
+
+        mongo.ensureIndex(environmentCollectionName, {code: 1}, {unique: true}, function (err, result) {
+        });
+        mongo.ensureIndex(hostCollectionName, {env: 1}, function (err, result) {
+        });
+        mongo.ensureIndex(hostCollectionName, {name: 1, env: 1}, function (err, result) {
+        });
+        mongo.ensureIndex(servicesCollectionName, {name: 1}, function (err, result) {
+        });
+        mongo.ensureIndex(servicesCollectionName, {port: 1, name: 1}, {unique: true}, function (err, result) {
+        });
+    }
+}
 
 module.exports = {
     "init": function () {
     },
     "loadData": function (dbConfiguration, envCode, param, callback) {
-        if (!mongo) {
-            mongo = new Mongo(dbConfiguration);
-        }
-        mongo.findOne('environment', {'code': envCode.toUpperCase()}, function (error, envRecord) {
+        initMongo(dbConfiguration);
+        mongo.findOne(environmentCollectionName, {'code': envCode.toUpperCase()}, function (error, envRecord) {
             if (error) {
                 return callback(error);
             }
@@ -19,21 +38,21 @@ module.exports = {
             if (envRecord && JSON.stringify(envRecord) !== '{}') {
                 obj['ENV_schema'] = envRecord;
             }
-            mongo.find('hosts', {'env': envCode}, function (error, hostsRecords) {
+            mongo.find(hostCollectionName, {'env': envCode}, function (error, hostsRecords) {
                 if (error) {
                     return callback(error);
                 }
                 if (hostsRecords && Array.isArray(hostsRecords) && hostsRecords.length > 0) {
                     obj['ENV_hosts'] = hostsRecords;
                 }
-                mongo.find('services', function (error, servicesRecords) {
+                mongo.find(servicesCollectionName, function (error, servicesRecords) {
                     if (error) {
                         return callback(error);
                     }
                     if (servicesRecords && Array.isArray(servicesRecords) && servicesRecords.length > 0) {
                         obj['services_schema'] = servicesRecords;
                     }
-                    mongo.find('daemons', function (error, daemonsRecords) {
+                    mongo.find(daemonsCollectionName, function (error, daemonsRecords) {
                         if (error) {
                             return callback(error);
                         }
@@ -47,9 +66,7 @@ module.exports = {
         });
     },
     "registerNewService": function (dbConfiguration, serviceObj, collection, cb) {
-        if (!mongo) {
-            mongo = new Mongo(dbConfiguration);
-        }
+        initMongo(dbConfiguration);
         mongo.findOne(collection, {
             'port': serviceObj.port,
             'name': {'$ne': serviceObj.name}
@@ -85,10 +102,8 @@ module.exports = {
         });
     },
     "addUpdateServiceIP": function (dbConfiguration, hostObj, cb) {
-        if (!mongo) {
-            mongo = new Mongo(dbConfiguration);
-        }
-        mongo.update('hosts', hostObj, {'$set': hostObj}, {'upsert': true}, function (err) {
+        initMongo(dbConfiguration);
+        mongo.update(hostCollectionName, hostObj, {'$set': hostObj}, {'upsert': true}, function (err) {
             if (err) {
                 return cb(err, false);
             }
@@ -96,10 +111,8 @@ module.exports = {
         });
     },
     "loadRegistryByEnv": function (param, cb) {
-        if (!mongo) {
-            mongo = new Mongo(param.dbConfig);
-        }
-        mongo.findOne('environment', {'code': param.envCode.toUpperCase()}, function (err, envRecord) {
+        initMongo(dbConfiguration);
+        mongo.findOne(environmentCollectionName, {'code': param.envCode.toUpperCase()}, function (err, envRecord) {
             if (err) {
                 return cb(err);
             }
@@ -111,15 +124,13 @@ module.exports = {
         });
     },
     "loadOtherEnvHosts": function (param, cb) {
-        if (!mongo) {
-            mongo = new Mongo(param.dbConfig);
-        }
+        initMongo(dbConfiguration);
         var pattern = new RegExp("controller", "i");
         var condition = (process.env.SOAJS_TEST) ? {'name': {'$regex': pattern}} : {
             'name': {'$regex': pattern},
             'env': {'$ne': param.envCode}
         };
-        mongo.find('hosts', condition, cb);
+        mongo.find(hostCollectionName, condition, cb);
     },
     "loadProfile": function (envFrom) {
         if (fs.existsSync(regFile)) {

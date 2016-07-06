@@ -5,22 +5,38 @@ var tenantCollectionName = "tenants";
 var productsCollectionName = "products";
 var tokenCollectionName = "oauth_token";
 var daemonGrpConfCollectionName = "daemon_grpconf";
+var oauthUracCollectionName = "oauth_urac";
 
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
 
 module.exports = {
-    "init": function (dbConfig){
+    "init": function (dbConfig) {
         mongo = new Mongo(dbConfig);
+
+        mongo.ensureIndex(tenantCollectionName, {code: 1}, {unique: true}, function (err, result) {
+        });
+        mongo.ensureIndex(tenantCollectionName, {'applications.keys.key': 1}, function (err, result) {
+        });
+        mongo.ensureIndex(productsCollectionName, {code: 1}, {unique: true}, function (err, result) {
+        });
+        mongo.ensureIndex(productsCollectionName, {'packages.code': 1}, function (err, result) {
+        });
+        mongo.ensureIndex(oauthUracCollectionName, { userId: 1 }, { unique: true }, function (err, result) {
+        });
+        mongo.ensureIndex(tokenCollectionName, { token: 1, type: 1 }, function (err, result) {
+        });
+        mongo.ensureIndex(daemonGrpConfCollectionName, { daemonConfigGroup: 1, daemon: 1 }, function (err, result) {
+        });
     },
 
-    "getAccessToken": function (bearerToken, cb){
+    "getAccessToken": function (bearerToken, cb) {
         mongo.findOne(tokenCollectionName, {"token": bearerToken, "type": "accessToken"}, cb);
     },
-    "getRefreshToken": function (bearerToken, cb){
+    "getRefreshToken": function (bearerToken, cb) {
         mongo.findOne(tokenCollectionName, {"token": bearerToken, "type": "refreshToken"}, cb);
     },
-    "saveAccessToken": function (accessToken, clientId, expires, userId, cb){
+    "saveAccessToken": function (accessToken, clientId, expires, userId, cb) {
         var tokenRecord = {
             type: "accessToken",
             token: accessToken,
@@ -32,7 +48,7 @@ module.exports = {
             return cb(err);
         });
     },
-    "saveRefreshToken": function (refreshToken, clientId, expires, userId, cb){
+    "saveRefreshToken": function (refreshToken, clientId, expires, userId, cb) {
         var tokenRecord = {
             type: "refreshToken",
             token: refreshToken,
