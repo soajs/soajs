@@ -326,11 +326,33 @@ describe("oauthModel tests", function() {
 		});
 
 	});
-
+	
+	describe("saveAccessToken tests", function(){
+		
+		it("success tests", function(done){
+			soajsProvision.oauthModel.saveAccessToken("e21538dd55806e47436227c9d2ab8f76348cee12", "10d2cb5fc04ce51e06000001", null, "22d2cb5fc04ce51e06000001", function(err, token){
+				assert.ok(!err);
+				assert.ok(!token);
+				done();
+			});
+		});
+	});
+	
+	describe("saveRefreshToken tests", function(){
+		
+		it("success tests", function(done){
+			soajsProvision.oauthModel.saveRefreshToken("4eaef80c01709fb7cb058aaf9ca9921f6a4da222", "10d2cb5fc04ce51e06000001", null, "22d2cb5fc04ce51e06000001", function(err, token){
+				assert.ok(!err);
+				assert.ok(!token);
+				done();
+			});
+		});
+	});
+	
 	describe("getAccessToken tests", function(){
 
 		it("success tests", function(done){
-			soajsProvision.oauthModel.getAccessToken(null, function(err, token){
+			soajsProvision.oauthModel.getAccessToken("e21538dd55806e47436227c9d2ab8f76348cee12", function(err, token){
 				assert.ok(!err);
 				assert.ok(token);
 				done();
@@ -341,31 +363,9 @@ describe("oauthModel tests", function() {
 	describe("getRefreshToken tests", function(){
 
 		it("success tests", function(done){
-			soajsProvision.oauthModel.getRefreshToken(null, function(err, token){
+			soajsProvision.oauthModel.getRefreshToken("4eaef80c01709fb7cb058aaf9ca9921f6a4da222", function(err, token){
 				assert.ok(!err);
 				assert.ok(token);
-				done();
-			});
-		});
-	});
-
-	describe("saveAccessToken tests", function(){
-
-		it("success tests", function(done){
-			soajsProvision.oauthModel.saveAccessToken(null, null, null, null, function(err, token){
-				assert.ok(!err);
-				assert.ok(!token);
-				done();
-			});
-		});
-	});
-
-	describe("saveRefreshToken tests", function(){
-
-		it("success tests", function(done){
-			soajsProvision.oauthModel.saveRefreshToken(null, null, null, null, function(err, token){
-				assert.ok(!err);
-				assert.ok(!token);
 				done();
 			});
 		});
