@@ -367,7 +367,7 @@ MongoDriver.prototype.findStream = MongoDriver.prototype.findFieldsStream = func
         if (self.config && self.config.streaming) {
             if (self.config.streaming[collectionName] && self.config.streaming[collectionName].batchSize)
                 batchSize = self.config.streaming[collectionName].batchSize;
-            else if (self.config.streaming[collectionName] && self.config.streaming.batchSize)
+            else if (self.config.streaming.batchSize)
                 batchSize = self.config.streaming.batchSize;
         }
         if (batchSize)
