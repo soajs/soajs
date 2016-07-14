@@ -37,7 +37,8 @@ module.exports = {
         "socketTimeoutMS": 0,
         "maxPoolSize": 5,
         "wtimeoutMS": 0,
-        "slaveOk": true
+        "readPreference": "secondaryPreferred",
+        "replicaSet": "rs"
     },
     "extraParam": {
         "db": {
@@ -46,9 +47,7 @@ module.exports = {
             "bufferMaxEntries": 0
         },
         "replSet": {
-            "ha": true,
-            "readPreference": "secondaryPreferred",
-            "rs_name": "rs-soa"
+            "ha": true
         }
     }
 };

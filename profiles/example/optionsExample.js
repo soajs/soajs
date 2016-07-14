@@ -7,14 +7,13 @@ module.exports = {
         "connectTimeoutMS": 0,
         "socketTimeoutMS": 0,
         "maxPoolSize": 5,
+        "minPoolSize": 0,
         "w": "majority",
         "wtimeoutMS": 0,
         "journal": false,
-        "fsync": false,
-        "authSource": null,
-        "slaveOk": false,
-        "readPreference": "primary",
-        "readPreferenceTags": "TAG"
+        "readPreference": "secondaryPreferred",
+        "readPreferenceTags": "TAG",
+        "authSource": null
     },
     "extraParam": {
         "db": {
