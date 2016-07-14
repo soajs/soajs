@@ -42,7 +42,6 @@ module.exports = {
     },
     "extraParam": {
         "db": {
-            "native_parser": true,
             "w": "majority",
             "bufferMaxEntries": 0
         },
