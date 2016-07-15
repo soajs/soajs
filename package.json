@@ -19,7 +19,7 @@
     "test": "grunt test"
   },
   "devDependencies": {
-    "soajs.mongodb.data": "0.1.*",
+    "soajs.mongodb.data": "0.2.*",
     "bcrypt": "*",
     "grunt": "0.4.5",
     "grunt-contrib-jshint": "*",
