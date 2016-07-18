@@ -36,13 +36,12 @@ var build = {
                             "URLParam": STRUCT.dbs.clusters[dbRec.cluster].URLParam,
                             "extraParam": STRUCT.dbs.clusters[dbRec.cluster].extraParam
                         };
-                        dbObj.registryLocation = {"l1": "metaDB", "l2": dbName, "env": envCode};
                         if (dbRec.tenantSpecific) {
                             dbObj.name = "#TENANT_NAME#_" + dbName;
                             metaAndCoreDB.metaDB[dbName] = dbObj;
                         }
                         else {
-                            dbObj.registryLocation.l1 = "coreDB";
+                            dbObj.registryLocation = {"l1": "coreDB", "l2": dbName, "env": envCode};
                             dbObj.name = dbName;
                             metaAndCoreDB.coreDB[dbName] = dbObj;
                         }

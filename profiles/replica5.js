@@ -38,15 +38,11 @@ module.exports = {
         "maxPoolSize": 5,
         "wtimeoutMS": 0,
         "readPreference": "secondaryPreferred",
-        "replicaSet": "rs"
+        "replicaSet": "rs",
+        "w": "majority",
+        "bufferMaxEntries": 0,
+        "ha": true
     },
     "extraParam": {
-        "db": {
-            "w": "majority",
-            "bufferMaxEntries": 0
-        },
-        "replSet": {
-            "ha": true
-        }
     }
 };
