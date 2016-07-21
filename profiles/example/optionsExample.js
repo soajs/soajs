@@ -23,15 +23,16 @@ module.exports = {
 		"ssl": false,                               //Whether or not the connection requires SSL
 		"connectTimeoutMS": 0,                      //connection timeout value in ms or 0 for never
 		"socketTimeoutMS": 0,                       //socket timeout value to attempt connection in ms or 0 for never
-		"maxPoolSize": 5,                              //pooling value, default=100
+		"maxPoolSize": 5,                           //pooling value, default=100
+		"minPoolSize": 0,                           //todo: not supported by all drivers
 
 		"maxIdleTimeMS": 0,                         //The maximum number of milliseconds that a connection can remain idle in the pool before being removed and closed.
 		"waitQueueMultiple": 0,                     //A number that the driver multiples the maxPoolSize value to, to provide the maximum number of threads allowed to wait for a connection to become available from the poo
 		"waitQueueTimeoutMS": 0,                    //The maximum time in milliseconds that a thread can wait for a connection to become available.
 
-		"w": "majority",                           //values majority|number|<tag set>
-		"wtimeoutMS": 0,                           //timeout for w, 0 is for never
-		"journal": false,                                //Specify a journal write concern.
+		"w": "majority",                            //values majority|number|<tag set>
+		"wtimeoutMS": 0,                            //timeout for w, 0 is for never
+		"journal": false,                           //Specify a journal write concern.
 		"readConcernLevel": "local",
 		"readPreference": "secondaryPreferred",     //if ReplicaSet, prefered instance to read from. value=primary|secondary|nearest|primaryPreferred|secondaryPreferred
 		"readPreferenceTags": "TAG",
@@ -40,31 +41,21 @@ module.exports = {
 		"gssapiServiceName": null
 	},
 	"extraParam": {
-		//REF: http://mongodb.github.io/node-mongodb-native/2.1/api/Db.html
 		"db": {
-			"serverConfig": "ReplSet",
+			"authSource": null,                         //specify a db to authenticate the user if the one he is connecting to doesn't do that
+			"w": "majority",                           //values majority|number|<tag set>
+			"wtimeoutMS": 0,                           //timeout for w, 0 is for never
+			"j": false,                                //Specify a journal write concern.
+			"forceServerObjectId": false,               //Force server to assign _id values instead of driver. default=false
+			"serializeFunctions": false,                //Serialize functions on any object. default=false
+			"ignoreUndefined": false,                   //Specify if the BSON serializer should ignore undefined fields. default=false
+			"raw": false,                               //Return document results as raw BSON buffers. default=false
+			"promoteLongs": true,                       //Promotes Long values to number if they fit inside the 53 bits resolution. default=true
 			"bufferMaxEntries": -1,                    //Sets a cap on how many operations the driver will buffer up before giving up on getting a working connection, default is -1 which is unlimited.
-			"databaseName": "",
-			"options":{
-				"authSource": null,                         //specify a db to authenticate the user if the one he is connecting to doesn't do that
-				"w": "majority",                           //values majority|number|<tag set>
-				"wtimeoutMS": 0,                           //timeout for w, 0 is for never
-				"j": false,                                //Specify a journal write concern.
-				"forceServerObjectId": false,               //Force server to assign _id values instead of driver. default=false
-				"serializeFunctions": false,                //Serialize functions on any object. default=false
-				"ignoreUndefined": false,                   //Specify if the BSON serializer should ignore undefined fields. default=false
-				"raw": false,                               //Return document results as raw BSON buffers. default=false
-				"promoteLongs": true,                       //Promotes Long values to number if they fit inside the 53 bits resolution. default=true
-				"bufferMaxEntries": -1,                    //Sets a cap on how many operations the driver will buffer up before giving up on getting a working connection, default is -1 which is unlimited.
-				"readPreference": "secondaryPreferred",
-				"pkFactory": null,                          //A primary key factory object for generation of custom _id keys.
-				"promiseLibrary": null,                     //A Promise library class the application wishes to use such as Bluebird, must be ES6 compatible
-				"readConcern": null
-			},
-			"native_parser": true,
-			"slaveOk": true,
-			"writeConcern" :{},
-			"topology" :{}
+			"readPreference": "secondaryPreferred",
+			"pkFactory": null,                          //A primary key factory object for generation of custom _id keys.
+			"promiseLibrary": null,                     //A Promise library class the application wishes to use such as Bluebird, must be ES6 compatible
+			"readConcern": null
 		},
 		"server": {
 			"poolSize": 5,
