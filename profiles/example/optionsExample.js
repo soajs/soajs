@@ -26,9 +26,9 @@ module.exports = {
 		"maxPoolSize": 5,                           //pooling value, default=100
 		"minPoolSize": 0,                           //todo: not supported by all drivers
 
-		"maxIdleTimeMS": 0,                         //The maximum number of milliseconds that a connection can remain idle in the pool before being removed and closed.
-		"waitQueueMultiple": 0,                     //A number that the driver multiples the maxPoolSize value to, to provide the maximum number of threads allowed to wait for a connection to become available from the poo
-		"waitQueueTimeoutMS": 0,                    //The maximum time in milliseconds that a thread can wait for a connection to become available.
+		"maxIdleTimeMS": 0,                         //todo: Not Supported * The maximum number of milliseconds that a connection can remain idle in the pool before being removed and closed.
+		"waitQueueMultiple": 0,                     //todo: Not Supported * A number that the driver multiples the maxPoolSize value to, to provide the maximum number of threads allowed to wait for a connection to become available from the poo
+		"waitQueueTimeoutMS": 0,                    //todo: Not Supported * The maximum time in milliseconds that a thread can wait for a connection to become available.
 
 		"w": "majority",                            //values majority|number|<tag set>
 		"wtimeoutMS": 0,                            //timeout for w, 0 is for never
