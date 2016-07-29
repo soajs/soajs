@@ -33,16 +33,17 @@ module.exports = {
         }
     },
     "URLParam": {
-        "connectTimeoutMS": 0,
-        "socketTimeoutMS": 0,
-        "maxPoolSize": 5,
-        "wtimeoutMS": 0,
+        "maxPoolSize": 2,
         "readPreference": "secondaryPreferred",
         "replicaSet": "rs",
-        "w": "majority",
-        "bufferMaxEntries": 0,
-        "ha": true
+        "w": "majority"
     },
     "extraParam": {
+        "db": {
+            "bufferMaxEntries": 0
+        },
+        "replSet": {
+            "ha": true
+        }
     }
 };

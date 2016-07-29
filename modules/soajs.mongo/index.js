@@ -293,9 +293,11 @@ MongoDriver.prototype.ensureIndex = function (collectionName, keys, options, cb)
     }
     connect(self, function (err) {
         if (err) {
-            return cb(err);
+            if (cb && typeof cb === "function")
+                return cb(err);
         }
-        self.db.ensureIndex(collectionName, keys, options, cb);
+        else
+            self.db.ensureIndex(collectionName, keys, options, cb);
     });
 };
 
@@ -312,9 +314,11 @@ MongoDriver.prototype.getCollection = function (collectionName, cb) {
     }
     connect(self, function (err) {
         if (err) {
-            return cb(err);
+            if (cb && typeof cb === "function")
+                return cb(err);
         }
-        self.db.collection(collectionName, {'safe': true}, cb);
+        else
+            self.db.collection(collectionName, {'safe': true}, cb);
     });
 };
 

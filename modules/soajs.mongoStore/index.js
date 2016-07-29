@@ -188,6 +188,7 @@ module.exports = function (connect) {
                 'safe': true
             }, function (err, data) {
                 if (err) {
+                    self.mongo.closeDb();
                     return cb(err, null);
                 } else {
                     return cb(err, data);
