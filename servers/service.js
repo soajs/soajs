@@ -215,12 +215,13 @@ service.prototype.init = function (callback) {
         var response_mw = require("./../mw/response/index");
         _self.app.use(response_mw({}));
 
-        if (soajs.param.bodyParser) {
-            var bodyParser = require('body-parser');
-            _self.app.use(bodyParser.json());
-            _self.app.use(bodyParser.urlencoded({extended: true}));
-            _self.log.info("Body-Parse middleware initialization done.");
-        }
+	    if (soajs.param.bodyParser) {
+		    var bodyParser = require('body-parser');
+		    var options = (soajs.param.bodyParser.limit) ? {limit: soajs.param.bodyParser.limit} : null;
+		    _self.app.use(bodyParser.json(options));
+		    _self.app.use(bodyParser.urlencoded({ extended: true}));
+		    _self.log.info("Body-Parse middleware initialization done.");
+	    }
         else {
             _self.log.info("Body-Parser middleware initialization skipped.");
         }
