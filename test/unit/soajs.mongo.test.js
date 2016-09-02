@@ -563,6 +563,32 @@ describe("TESTING soajs.mongo", function() {
 
 	});
 
+	describe("testing distinctStream", function() {
+		it("fail - no collectionName", function(done) {
+			mongo.distinctStream(null, null, null, function(error) {
+				assert.ok(error);
+				assert.ok(error.message);
+				//assert.equal(error.message, 'Wrong input param form mongo function');
+				done();
+			});
+		});
+
+		it('success - all working', function(done) {
+			mongo.distinctStream("myCollection", 'a', null, function(error, streamer) {
+				assert.ifError(error);
+				assert.ok(streamer);
+
+				streamer.on('data', function(data){
+					assert.ok(data);
+				});
+
+				streamer.on('end', function(){
+					done();
+				});
+			});
+		});
+	});
+
 	describe("testing aggregate", function() {
 		it("fail - no collectionName", function(done) {
 			mongo.aggregate(null, null, function(error) {
@@ -581,7 +607,31 @@ describe("TESTING soajs.mongo", function() {
 				done();
 			});
 		});
+	});
 
+	describe("testing aggregateStream", function() {
+		it("fail - no collectionName", function(done) {
+			mongo.aggregateStream(null, null, function(error) {
+				assert.ok(error);
+				assert.ok(error.message);
+				done();
+			});
+		});
+
+		it('success - all working', function(done) {
+			mongo.aggregateStream("myCollection", { $match: { a: "c" } }, function(error, streamer) {
+				assert.ifError(error);
+				assert.ok(streamer);
+
+				streamer.on('data', function(data){
+					assert.ok(data);
+				});
+
+				streamer.on('end', function(){
+					done();
+				});
+			});
+		});
 	});
 
 	describe("testing remove", function() {

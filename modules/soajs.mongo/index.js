@@ -552,6 +552,75 @@ MongoDriver.prototype.aggregate = function(){
 	});
 };
 
+MongoDriver.prototype.distinctStream = function(collectionName, fieldName, criteria, cb){
+	var self = this;
+
+	if (!collectionName) {
+		return cb(core.error.generate(191));
+	}
+	connect(self, function (err) {
+		if (err) {
+			return cb(err);
+		}
+		var args = [
+			{
+				$group:{
+					"_id": "$" + fieldName
+				}
+			}
+		];
+
+		if(criteria){
+			args.unshift(criteria);
+		}
+		
+		var batchSize = 0;
+		if (self.config && self.config.streaming) {
+			if (self.config.streaming[collectionName] && self.config.streaming[collectionName].batchSize)
+				batchSize = self.config.streaming[collectionName].batchSize;
+			else if (self.config.streaming.batchSize)
+				batchSize = self.config.streaming.batchSize;
+		}
+		if(batchSize){
+			return cb(null, self.db.collection(collectionName).aggregate(args).batchSize(batchSize));
+		}
+		else{
+			return cb(null, self.db.collection(collectionName).aggregate(args));
+		}
+	});
+};
+
+MongoDriver.prototype.aggregateStream = function(){
+	var args = Array.prototype.slice.call(arguments)
+		, collectionName = args.shift()
+		, cb = args[args.length - 1]
+		, self = this;
+	args.pop();
+
+	if (!collectionName) {
+		return cb(core.error.generate(191));
+	}
+	connect(self, function (err) {
+		if (err) {
+			return cb(err);
+		}
+
+		var batchSize = 0;
+		if (self.config && self.config.streaming) {
+			if (self.config.streaming[collectionName] && self.config.streaming[collectionName].batchSize)
+				batchSize = self.config.streaming[collectionName].batchSize;
+			else if (self.config.streaming.batchSize)
+				batchSize = self.config.streaming.batchSize;
+		}
+		if(batchSize){
+			return cb(null, self.db.collection(collectionName).aggregate.apply(self.db.collection(collectionName), args).batchSize(batchSize));
+		}
+		else{
+			return cb(null, self.db.collection(collectionName).aggregate.apply(self.db.collection(collectionName), args));
+		}
+	});
+};
+
 /**
  * Removes the objects matching the criteria from the specified collection
  *
