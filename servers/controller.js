@@ -57,7 +57,7 @@ controller.prototype.init = function (callback) {
         if (fetchedHostIp) {
             if (!fetchedHostIp.result) {
                 _self.log.warn("Unable to find the service host ip. The service will NOT be registered for awareness.");
-                _self.log.info("IPs found: ", fetchedHostIp.ips);
+                _self.log.info("IPs found: ", fetchedHostIp.extra.ips);
                 if (serviceIpNotDetected) {
                     _self.log.warn("The default service IP has been used [" + _self.serviceIp + "]");
                 }
@@ -229,6 +229,18 @@ controller.prototype.start = function (cb) {
         }
         else {
             _self.log.info(_self.serviceName + " service started on port: " + _self.registry.services.controller.port);
+
+            core.registry.registerHost({
+                "serviceName": _self.serviceName,
+                "serviceVersion": _self.serviceVersion,
+                "serviceIp": _self.serviceIp
+            }, _self.registry, function (registered) {
+                if (registered)
+                    _self.log.info("Host IP [" + _self.serviceIp + "] for service [" + _self.serviceName + "@" + _self.serviceVersion + "] successfully registered.");
+                else
+                    _self.log.warn("Unable to register host IP [" + _self.serviceIp + "] for service [" + _self.serviceName + "@" + _self.serviceVersion + "]");
+            });
+
         }
         if (cb) {
             cb(err);

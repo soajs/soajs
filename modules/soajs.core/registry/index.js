@@ -303,6 +303,7 @@ var build = {
                 return callback(null);
             }
             else if (param.serviceIp) {
+                /*
                 var hostObj = {
                     'env': registry.name.toLowerCase(),
                     'name': param.serviceName,
@@ -314,7 +315,9 @@ var build = {
                     if (error) {
                         throw new Error("Unable to register new host for service:" + error.message);
                     }
-                    if (registered && registry.serviceConfig.awareness.autoRegisterService) {
+                    */
+                    //if (registered && registry.serviceConfig.awareness.autoRegisterService) {
+                    if (registry.serviceConfig.awareness.autoRegisterService) {
                         registry[what][param.serviceName].newServiceOrHost = true;
                         if (!registry[what][param.serviceName].hosts) {
                             registry[what][param.serviceName].hosts = {};
@@ -328,7 +331,7 @@ var build = {
                             registry[what][param.serviceName].hosts[param.serviceVersion].push(param.serviceIp);
                     }
                     return callback(null);
-                });
+                //});
             }
             else {
                 if (!param.serviceIp) {
@@ -528,6 +531,26 @@ var registryModule = {
         }
         else
             return cb(new Error("unable to find provision config information to connect to!"));
+    },
+    "registerHost": function (param, registry, cb) {
+
+        //TODO: add task to param in case of HA
+
+        if (param.serviceIp) {
+            var hostObj = {
+                'env': registry.name.toLowerCase(),
+                'name': param.serviceName,
+                'ip': param.serviceIp,
+                'hostname': os.hostname().toLowerCase(),
+                'version': param.serviceVersion
+            };
+            registryModule.model.addUpdateServiceIP(registry.coreDB.provision, hostObj, function (error, registered) {
+                if (error) {
+                    throw new Error("Unable to register new host for service:" + error.message);
+                }
+                cb (registered);
+            });
+        }
     },
     "autoRegisterService": function (name, serviceIp, serviceVersion, what, cb) {
         var controllerSRV = registry_struct[regEnvironment].services.controller;

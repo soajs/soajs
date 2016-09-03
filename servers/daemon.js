@@ -75,8 +75,8 @@ daemon.prototype.init = function (callback) {
     _self.soajs.param.serviceGroup = _self.soajs.param.serviceGroup || "No Group Daemon";
     _self.soajs.param.serviceVersion = _self.soajs.param.serviceVersion || 1;
     _self.soajs.param.serviceVersion = parseInt(_self.soajs.param.serviceVersion);
-    if (isNaN(_self.soajs.param.serviceVersion)){
-        throw new Error('Daemon Service version must be integer: ['+_self.soajs.param.serviceVersion+']');
+    if (isNaN(_self.soajs.param.serviceVersion)) {
+        throw new Error('Daemon Service version must be integer: [' + _self.soajs.param.serviceVersion + ']');
     }
     _self.soajs.param.servicePort = _self.soajs.param.servicePort || null;
     _self.soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
@@ -118,7 +118,7 @@ daemon.prototype.init = function (callback) {
         if (fetchedHostIp) {
             if (!fetchedHostIp.result) {
                 _self.soajs.log.warn("Unable to find the daemon service host ip. The daemon service will NOT be registered for awareness.");
-                _self.soajs.log.info("IPs found: ", fetchedHostIp.ips);
+                _self.soajs.log.info("IPs found: ", fetchedHostIp.extra.ips);
                 if (serviceIpNotDetected) {
                     _self.soajs.log.warn("The default daemon service IP has been used [" + _self.soajs.param.serviceIp + "]");
                 }
@@ -162,6 +162,17 @@ daemon.prototype.start = function (cb) {
             if (loaded) {
                 _self.soajs.log.info("Daemon Service provision loaded.");
                 _self.soajs.log.info("Starting Daemon Service ...");
+
+                core.registry.registerHost({
+                    "serviceName": _self.soajs.param.serviceName,
+                    "serviceVersion": _self.soajs.param.serviceVersion,
+                    "serviceIp": _self.soajs.param.serviceIp
+                }, registry, function (registered) {
+                    if (registered)
+                        _self.soajs.log.info("Host IP [" + _self.soajs.param.serviceIp + "] for daemon service [" + _self.soajs.param.serviceName + "@" + _self.soajs.param.serviceVersion + "] successfully registered.");
+                    else
+                        _self.soajs.log.warn("Unable to register host IP [" + _self.soajs.param.serviceIp + "] for daemon service [" + _self.soajs.param.serviceName + "@" + _self.soajs.param.serviceVersion + "]");
+                });
 
                 //MAINTENANCE Service Routes
                 _self.soajs.log.info("Adding Daemon Service Maintenance Routes ...");

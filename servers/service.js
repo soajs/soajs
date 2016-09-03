@@ -174,7 +174,7 @@ service.prototype.init = function (callback) {
         if (fetchedHostIp) {
             if (!fetchedHostIp.result) {
                 _self.log.warn("Unable to find the service host ip. The service will NOT be registered for awareness.");
-                _self.log.info("IPs found: ", fetchedHostIp.ips);
+                _self.log.info("IPs found: ", fetchedHostIp.extra.ips);
                 if (serviceIpNotDetected) {
                     _self.log.warn("The default service IP has been used [" + soajs.param.serviceIp + "]");
                 }
@@ -215,13 +215,13 @@ service.prototype.init = function (callback) {
         var response_mw = require("./../mw/response/index");
         _self.app.use(response_mw({}));
 
-	    if (soajs.param.bodyParser) {
-		    var bodyParser = require('body-parser');
-		    var options = (soajs.param.bodyParser.limit) ? {limit: soajs.param.bodyParser.limit} : null;
-		    _self.app.use(bodyParser.json(options));
-		    _self.app.use(bodyParser.urlencoded({ extended: true}));
-		    _self.log.info("Body-Parse middleware initialization done.");
-	    }
+        if (soajs.param.bodyParser) {
+            var bodyParser = require('body-parser');
+            var options = (soajs.param.bodyParser.limit) ? {limit: soajs.param.bodyParser.limit} : null;
+            _self.app.use(bodyParser.json(options));
+            _self.app.use(bodyParser.urlencoded({extended: true}));
+            _self.log.info("Body-Parse middleware initialization done.");
+        }
         else {
             _self.log.info("Body-Parser middleware initialization skipped.");
         }
@@ -379,19 +379,37 @@ service.prototype.start = function (cb) {
                 _self.log.info("Service provision loaded.");
                 _self.log.info("Starting Service ...");
                 _self.app.httpServer = _self.app.listen(_self.app.soajs.serviceConf.info.port, function (err) {
-                    _self.log.info(_self.app.soajs.param.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
-                    if (autoRegHost) {
-                        _self.log.info("Initiating service auto register for awareness ...");
-                        core.registry.autoRegisterService(_self.app.soajs.param.serviceName, _self.app.soajs.param.serviceIp, _self.app.soajs.param.serviceVersion, "services", function (err, registered) {
-                            if (err) {
-                                _self.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
-                            } else if (registered) {
-                                _self.log.info('The autoRegisterService @ controllers for [' + _self.app.soajs.param.serviceName + '@' + _self.app.soajs.param.serviceIp + '] successfully finished.');
-                            }
-                        });
+                    if (err) {
+                        _self.log.error(core.error.generate(141));
+                        _self.log.error(err);
                     }
                     else {
-                        _self.log.info("Service auto register for awareness, skipped.");
+                        core.registry.registerHost({
+                            "serviceName": _self.app.soajs.param.serviceName,
+                            "serviceVersion": _self.app.soajs.param.serviceVersion,
+                            "serviceIp": _self.app.soajs.param.serviceIp
+                        }, registry, function (registered) {
+                            if (registered)
+                                _self.log.info("Host IP [" + _self.app.soajs.param.serviceIp + "] for service [" + _self.app.soajs.param.serviceName + "@" + _self.app.soajs.param.serviceVersion + "] successfully registered.");
+                            else
+                                _self.log.warn("Unable to register host IP [" + _self.app.soajs.param.serviceIp + "] for service [" + _self.app.soajs.param.serviceName + "@" + _self.app.soajs.param.serviceVersion + "]");
+
+                            _self.log.info(_self.app.soajs.param.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
+
+                            if (autoRegHost) {
+                                _self.log.info("Initiating service auto register for awareness ...");
+                                core.registry.autoRegisterService(_self.app.soajs.param.serviceName, _self.app.soajs.param.serviceIp, _self.app.soajs.param.serviceVersion, "services", function (err, registered) {
+                                    if (err) {
+                                        _self.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
+                                    } else if (registered) {
+                                        _self.log.info('The autoRegisterService @ controllers for [' + _self.app.soajs.param.serviceName + '@' + _self.app.soajs.param.serviceIp + '] successfully finished.');
+                                    }
+                                });
+                            }
+                            else {
+                                _self.log.info("Service auto register for awareness, skipped.");
+                            }
+                        });
                     }
                     if (cb) {
                         cb(err);
