@@ -19,8 +19,21 @@ exports.getHostIp = function () {
     var ips = [];
     var ifnameLookupSequence = [];
     if (process.env.SOAJS_DEPLOY_HA) {
+        var Docker = require('dockerode');
+        var deployer = new Docker({socketPath: '/var/run/docker.sock'});
+        var container = deployer.getContainer(process.env.HOSTNAME);
+        container.inspect(function (error, containerInfo) {
+            if (error) throw new Error(error);
 
-        //TODO: add fetch ip from container here
+            var taskName = containerInfo.Config.Labels['com.docker.swarm.task.name'];
+            var swarmNetwork = containerInfo.NetworkSettings.Networks.ingress;
+
+            return {
+                "result": true,
+                "ip": swarmNetwork.IPAddress,
+                "extra": {"ips": ips, "n": ifnameLookupSequence, "swarmTask": taskName}
+            };
+        });
 
         return {"result": false, "ip": null, "extra": {"ips": ips, "n": ifnameLookupSequence}};
     }

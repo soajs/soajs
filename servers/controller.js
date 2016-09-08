@@ -27,6 +27,7 @@ function controller(param) {
     _self.serviceName = "controller";
     _self.serviceVersion = 1;
     _self.serviceIp = process.env.SOAJS_SRVIP || null;
+    _self.serviceHATask = null;
 }
 
 controller.prototype.init = function (callback) {
@@ -40,6 +41,9 @@ controller.prototype.init = function (callback) {
         fetchedHostIp = core.getHostIp();
         if (fetchedHostIp && fetchedHostIp.result) {
             _self.serviceIp = fetchedHostIp.ip;
+            if (fetchedHostIp.extra && fetchedHostIp.extra.swarmTask){
+                _self.serviceHATask = fetchedHostIp.extra.swarmTask;
+            }
         } else {
             serviceIpNotDetected = true;
             _self.serviceIp = "127.0.0.1";
@@ -153,44 +157,40 @@ controller.prototype.init = function (callback) {
                 return res.end(JSON.stringify(response));
             }
             else if (parsedUrl.pathname === '/register') {
-                /**
-                 * if service
-                 *      name
-                 *      group
-                 *      port
-                 *      ip
-                 *      extKeyRequired
-                 * if host
-                 *      name
-                 *      ip
-                 */
-                res.writeHead(200, {'Content-Type': 'application/json'});
-                response = maintenanceResponse(req);
-                var regOptions = {
-                    "name": parsedUrl.query.name,
-                    "group": parsedUrl.query.group,
-                    "port": parseInt(parsedUrl.query.port),
-                    "ip": parsedUrl.query.ip,
-                    "type": parsedUrl.query.type,
-                    "version": parseInt(parsedUrl.query.version)
-                };
-                if (regOptions.type === "service") {
-                    regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
-                    regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
-                    regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);
+
+                if (parsedUrl.query.serviceHATask){
+                    //TODO: call reloadRegistry
                 }
-                core.registry.register(
-                    regOptions,
-                    function (err, data) {
-                        if (!err) {
-                            response['result'] = true;
-                            response['data'] = data;
-                        }
-                        else {
-                            _self.log.warn("Failed to register service for [" + parsedUrl.query.name + "] " + err.message);
-                        }
-                        return res.end(JSON.stringify(response));
-                    });
+                else {
+                    res.writeHead(200, {'Content-Type': 'application/json'});
+                    response = maintenanceResponse(req);
+                    var regOptions = {
+                        "name": parsedUrl.query.name,
+                        "group": parsedUrl.query.group,
+                        "port": parseInt(parsedUrl.query.port),
+                        "ip": parsedUrl.query.ip,
+                        "type": parsedUrl.query.type,
+                        "version": parseInt(parsedUrl.query.version)
+                    };
+                    if (regOptions.type === "service") {
+                        regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
+                        regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
+                        regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);
+                    }
+
+                    core.registry.register(
+                        regOptions,
+                        function (err, data) {
+                            if (!err) {
+                                response['result'] = true;
+                                response['data'] = data;
+                            }
+                            else {
+                                _self.log.warn("Failed to register service for [" + parsedUrl.query.name + "] " + err.message);
+                            }
+                            return res.end(JSON.stringify(response));
+                        });
+                }
             }
             else {
                 var heartbeat = function (res) {
@@ -233,7 +233,8 @@ controller.prototype.start = function (cb) {
             core.registry.registerHost({
                 "serviceName": _self.serviceName,
                 "serviceVersion": _self.serviceVersion,
-                "serviceIp": _self.serviceIp
+                "serviceIp": _self.serviceIp,
+                "serviceHATask": _self.serviceHATask
             }, _self.registry, function (registered) {
                 if (registered)
                     _self.log.info("Host IP [" + _self.serviceIp + "] for service [" + _self.serviceName + "@" + _self.serviceVersion + "] successfully registered.");

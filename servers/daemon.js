@@ -80,6 +80,7 @@ daemon.prototype.init = function (callback) {
     }
     _self.soajs.param.servicePort = _self.soajs.param.servicePort || null;
     _self.soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
+    _self.soajs.param.serviceHATask = null;
 
     var fetchedHostIp = null;
     var serviceIpNotDetected = false;
@@ -90,6 +91,9 @@ daemon.prototype.init = function (callback) {
         fetchedHostIp = core.getHostIp();
         if (fetchedHostIp && fetchedHostIp.result) {
             _self.soajs.param.serviceIp = fetchedHostIp.ip;
+            if (fetchedHostIp.extra && fetchedHostIp.extra.swarmTask) {
+                _self.soajs.param.serviceHATask = fetchedHostIp.extra.swarmTask;
+            }
         } else {
             serviceIpNotDetected = true;
             _self.soajs.param.serviceIp = "127.0.0.1";
@@ -166,7 +170,8 @@ daemon.prototype.start = function (cb) {
                 core.registry.registerHost({
                     "serviceName": _self.soajs.param.serviceName,
                     "serviceVersion": _self.soajs.param.serviceVersion,
-                    "serviceIp": _self.soajs.param.serviceIp
+                    "serviceIp": _self.soajs.param.serviceIp,
+                    "serviceHATask": _self.soajs.param.serviceHATask
                 }, registry, function (registered) {
                     if (registered)
                         _self.soajs.log.info("Host IP [" + _self.soajs.param.serviceIp + "] for daemon service [" + _self.soajs.param.serviceName + "@" + _self.soajs.param.serviceVersion + "] successfully registered.");
@@ -390,7 +395,13 @@ daemon.prototype.start = function (cb) {
     var resume = function (err) {
         if (autoRegHost) {
             _self.soajs.log.info("Initiating service auto register for awareness ...");
-            core.registry.autoRegisterService(_self.soajs.param.serviceName, _self.soajs.param.serviceIp, _self.soajs.param.serviceVersion, "daemons", function (err, registered) {
+            core.registry.autoRegisterService({
+                "name": _self.soajs.param.serviceName,
+                "serviceIp": _self.soajs.param.serviceIp,
+                "serviceVersion": _self.soajs.param.serviceVersion,
+                "serviceHATask": _self.soajs.param.serviceHATask,
+                "what": "daemons"
+            }, function (err, registered) {
                 if (err) {
                     _self.soajs.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
                 } else if (registered) {

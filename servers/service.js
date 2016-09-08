@@ -129,6 +129,7 @@ service.prototype.init = function (callback) {
     soajs.param.requestTimeoutRenewal = soajs.param.requestTimeoutRenewal || null;
     soajs.param.awarenessEnv = soajs.param.awarenessEnv || false;
     soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
+    soajs.param.serviceHATask = null;
 
     var fetchedHostIp = null;
     var serviceIpNotDetected = false;
@@ -139,6 +140,9 @@ service.prototype.init = function (callback) {
         fetchedHostIp = core.getHostIp();
         if (fetchedHostIp && fetchedHostIp.result) {
             soajs.param.serviceIp = fetchedHostIp.ip;
+            if (fetchedHostIp.extra && fetchedHostIp.extra.swarmTask) {
+                soajs.param.serviceHATask = fetchedHostIp.extra.swarmTask;
+            }
         } else {
             serviceIpNotDetected = true;
             soajs.param.serviceIp = "127.0.0.1";
@@ -387,7 +391,8 @@ service.prototype.start = function (cb) {
                         core.registry.registerHost({
                             "serviceName": _self.app.soajs.param.serviceName,
                             "serviceVersion": _self.app.soajs.param.serviceVersion,
-                            "serviceIp": _self.app.soajs.param.serviceIp
+                            "serviceIp": _self.app.soajs.param.serviceIp,
+                            "serviceHATask": _self.app.soajs.param.serviceHATask
                         }, registry, function (registered) {
                             if (registered)
                                 _self.log.info("Host IP [" + _self.app.soajs.param.serviceIp + "] for service [" + _self.app.soajs.param.serviceName + "@" + _self.app.soajs.param.serviceVersion + "] successfully registered.");
@@ -398,7 +403,13 @@ service.prototype.start = function (cb) {
 
                             if (autoRegHost) {
                                 _self.log.info("Initiating service auto register for awareness ...");
-                                core.registry.autoRegisterService(_self.app.soajs.param.serviceName, _self.app.soajs.param.serviceIp, _self.app.soajs.param.serviceVersion, "services", function (err, registered) {
+                                core.registry.autoRegisterService({
+                                    "name": _self.app.soajs.param.serviceName,
+                                    "serviceIp": _self.app.soajs.param.serviceIp,
+                                    "serviceVersion": _self.app.soajs.param.serviceVersion,
+                                    "serviceHATask": _self.app.soajs.param.serviceHATask,
+                                    "what": "services"
+                                }, function (err, registered) {
                                     if (err) {
                                         _self.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
                                     } else if (registered) {
