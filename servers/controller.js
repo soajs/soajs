@@ -41,7 +41,7 @@ controller.prototype.init = function (callback) {
         fetchedHostIp = core.getHostIp();
         if (fetchedHostIp && fetchedHostIp.result) {
             _self.serviceIp = fetchedHostIp.ip;
-            if (fetchedHostIp.extra && fetchedHostIp.extra.swarmTask){
+            if (fetchedHostIp.extra && fetchedHostIp.extra.swarmTask) {
                 _self.serviceHATask = fetchedHostIp.extra.swarmTask;
             }
         } else {
@@ -127,7 +127,7 @@ controller.prototype.init = function (callback) {
                 };
                 return response;
             };
-            if (parsedUrl.pathname === '/reloadRegistry') {
+            var reloadRegistry = function () {
                 core.registry.reload({
                     "serviceName": _self.serviceName,
                     "serviceVersion": null,
@@ -145,6 +145,9 @@ controller.prototype.init = function (callback) {
                     }
                     return res.end(JSON.stringify(response));
                 });
+            };
+            if (parsedUrl.pathname === '/reloadRegistry') {
+                reloadRegistry();
             }
             else if (parsedUrl.pathname === '/awarenessStat') {
                 res.writeHead(200, {'Content-Type': 'application/json'});
@@ -152,14 +155,13 @@ controller.prototype.init = function (callback) {
                 response = maintenanceResponse(req);
                 if (tmp && (tmp.services || tmp.daemons)) {
                     response['result'] = true;
-                    response['data'] = {"services" : tmp.services, "daemons" : tmp.daemons};
+                    response['data'] = {"services": tmp.services, "daemons": tmp.daemons};
                 }
                 return res.end(JSON.stringify(response));
             }
             else if (parsedUrl.pathname === '/register') {
-
-                if (parsedUrl.query.serviceHATask){
-                    //TODO: call reloadRegistry
+                if (parsedUrl.query.serviceHATask) {
+                    reloadRegistry();
                 }
                 else {
                     res.writeHead(200, {'Content-Type': 'application/json'});
