@@ -23,7 +23,9 @@ exports.getHostIp = function (cb) {
         var deployer = new Docker({socketPath: '/var/run/docker.sock'});
         var container = deployer.getContainer(process.env.HOSTNAME);
         container.inspect(function (error, containerInfo) {
-            if (error) throw new Error(error);
+            if (error) {
+                return cb({"result": false, "ip": null, "extra": {"ips": ips, "n": ifnameLookupSequence}});
+            }
 
             var taskName = containerInfo.Config.Labels['com.docker.swarm.task.name'];
             var swarmNetwork = containerInfo.NetworkSettings.Networks.ingress;
@@ -34,8 +36,6 @@ exports.getHostIp = function (cb) {
                 "extra": {"ips": ips, "n": ifnameLookupSequence, "swarmTask": taskName}
             });
         });
-
-        return cb({"result": false, "ip": null, "extra": {"ips": ips, "n": ifnameLookupSequence}});
     }
     else {
         var os = require('os');
