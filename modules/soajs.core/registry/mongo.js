@@ -116,7 +116,7 @@ module.exports = {
                 criteria.ip = hostObj.ip;
                 criteria.hostname = hostObj.hostname;
             }
-            mongo.update(hostCollectionName, hostObj, {'$set': hostObj}, {'upsert': true}, function (err) {
+            mongo.update(hostCollectionName, criteria, {'$set': hostObj}, {'upsert': true}, function (err) {
                 if (err) {
                     return cb(err, false);
                 }

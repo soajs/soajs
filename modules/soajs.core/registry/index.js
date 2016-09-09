@@ -524,9 +524,11 @@ var registryModule = {
                 'name': param.serviceName,
                 'ip': param.serviceIp,
                 'hostname': os.hostname().toLowerCase(),
-                'version': param.serviceVersion,
-                'serviceHATask': param.serviceHATask
+                'version': param.serviceVersion
             };
+            if (param.serviceHATask)
+                hostObj.serviceHATask = param.serviceHATask;
+
             registryModule.model.addUpdateServiceIP(registry.coreDB.provision, hostObj, function (error, registered) {
                 if (error) {
                     throw new Error("Unable to register new host for service:" + error.message);
