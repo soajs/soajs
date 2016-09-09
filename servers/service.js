@@ -137,226 +137,234 @@ service.prototype.init = function (callback) {
         soajs.param.serviceIp = '127.0.0.1';
     }
     if (!soajs.param.serviceIp) {
-        fetchedHostIp = core.getHostIp();
-        if (fetchedHostIp && fetchedHostIp.result) {
-            soajs.param.serviceIp = fetchedHostIp.ip;
-            if (fetchedHostIp.extra && fetchedHostIp.extra.swarmTask) {
-                soajs.param.serviceHATask = fetchedHostIp.extra.swarmTask;
+        core.getHostIp(function (getHostIpResponse) {
+            fetchedHostIp = getHostIpResponse;
+            if (fetchedHostIp && fetchedHostIp.result) {
+                soajs.param.serviceIp = fetchedHostIp.ip;
+                if (fetchedHostIp.extra && fetchedHostIp.extra.swarmTask) {
+                    soajs.param.serviceHATask = fetchedHostIp.extra.swarmTask;
+                }
+            } else {
+                serviceIpNotDetected = true;
+                soajs.param.serviceIp = "127.0.0.1";
             }
-        } else {
-            serviceIpNotDetected = true;
-            soajs.param.serviceIp = "127.0.0.1";
-        }
+            resume();
+        });
+    }
+    else {
+        resume();
     }
 
-    soajs.apiList = extractAPIsList(soajs.param.schema);
+    function resume () {
+        soajs.apiList = extractAPIsList(soajs.param.schema);
 
-    core.registry.load({
-        "serviceName": soajs.param.serviceName,
-        "serviceGroup": soajs.param.serviceGroup,
-        "serviceVersion": soajs.param.serviceVersion,
-        "designatedPort": soajs.param.servicePort,
-        "extKeyRequired": soajs.param.extKeyRequired,
-        "requestTimeout": soajs.param.requestTimeout,
-        "requestTimeoutRenewal": soajs.param.requestTimeoutRenewal,
-        "awareness": soajs.param.awareness,
-        "serviceIp": soajs.param.serviceIp,
-        "apiList": soajs.apiList
-    }, function (reg) {
-        registry = reg;
-        soajs.serviceConf = lib.registry.getServiceConf(soajs.param.serviceName, registry);
+        core.registry.load({
+            "serviceName": soajs.param.serviceName,
+            "serviceGroup": soajs.param.serviceGroup,
+            "serviceVersion": soajs.param.serviceVersion,
+            "designatedPort": soajs.param.servicePort,
+            "extKeyRequired": soajs.param.extKeyRequired,
+            "requestTimeout": soajs.param.requestTimeout,
+            "requestTimeoutRenewal": soajs.param.requestTimeoutRenewal,
+            "awareness": soajs.param.awareness,
+            "serviceIp": soajs.param.serviceIp,
+            "apiList": soajs.apiList
+        }, function (reg) {
+            registry = reg;
+            soajs.serviceConf = lib.registry.getServiceConf(soajs.param.serviceName, registry);
 
-        _self.log = core.getLogger(soajs.param.serviceName, registry.serviceConfig.logger);
+            _self.log = core.getLogger(soajs.param.serviceName, registry.serviceConfig.logger);
 
-        if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true")
-            _self.log.info("SOAJS is in SOLO mode, the following got turned OFF [extKeyRequired, roaming, session, oauth, awareness, awarenessEnv, roaming].");
+            if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true")
+                _self.log.info("SOAJS is in SOLO mode, the following got turned OFF [extKeyRequired, roaming, session, oauth, awareness, awarenessEnv, roaming].");
 
-        if (soajs.param.oldStyleConfiguration)
-            _self.log.warn("Old style configuration detected. Please start using the new way of passing param when creating a new service.");
-        _self.log.info("Registry has been loaded successfully from environment: " + registry.environment);
+            if (soajs.param.oldStyleConfiguration)
+                _self.log.warn("Old style configuration detected. Please start using the new way of passing param when creating a new service.");
+            _self.log.info("Registry has been loaded successfully from environment: " + registry.environment);
 
-        if (fetchedHostIp) {
-            if (!fetchedHostIp.result) {
-                _self.log.warn("Unable to find the service host ip. The service will NOT be registered for awareness.");
-                _self.log.info("IPs found: ", fetchedHostIp.extra.ips);
-                if (serviceIpNotDetected) {
-                    _self.log.warn("The default service IP has been used [" + soajs.param.serviceIp + "]");
+            if (fetchedHostIp) {
+                if (!fetchedHostIp.result) {
+                    _self.log.warn("Unable to find the service host ip. The service will NOT be registered for awareness.");
+                    _self.log.info("IPs found: ", fetchedHostIp.extra.ips);
+                    if (serviceIpNotDetected) {
+                        _self.log.warn("The default service IP has been used [" + soajs.param.serviceIp + "]");
+                    }
                 }
+                else {
+                    _self.log.info("The IP registered for service [" + soajs.param.serviceName + "] awareness : ", fetchedHostIp.ip);
+                }
+            }
+
+            if (!soajs.param.serviceName || !soajs.serviceConf) {
+                if (!soajs.param.serviceName) {
+                    _self.log.error('Service failed to start, serviceName is empty [' + soajs.param.serviceName + ']');
+                } else {
+                    _self.log.error('Service [' + soajs.param.serviceName + '] failed to start. Unable to find the service entry in registry');
+                }
+                return callback(new Error("Service shutdown due to failure!"));
+            }
+
+            _self.log.info("Service middleware initialization started...");
+
+            var favicon_mw = require("./../mw/favicon/index");
+            _self.app.use(favicon_mw());
+            _self.appMaintenance.use(favicon_mw());
+            _self.log.info("Favicon middleware initialization done.");
+
+            if (soajs.param.logger) {
+                var logger = require('morgan');
+                _self.app.use(logger('combined'));
+                _self.log.info("Morgan Logger middleware initialization done.");
             }
             else {
-                _self.log.info("The IP registered for service [" + soajs.param.serviceName + "] awareness : ", fetchedHostIp.ip);
+                _self.log.info("Morgan Logger middleware initialization skipped.");
             }
-        }
 
-        if (!soajs.param.serviceName || !soajs.serviceConf) {
-            if (!soajs.param.serviceName) {
-                _self.log.error('Service failed to start, serviceName is empty [' + soajs.param.serviceName + ']');
-            } else {
-                _self.log.error('Service [' + soajs.param.serviceName + '] failed to start. Unable to find the service entry in registry');
-            }
-            return callback(new Error("Service shutdown due to failure!"));
-        }
+            var soajs_mw = require("./../mw/soajs/index");
+            _self.app.use(soajs_mw({"log": _self.log}));
 
-        _self.log.info("Service middleware initialization started...");
+            var response_mw = require("./../mw/response/index");
+            _self.app.use(response_mw({}));
 
-        var favicon_mw = require("./../mw/favicon/index");
-        _self.app.use(favicon_mw());
-        _self.appMaintenance.use(favicon_mw());
-        _self.log.info("Favicon middleware initialization done.");
-
-        if (soajs.param.logger) {
-            var logger = require('morgan');
-            _self.app.use(logger('combined'));
-            _self.log.info("Morgan Logger middleware initialization done.");
-        }
-        else {
-            _self.log.info("Morgan Logger middleware initialization skipped.");
-        }
-
-        var soajs_mw = require("./../mw/soajs/index");
-        _self.app.use(soajs_mw({"log": _self.log}));
-
-        var response_mw = require("./../mw/response/index");
-        _self.app.use(response_mw({}));
-
-        if (soajs.param.bodyParser) {
-            var bodyParser = require('body-parser');
-            var options = (soajs.param.bodyParser.limit) ? {limit: soajs.param.bodyParser.limit} : null;
-            _self.app.use(bodyParser.json(options));
-            _self.app.use(bodyParser.urlencoded({extended: true}));
-            _self.log.info("Body-Parse middleware initialization done.");
-        }
-        else {
-            _self.log.info("Body-Parser middleware initialization skipped.");
-        }
-
-        if (soajs.param.methodOverride) {
-            var methodOverride = require('method-override');
-            _self.app.use(methodOverride());
-            _self.log.info("Method-Override middleware initialization done.");
-        }
-        else {
-            _self.log.info("Method-Override middleware initialization skipped.");
-        }
-
-        if (soajs.param.cookieParser) {
-            var cookieParser = require('cookie-parser');
-            _self.app.use(cookieParser(soajs.serviceConf._conf.cookie.secret));
-            _self.log.info("CookieParser middleware initialization done.");
-        }
-        else {
-            _self.log.info("CookieParser middleware initialization skipped.");
-        }
-
-        if (soajs.param.session) {
-            var session = require('express-session');
-            var MongoStore = require('./../modules/soajs.mongoStore/index.js')(session);
-            var store = new MongoStore(registry.coreDB.session);
-            _self.log.info(registry.coreDB.session);
-            var sessConf = {};
-            for (var key in soajs.serviceConf._conf.session) {
-                if (Object.hasOwnProperty.call(soajs.serviceConf._conf.session, key)) {
-                    sessConf[key] = soajs.serviceConf._conf.session[key];
-                }
-            }
-            sessConf.store = store;
-            _self.app.use(session(sessConf));
-            _self.log.info("Express-Session middleware initialization done.");
-        }
-        else {
-            _self.log.info("Express-Session middleware initialization skipped.");
-        }
-
-        if (soajs.param.inputmask && soajs.param.schema) {
-            var inputmask_mw = require("./../mw/inputmask/index");
-            var inputmaskSrc = ["params", "headers", "query"];
-            if (soajs.param.cookieParser) {
-                inputmaskSrc.push("cookies");
-            }
             if (soajs.param.bodyParser) {
-                inputmaskSrc.push("body");
+                var bodyParser = require('body-parser');
+                var options = (soajs.param.bodyParser.limit) ? {limit: soajs.param.bodyParser.limit} : null;
+                _self.app.use(bodyParser.json(options));
+                _self.app.use(bodyParser.urlencoded({extended: true}));
+                _self.log.info("Body-Parse middleware initialization done.");
+            }
+            else {
+                _self.log.info("Body-Parser middleware initialization skipped.");
             }
 
-            soajs.inputmask = inputmask_mw(soajs.param, inputmaskSrc);
-            _self.log.info("IMFV middleware initialization done.");
-        }
-        else {
-            _self.log.info("IMFV middleware initialization skipped.");
-        }
-
-        if (soajs.param.bodyParser && soajs.param.oauth) {
-            var oauthserver = require('oauth2-server');
-            _self.oauth = oauthserver({
-                model: provision.oauthModel,
-                grants: registry.serviceConfig.oauth.grants,
-                debug: registry.serviceConfig.oauth.debug
-            });
-
-            soajs.oauthService = soajs.param.oauthService || {"name": "oauth", "tokenApi": "/token"};
-            if (!soajs.oauthService.name) {
-                soajs.oauthService.name = "oauth";
+            if (soajs.param.methodOverride) {
+                var methodOverride = require('method-override');
+                _self.app.use(methodOverride());
+                _self.log.info("Method-Override middleware initialization done.");
             }
-            if (!soajs.oauthService.tokenApi) {
-                soajs.oauthService.tokenApi = "/token";
+            else {
+                _self.log.info("Method-Override middleware initialization skipped.");
             }
 
-            soajs.oauth = _self.oauth.authorise();
-            _self.log.info("oAuth middleware initialization done.");
-        }
-        else {
-            _self.log.info("oAuth middleware initialization skipped.");
-        }
+            if (soajs.param.cookieParser) {
+                var cookieParser = require('cookie-parser');
+                _self.app.use(cookieParser(soajs.serviceConf._conf.cookie.secret));
+                _self.log.info("CookieParser middleware initialization done.");
+            }
+            else {
+                _self.log.info("CookieParser middleware initialization skipped.");
+            }
 
-        if (soajs.param.awareness) {
-            var awareness_mw = require("./../mw/awareness/index");
-            _self.app.use(awareness_mw({
-                "serviceName": soajs.param.serviceName,
-                "serviceGroup": soajs.param.serviceGroup,
-                "serviceVersion": soajs.param.serviceVersion,
-                "designatedPort": soajs.param.servicePort,
-                "extKeyRequired": soajs.param.extKeyRequired,
-                "requestTimeout": soajs.param.requestTimeout,
-                "requestTimeoutRenewal": soajs.param.requestTimeoutRenewal,
-                "awareness": soajs.param.awareness,
-                "serviceIp": soajs.param.serviceIp,
-                "apiList": soajs.apiList,
-                "log": _self.log
-            }));
-            _self.log.info("Awareness middleware initialization done.");
-        }
-        else {
-            _self.log.info("Awareness middleware initialization skipped.");
-        }
+            if (soajs.param.session) {
+                var session = require('express-session');
+                var MongoStore = require('./../modules/soajs.mongoStore/index.js')(session);
+                var store = new MongoStore(registry.coreDB.session);
+                _self.log.info(registry.coreDB.session);
+                var sessConf = {};
+                for (var key in soajs.serviceConf._conf.session) {
+                    if (Object.hasOwnProperty.call(soajs.serviceConf._conf.session, key)) {
+                        sessConf[key] = soajs.serviceConf._conf.session[key];
+                    }
+                }
+                sessConf.store = store;
+                _self.app.use(session(sessConf));
+                _self.log.info("Express-Session middleware initialization done.");
+            }
+            else {
+                _self.log.info("Express-Session middleware initialization skipped.");
+            }
 
-        if (soajs.param.awarenessEnv) {
-            var awarenessEnv_mw = require("./../mw/awarenessEnv/index");
-            _self.app.use(awarenessEnv_mw({
-                "awarenessEnv": soajs.param.awarenessEnv,
-                "log": _self.log
-            }));
-            _self.log.info("AwarenessEnv middleware initialization done.");
-        }
-        else {
-            _self.log.info("AwarenessEnv middleware initialization skipped.");
-        }
+            if (soajs.param.inputmask && soajs.param.schema) {
+                var inputmask_mw = require("./../mw/inputmask/index");
+                var inputmaskSrc = ["params", "headers", "query"];
+                if (soajs.param.cookieParser) {
+                    inputmaskSrc.push("cookies");
+                }
+                if (soajs.param.bodyParser) {
+                    inputmaskSrc.push("body");
+                }
 
-        var service_mw = require("./../mw/service/index");
-        _self.app.use(service_mw({"soajs": soajs, "app": _self.app, "param": soajs.param}));
-        _self.log.info("SOAJS Service middleware initialization done.");
+                soajs.inputmask = inputmask_mw(soajs.param, inputmaskSrc);
+                _self.log.info("IMFV middleware initialization done.");
+            }
+            else {
+                _self.log.info("IMFV middleware initialization skipped.");
+            }
 
-        if (soajs.param.roaming) {
-            var roaming_mw = require("./../mw/roaming/index");
-            _self.app.use(roaming_mw({"app": _self.app}));
-            _self.log.info("SOAJS Roaming middleware initialization done.");
-        }
+            if (soajs.param.bodyParser && soajs.param.oauth) {
+                var oauthserver = require('oauth2-server');
+                _self.oauth = oauthserver({
+                    model: provision.oauthModel,
+                    grants: registry.serviceConfig.oauth.grants,
+                    debug: registry.serviceConfig.oauth.debug
+                });
 
-        //Expose some core function after init
-        _self.getCustomRegistry = function () {
-            return core.registry.getCustom();
-        };
+                soajs.oauthService = soajs.param.oauthService || {"name": "oauth", "tokenApi": "/token"};
+                if (!soajs.oauthService.name) {
+                    soajs.oauthService.name = "oauth";
+                }
+                if (!soajs.oauthService.tokenApi) {
+                    soajs.oauthService.tokenApi = "/token";
+                }
 
-        callback();
-    });
+                soajs.oauth = _self.oauth.authorise();
+                _self.log.info("oAuth middleware initialization done.");
+            }
+            else {
+                _self.log.info("oAuth middleware initialization skipped.");
+            }
+
+            if (soajs.param.awareness) {
+                var awareness_mw = require("./../mw/awareness/index");
+                _self.app.use(awareness_mw({
+                    "serviceName": soajs.param.serviceName,
+                    "serviceGroup": soajs.param.serviceGroup,
+                    "serviceVersion": soajs.param.serviceVersion,
+                    "designatedPort": soajs.param.servicePort,
+                    "extKeyRequired": soajs.param.extKeyRequired,
+                    "requestTimeout": soajs.param.requestTimeout,
+                    "requestTimeoutRenewal": soajs.param.requestTimeoutRenewal,
+                    "awareness": soajs.param.awareness,
+                    "serviceIp": soajs.param.serviceIp,
+                    "apiList": soajs.apiList,
+                    "log": _self.log
+                }));
+                _self.log.info("Awareness middleware initialization done.");
+            }
+            else {
+                _self.log.info("Awareness middleware initialization skipped.");
+            }
+
+            if (soajs.param.awarenessEnv) {
+                var awarenessEnv_mw = require("./../mw/awarenessEnv/index");
+                _self.app.use(awarenessEnv_mw({
+                    "awarenessEnv": soajs.param.awarenessEnv,
+                    "log": _self.log
+                }));
+                _self.log.info("AwarenessEnv middleware initialization done.");
+            }
+            else {
+                _self.log.info("AwarenessEnv middleware initialization skipped.");
+            }
+
+            var service_mw = require("./../mw/service/index");
+            _self.app.use(service_mw({"soajs": soajs, "app": _self.app, "param": soajs.param}));
+            _self.log.info("SOAJS Service middleware initialization done.");
+
+            if (soajs.param.roaming) {
+                var roaming_mw = require("./../mw/roaming/index");
+                _self.app.use(roaming_mw({"app": _self.app}));
+                _self.log.info("SOAJS Roaming middleware initialization done.");
+            }
+
+            //Expose some core function after init
+            _self.getCustomRegistry = function () {
+                return core.registry.getCustom();
+            };
+
+            callback();
+        });
+    }
 };
 
 /**

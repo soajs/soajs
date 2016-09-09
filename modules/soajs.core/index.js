@@ -15,7 +15,7 @@ exports.provision = require('./provision/index');
 exports.security = require('./security/index');
 exports.getMail = require('./mail/index');
 exports.validator = require('./validator/index');
-exports.getHostIp = function () {
+exports.getHostIp = function (cb) {
     var ips = [];
     var ifnameLookupSequence = [];
     if (process.env.SOAJS_DEPLOY_HA) {
@@ -28,14 +28,14 @@ exports.getHostIp = function () {
             var taskName = containerInfo.Config.Labels['com.docker.swarm.task.name'];
             var swarmNetwork = containerInfo.NetworkSettings.Networks.ingress;
 
-            return {
+            return cb({
                 "result": true,
                 "ip": swarmNetwork.IPAddress,
                 "extra": {"ips": ips, "n": ifnameLookupSequence, "swarmTask": taskName}
-            };
+            });
         });
 
-        return {"result": false, "ip": null, "extra": {"ips": ips, "n": ifnameLookupSequence}};
+        return cb({"result": false, "ip": null, "extra": {"ips": ips, "n": ifnameLookupSequence}});
     }
     else {
         var os = require('os');
@@ -52,12 +52,12 @@ exports.getHostIp = function () {
         });
         for (var i = 0; i < ifnameLookupSequence.length; i++) {
             if (ips[ifnameLookupSequence[i]])
-                return {
+                return cb({
                     "result": true,
                     "ip": ips[ifnameLookupSequence[i]],
                     "extra": {"ips": ips, "n": ifnameLookupSequence}
-                };
+                });
         }
-        return {"result": false, "ip": null, "extra": {"ips": ips, "n": ifnameLookupSequence}};
+        return cb({"result": false, "ip": null, "extra": {"ips": ips, "n": ifnameLookupSequence}});
     }
 };
