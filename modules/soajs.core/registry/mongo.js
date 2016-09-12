@@ -117,13 +117,14 @@ module.exports = {
                 criteria.hostname = hostObj.hostname;
             }
             mongo.update(hostCollectionName, criteria, {'$set': hostObj}, {'upsert': true}, function (err) {
-                if (err) {
+                if (err)
                     return cb(err, false);
-                }
-                return cb(null, true);
+                else
+                    return cb(null, true);
             });
         }
-        return cb(null, false);
+        else
+            return cb(null, false);
     },
     "loadRegistryByEnv": function (param, cb) {
         initMongo(param.dbConfig);

@@ -536,7 +536,9 @@ var registryModule = {
                 cb(registered);
             });
         }
-        cb(false);
+        else {
+            cb(false);
+        }
     },
     "autoRegisterService": function (param, cb) {
         var controllerSRV = registry_struct[regEnvironment].services.controller;
