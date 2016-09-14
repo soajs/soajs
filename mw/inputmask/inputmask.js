@@ -14,58 +14,56 @@ function mergeCommonFields(params, commonFields) {
     return _params;
 }
 
-function castType(value, type, cfg) {
-    switch (type) {
-        case 'string':
-        case 'integer':
-        case 'number':
-        case 'boolean':
-        case 'regexp':
-            value = castTypeSimpleData(value, type);
-            break;
-        case 'array':
-            doArray(value, cfg.items);
-            break;
-        case 'object':
-            doObject(value, cfg);
-            break;
-        default:
-            break;
-    }
-    return value;
-
-    function doArray(arr, cfg) {
+var castFunctions = {
+    
+    'string': function castToString(value) {
+        return value.toString();
+    },
+    'integer': function castToInt(value) {
+        return parseInt(value, 10);
+    },
+    'number': function castToNumber(value) {
+        return parseFloat(value);
+    },
+    'boolean': function castToBoolean(value) {
+        return (value.toString() === 'true');
+    },
+    'regexp': function castToRegEx(value) {
+        return new RegExp(value);
+    },
+    'array': function castToArray(arr, cfg) {
+        cfg = cfg.items;
         if (cfg) {
             for (var i = 0; i < arr.length; i++) {
                 if (cfg.type) {
                     if (cfg.type === 'array' && cfg.items) {
-                        doArray(arr[i], cfg.items);
+                        castFunctions['array'](arr[i], cfg.items);
                     }
                     else if (cfg.type === 'object' && cfg) {
-                        doObject(arr[i], cfg);
+                        castFunctions['object'](arr[i], cfg);
                     }
                     else {
-                        arr[i] = castTypeSimpleData(arr[i], cfg.type);
+                        arr[i] = castFunctions[cfg.type](arr[i]);
                     }
                 }
             }
         }
-    }
-
-    function doObject(obj, cfg) {
+        return arr;
+    },
+    'object': function castToObject(obj, cfg) {
         var objCfg = null;
         if (cfg && (cfg.properties || (cfg.additionalProperties && typeof(cfg.additionalProperties) === 'object') )) {
             objCfg = cfg.properties || cfg.additionalProperties;
             for (var key in obj) {
                 if (Object.hasOwnProperty.call(obj, key)) {
                     if (objCfg[key].type === 'array') {
-                        doArray(obj[key], objCfg[key].items);
+                        castFunctions['array'](obj[key], objCfg[key].items);
                     }
                     else if (objCfg[key].type === 'object' || objCfg[key].patternProperties) {
-                        doObject(obj[key], objCfg[key]);
+                        castFunctions['object'](obj[key], objCfg[key]);
                     }
                     else if (objCfg[key].type) {
-                        obj[key] = castTypeSimpleData(obj[key], objCfg[key].type);
+                        obj[key] = castFunctions[objCfg[key].type](obj[key]);
                     }
                 }
             }
@@ -78,40 +76,21 @@ function castType(value, type, cfg) {
                 for (var key2 in obj) {
                     if (Object.hasOwnProperty.call(obj, key2)) {
                         if (regexp.test(key2)) {
-                            doObject(obj[key2], objCfg[patterns[i]]);
+                            castFunctions['object'](obj[key2], objCfg[patterns[i]]);
                         }
                     }
                 }
             }
         }
+        return obj;
     }
+};
 
-    function castTypeSimpleData(value, type) {
-        var castedValue = null;
-        try {
-            switch (type) {
-                case 'string':
-                    castedValue = value.toString();
-                    break;
-                case 'integer':
-                    castedValue = parseInt(value, 10);
-                    break;
-                case 'number':
-                    castedValue = parseFloat(value);
-                    break;
-                case 'boolean':
-                    castedValue = (value.toString() === 'true');
-                    break;
-                case 'regexp':
-                    castedValue = new RegExp(value);
-                    break;
-                default:
-                    break;
-            }
-        } catch (ex) {
-            castedValue = value;
-        }
-        return (castedValue !== null) ? castedValue : value;
+function castType(value, type, cfg) {
+    try {
+        return castFunctions[type](value, cfg);
+    }catch(error){
+        return value;
     }
 }
 
