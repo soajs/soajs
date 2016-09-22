@@ -31,6 +31,7 @@ describe("importing sample data", function() {
       require ("./lib.utils.test.js");
       require ("./mw-cors.test.js");
       require ("./soajs.mongo.test.js");
+      require ("./soajs.es.test.js");
       require ("./soajs.contentbuilder.test.js");
       require ("./soajs.mongoStore.test.js");
       require ("./soajs.provision.test.js");

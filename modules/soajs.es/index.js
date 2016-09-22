@@ -31,26 +31,39 @@ EsDriver.prototype.checkIndex = function (indexName, callback) {
 		if (error) {
 			return callback(error);
 		}
+
 		self.db.indices.exists({'index': indexName}, callback);
 	});
 };
 
 EsDriver.prototype.createIndex = function () {
 	var args = Array.prototype.slice.call(arguments),
-		indexName = args.shift(),
-		mapping = args.shift() || {},
-		settings = args.shift() || {},
+		indexName = args[0],
 		callback = args[args.length - 1],
+		mapping = {},
+		settings = {},
 		self = this;
+
+	if(args.length >= 3){
+		mapping = args[1] || {};
+	}
+
+	if(args.length >= 4){
+		settings = args[2] || {};
+	}
 
 	var body = { "mappings": mapping, "settings": settings };
 
-	body.settings.number_of_shards = this.config.extraParam.number_of_shards || this.config.servers.length;
+	if(this.config && this.config.extraParam){
+		body.settings.number_of_shards = this.config.extraParam.number_of_shards || this.config.servers.length;
+	}
 	if(settings && settings.number_of_shards){
 		body.settings.number_of_shards = settings.number_of_shards;
 	}
 
-	body.settings.number_of_replicas = this.config.extraParam.number_of_replicas || config.number_of_replicas;
+	if(this.config && this.config.extraParam) {
+		body.settings.number_of_replicas = this.config.extraParam.number_of_replicas || config.number_of_replicas;
+	}
 	if(settings && settings.number_of_replicas){
 		body.settings.number_of_replicas = settings.number_of_replicas;
 	}
@@ -67,7 +80,7 @@ EsDriver.prototype.createIndex = function () {
 	});
 };
 
-EsDriver.prototype.deleteESIndexesM = function (indexName, callback) {
+EsDriver.prototype.deleteIndex = function (indexName, callback) {
 	var self = this;
 	self.checkIndex(indexName, function(error, exists){
 		if(error){
@@ -109,11 +122,12 @@ EsDriver.prototype.close = function(){
 };
 
 EsDriver.connect = function(callback){
+	var self = this;
 	var hosts = [];
 	var keepAlive = false;
 	var timeConnected = 0;
 	var configCloneHash = null, env = null, l1 = null, l2 = null;
-
+	
 	if (!this.config) {
 		return callback(core.error.generate(config.errors.code));
 	}
@@ -161,16 +175,26 @@ EsDriver.connect = function(callback){
 			hello: "elasticsearch!"
 		}, function(error, response){
 
-		//if keepAlive is true, cache the connection and the instance
-		if (keepAlive && env && l1 && l2) {
-			cacheDB[env][l1][l2].db = this.db;
-			cacheDB[env][l1][l2].configCloneHash = merge(true, this.config);
-			delete  cacheDB[env][l1][l2].configCloneHash.timeConnected;
-			cacheDB[env][l1][l2].configCloneHash = objectHash(cacheDB[env][l1][l2].configCloneHash);
-			cacheDB[env][l1][l2].timeConnected = this.config.timeConnected;
+		if(error){
+			return callback(error);
+		}
+		if(!response){
+			return callback(core.error.generate(config.errors.code));
 		}
 
-		return callback(error, response);
+		//if keepAlive is true, cache the connection and the instance
+		if (keepAlive && self.config && self.config.registryLocation && self.config.registryLocation.env && self.config.registryLocation.l1 && self.config.registryLocation.l2) {
+			env = self.config.registryLocation.env;
+			l1 = self.config.registryLocation.l1;
+			l2 = self.config.registryLocation.l2;
+			cacheDB[env][l1][l2].db = self.db;
+			cacheDB[env][l1][l2].configCloneHash = merge(true, self.config);
+			delete  cacheDB[env][l1][l2].configCloneHash.timeConnected;
+			cacheDB[env][l1][l2].configCloneHash = objectHash(cacheDB[env][l1][l2].configCloneHash);
+			cacheDB[env][l1][l2].timeConnected = self.config.timeConnected;
+		}
+
+		return callback(null, true);
 	});
 
 	function constructESConfig(config){

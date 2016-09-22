@@ -14,6 +14,7 @@ module.exports = {
 	},
 	"mail": require("./modules/soajs.mail"),
 	"mongo": require("./modules/soajs.mongo"),
+	"es": require("./modules/soajs.es"),
     "contentBuilder": require("./modules/soajs.contentBuilder")
 };
 
