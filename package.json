@@ -41,6 +41,8 @@
     "bunyan-format": "*",
     "connect": "*",
     "cookie-parser": "*",
+    "elasticsearch": "*",
+    "elasticsearch-deletebyquery": "*",
     "express": "*",
     "express-session": "*",
     "jsonschema": "*",
