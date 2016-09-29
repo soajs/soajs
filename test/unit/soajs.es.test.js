@@ -82,6 +82,17 @@ describe("TESTING soajs.mongo", function() {
 		done();
 	});
 
+	describe("testing ping", function() {
+
+		it("success - ping worked", function(done) {
+			es.ping(function(error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
+		});
+	});
+
 	describe("testing check index", function() {
 
 		it("fail - no indexName", function(done) {

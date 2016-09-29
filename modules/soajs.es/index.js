@@ -25,6 +25,11 @@ function EsDriver(configuration) {
 	}
 }
 
+EsDriver.prototype.ping = function(callback){
+	var self = this;
+	EsDriver.connect.call(self, callback);
+};
+
 EsDriver.prototype.checkIndex = function (indexName, callback) {
 	var self = this;
 	EsDriver.connect.call(self, function(error) {
