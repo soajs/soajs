@@ -143,6 +143,21 @@ describe("core security tests", function() {
 		});
 	});
 
+	describe("generate authorization tests", function(){
+
+		it("will generate authorization", function(done){
+			var id = "10d2cb5fc04ce51e06000001";
+			var secret = "i am a secret";
+			var authorization = authSecurity.generate(id, secret);
+			assert.ok(authorization);
+			assert.ok(authorization !== "");
+			assert.ok(authorization.indexOf("Basic ") !== -1);
+			assert.equal("Basic " + new Buffer(id.toString() + ":" + secret.toString()).toString('base64'), authorization);
+			done();
+		});
+
+	});
+
 	describe("hasher tests", function() {
 		var plain = "i am a plain sentence";
 		var cypher1, cypher2;
