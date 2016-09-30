@@ -1,4 +1,6 @@
 'use strict';
+var bcrypt = require('bcrypt');
+
 var authorization = {
 	"setCookie": function(auth, secret, cookieName) {
 		var authdecypherd = authorization.get(auth);
@@ -52,6 +54,9 @@ var authorization = {
 			styleId = styleId.slice(3);
 		}
 		return styleId;
+	},
+	"generate": function(id, secret){
+		return "Basic " + new Buffer(id.toString() + ":" + secret.toString()).toString('base64');
 	}
 };
 
@@ -106,6 +111,32 @@ var cyphers = {
 	}
 };
 
+var hasher = {
+	"init": function(config){
+		this.config = config;
+	},
+
+	"hash" : function() {
+		var plainText = arguments[0];
+		if(arguments.length === 3 && arguments[1] === true && typeof (arguments[2]) === 'function'){
+			var cb = arguments[2];
+			bcrypt.genSalt(this.config.hashIterations, this.config.seedLength, function(err, salt) {
+				if(err) return cb(err);
+				bcrypt.hash(plainText, salt, cb);
+			});
+		}
+		else{
+			var salt = bcrypt.genSaltSync(this.config.hashIterations, this.config.seedLength);
+			return bcrypt.hashSync(plainText, salt);
+		}
+	},
+
+	"compare": function(plainText, hashText, cb){
+		return bcrypt.compare(plainText, hashText, cb);
+	}
+};
+
 module.exports = {
-	"authorization": authorization
+	"authorization": authorization,
+	"hasher": hasher
 };
