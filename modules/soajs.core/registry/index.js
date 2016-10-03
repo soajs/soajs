@@ -303,32 +303,20 @@ var build = {
                 return callback(null);
             }
             else if (param.serviceIp) {
-                var hostObj = {
-                    'env': registry.name.toLowerCase(),
-                    'name': param.serviceName,
-                    'ip': param.serviceIp,
-                    'hostname': os.hostname().toLowerCase(),
-                    'version': param.serviceVersion
-                };
-                registryModule.model.addUpdateServiceIP(registry.coreDB.provision, hostObj, function (error, registered) {
-                    if (error) {
-                        throw new Error("Unable to register new host for service:" + error.message);
+                if (registry.serviceConfig.awareness.autoRegisterService) {
+                    registry[what][param.serviceName].newServiceOrHost = true;
+                    if (!registry[what][param.serviceName].hosts) {
+                        registry[what][param.serviceName].hosts = {};
+                        registry[what][param.serviceName].hosts.latest = param.serviceVersion;
+                        registry[what][param.serviceName].hosts[param.serviceVersion] = [];
                     }
-                    if (registered && registry.serviceConfig.awareness.autoRegisterService) {
-                        registry[what][param.serviceName].newServiceOrHost = true;
-                        if (!registry[what][param.serviceName].hosts) {
-                            registry[what][param.serviceName].hosts = {};
-                            registry[what][param.serviceName].hosts.latest = param.serviceVersion;
-                            registry[what][param.serviceName].hosts[param.serviceVersion] = [];
-                        }
-                        if (!registry[what][param.serviceName].hosts[param.serviceVersion]) {
-                            registry[what][param.serviceName].hosts[param.serviceVersion] = [];
-                        }
-                        if (registry[what][param.serviceName].hosts[param.serviceVersion].indexOf(param.serviceIp) === -1)
-                            registry[what][param.serviceName].hosts[param.serviceVersion].push(param.serviceIp);
+                    if (!registry[what][param.serviceName].hosts[param.serviceVersion]) {
+                        registry[what][param.serviceName].hosts[param.serviceVersion] = [];
                     }
-                    return callback(null);
-                });
+                    if (registry[what][param.serviceName].hosts[param.serviceVersion].indexOf(param.serviceIp) === -1)
+                        registry[what][param.serviceName].hosts[param.serviceVersion].push(param.serviceIp);
+                }
+                return callback(null);
             }
             else {
                 if (!param.serviceIp) {
@@ -504,7 +492,7 @@ var registryModule = {
             return registryModule.model.loadRegistryByEnv({
                 "envCode": param.envCode,
                 "dbConfig": registry.coreDB.provision
-            }, function (err, obj){
+            }, function (err, obj) {
                 if (err || !obj)
                     return cb(err);
                 build.buildRegistry(registry, obj, function (err) {
@@ -529,9 +517,30 @@ var registryModule = {
         else
             return cb(new Error("unable to find provision config information to connect to!"));
     },
-    "autoRegisterService": function (name, serviceIp, serviceVersion, what, cb) {
+    "registerHost": function (param, registry, cb) {
+        if (param.serviceIp) {
+            var hostObj = {
+                'env': registry.name.toLowerCase(),
+                'name': param.serviceName,
+                'ip': param.serviceIp,
+                'hostname': os.hostname().toLowerCase(),
+                'version': param.serviceVersion
+            };
+            if (param.serviceHATask)
+                hostObj.serviceHATask = param.serviceHATask;
+
+            registryModule.model.addUpdateServiceIP(registry.coreDB.provision, hostObj, function (error, registered) {
+                if (error) {
+                    throw new Error("Unable to register new host for service:" + error.message);
+                }
+                cb(registered);
+            });
+        }
+        cb(false);
+    },
+    "autoRegisterService": function (param, cb) {
         var controllerSRV = registry_struct[regEnvironment].services.controller;
-        var serviceSRV = registry_struct[regEnvironment][what][name];
+        var serviceSRV = registry_struct[regEnvironment][param.what][param.name];
         if (!serviceSRV || !serviceSRV.newServiceOrHost) {
             return cb(null, false);
         }
@@ -542,32 +551,31 @@ var registryModule = {
                     var requestOptions = {
                         'uri': 'http://' + ip + ':' + (controllerSRV.port + registry_struct[regEnvironment].serviceConfig.ports.maintenanceInc) + '/register'
                     };
-                    if (what === "daemons") {
-                        requestOptions.qs = {
-                            "name": name,
-                            "group": serviceSRV.group,
-                            "port": serviceSRV.port,
-                            "ip": serviceIp,
-                            "type": "daemon",
-                            "version": serviceVersion
-                        };
+                    requestOptions.qs = {
+                        "name": param.name,
+                        "group": serviceSRV.group,
+                        "port": serviceSRV.port,
+                        "ip": param.serviceIp,
+                        "version": param.serviceVersion
+                    };
+
+                    if (param.what === "daemons") {
+                        requestOptions.qs.type = "daemon";
                     }
                     else {
-                        requestOptions.qs = {
-                            "name": name,
-                            "group": serviceSRV.group,
-                            "port": serviceSRV.port,
-                            "ip": serviceIp,
-                            "type": "service",
-                            "version": serviceVersion,
-                            "extKeyRequired": serviceSRV.extKeyRequired,
-                            "requestTimeout": serviceSRV.requestTimeout,
-                            "requestTimeoutRenewal": serviceSRV.requestTimeoutRenewal
-                        };
+                        requestOptions.qs.type = "service";
+                        requestOptions.qs.extKeyRequired = serviceSRV.extKeyRequired;
+                        requestOptions.qs.requestTimeout = serviceSRV.requestTimeout;
+                        requestOptions.qs.requestTimeoutRenewal = serviceSRV.requestTimeoutRenewal;
                     }
+
+                    if (param.serviceHATask)
+                        requestOptions.qs.serviceHATask = param.serviceHATask;
+
                     request(requestOptions, function (error) {
                         return (error) ? callback(error) : callback(null);
                     });
+
                 }, function (err) {
                     return (err) ? cb(err, false) : cb(null, true);
                 });

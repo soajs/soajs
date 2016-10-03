@@ -20,7 +20,6 @@
   },
   "devDependencies": {
     "soajs.mongodb.data": "0.2.*",
-    "bcrypt": "*",
     "grunt": "0.4.5",
     "grunt-contrib-jshint": "*",
     "grunt-jsdoc": "*",
@@ -36,11 +35,13 @@
   },
   "dependencies": {
     "async": "*",
+    "bcrypt": "*",
     "body-parser": "*",
     "bunyan": "*",
     "bunyan-format": "*",
     "connect": "*",
     "cookie-parser": "*",
+    "dockerode": "*",
     "elasticsearch": "*",
     "elasticsearch-deletebyquery": "*",
     "express": "*",
