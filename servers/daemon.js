@@ -75,11 +75,12 @@ daemon.prototype.init = function (callback) {
     _self.soajs.param.serviceGroup = _self.soajs.param.serviceGroup || "No Group Daemon";
     _self.soajs.param.serviceVersion = _self.soajs.param.serviceVersion || 1;
     _self.soajs.param.serviceVersion = parseInt(_self.soajs.param.serviceVersion);
-    if (isNaN(_self.soajs.param.serviceVersion)){
-        throw new Error('Daemon Service version must be integer: ['+_self.soajs.param.serviceVersion+']');
+    if (isNaN(_self.soajs.param.serviceVersion)) {
+        throw new Error('Daemon Service version must be integer: [' + _self.soajs.param.serviceVersion + ']');
     }
     _self.soajs.param.servicePort = _self.soajs.param.servicePort || null;
     _self.soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
+    _self.soajs.param.serviceHATask = null;
 
     var fetchedHostIp = null;
     var serviceIpNotDetected = false;
@@ -87,64 +88,74 @@ daemon.prototype.init = function (callback) {
         _self.soajs.param.serviceIp = '127.0.0.1';
     }
     if (!_self.soajs.param.serviceIp) {
-        fetchedHostIp = core.getHostIp();
-        if (fetchedHostIp && fetchedHostIp.result) {
-            _self.soajs.param.serviceIp = fetchedHostIp.ip;
-        } else {
-            serviceIpNotDetected = true;
-            _self.soajs.param.serviceIp = "127.0.0.1";
-        }
+        core.getHostIp(function(err, getHostIpResponse){
+            fetchedHostIp = getHostIpResponse;
+            if (fetchedHostIp && fetchedHostIp.result) {
+                _self.soajs.param.serviceIp = fetchedHostIp.ip;
+                if (fetchedHostIp.extra && fetchedHostIp.extra.swarmTask) {
+                    _self.soajs.param.serviceHATask = fetchedHostIp.extra.swarmTask;
+                }
+            } else {
+                serviceIpNotDetected = true;
+                _self.soajs.param.serviceIp = "127.0.0.1";
+            }
+            resume();
+        });
+    }
+    else {
+        resume();
     }
 
-    _self.soajs.jobList = extractJOBsList(_self.soajs.param.schema);
+    function resume () {
+        _self.soajs.jobList = extractJOBsList(_self.soajs.param.schema);
+        core.registry.load({
+            "type": "daemon",
+            "serviceName": _self.soajs.param.serviceName,
+            "serviceGroup": _self.soajs.param.serviceGroup,
+            "serviceVersion": _self.soajs.param.serviceVersion,
+            "designatedPort": _self.soajs.param.servicePort,
+            "serviceIp": _self.soajs.param.serviceIp,
+            "jobList": _self.soajs.jobList
+        }, function (reg) {
+            registry = reg;
+            _self.soajs.daemonServiceConf = lib.registry.getDaemonServiceConf(_self.soajs.param.serviceName, registry);
 
-    core.registry.load({
-        "type": "daemon",
-        "serviceName": _self.soajs.param.serviceName,
-        "serviceGroup": _self.soajs.param.serviceGroup,
-        "serviceVersion": _self.soajs.param.serviceVersion,
-        "designatedPort": _self.soajs.param.servicePort,
-        "serviceIp": _self.soajs.param.serviceIp,
-        "jobList": _self.soajs.jobList
-    }, function (reg) {
-        registry = reg;
-        _self.soajs.daemonServiceConf = lib.registry.getDaemonServiceConf(_self.soajs.param.serviceName, registry);
+            _self.soajs.log = core.getLogger(_self.soajs.param.serviceName, registry.serviceConfig.logger);
+            if (_self.soajs.param.oldStyleConfiguration)
+                _self.soajs.log.warn("Old style configuration detected. Please start using the new way of passing param when creating a new daemon service.");
+            _self.soajs.log.info("Registry has been loaded successfully from environment: " + registry.environment);
 
-        _self.soajs.log = core.getLogger(_self.soajs.param.serviceName, registry.serviceConfig.logger);
-        if (_self.soajs.param.oldStyleConfiguration)
-            _self.soajs.log.warn("Old style configuration detected. Please start using the new way of passing param when creating a new daemon service.");
-        _self.soajs.log.info("Registry has been loaded successfully from environment: " + registry.environment);
-
-        if (fetchedHostIp) {
-            if (!fetchedHostIp.result) {
-                _self.soajs.log.warn("Unable to find the daemon service host ip. The daemon service will NOT be registered for awareness.");
-                _self.soajs.log.info("IPs found: ", fetchedHostIp.ips);
-                if (serviceIpNotDetected) {
-                    _self.soajs.log.warn("The default daemon service IP has been used [" + _self.soajs.param.serviceIp + "]");
+            if (fetchedHostIp) {
+                if (!fetchedHostIp.result) {
+                    _self.soajs.log.warn("Unable to find the daemon service host ip. The daemon service will NOT be registered for awareness.");
+                    _self.soajs.log.info("IPs found: ", fetchedHostIp.extra.ips);
+                    if (serviceIpNotDetected) {
+                        _self.soajs.log.warn("The default daemon service IP has been used [" + _self.soajs.param.serviceIp + "]");
+                    }
+                }
+                else {
+                    _self.soajs.log.info("The IP registered for daemon service [" + _self.soajs.param.serviceName + "] awareness : ", fetchedHostIp.ip);
                 }
             }
-            else {
-                _self.soajs.log.info("The IP registered for daemon service [" + _self.soajs.param.serviceName + "] awareness : ", fetchedHostIp.ip);
+
+            if (!_self.soajs.param.serviceName || !_self.soajs.daemonServiceConf) {
+                if (!_self.soajs.param.serviceName) {
+                    _self.soajs.log.error('Daemon Service failed to start, serviceName is empty [' + _self.soajs.param.serviceName + ']');
+                } else {
+                    _self.soajs.log.error('Daemon Service [' + _self.soajs.param.serviceName + '] failed to start. Unable to find the daemon service entry in registry');
+                }
+                return callback(new Error("Daemon Service shutdown due to failure!"));
             }
-        }
 
-        if (!_self.soajs.param.serviceName || !_self.soajs.daemonServiceConf) {
-            if (!_self.soajs.param.serviceName) {
-                _self.soajs.log.error('Daemon Service failed to start, serviceName is empty [' + _self.soajs.param.serviceName + ']');
-            } else {
-                _self.soajs.log.error('Daemon Service [' + _self.soajs.param.serviceName + '] failed to start. Unable to find the daemon service entry in registry');
-            }
-            return callback(new Error("Daemon Service shutdown due to failure!"));
-        }
+            _self.soajs.log.info("Daemon Service middleware initialization started...");
 
-        _self.soajs.log.info("Daemon Service middleware initialization started...");
+            var favicon_mw = require("./../mw/favicon/index");
+            _self.appMaintenance.use(favicon_mw());
+            _self.soajs.log.info("Favicon middleware initialization done.");
 
-        var favicon_mw = require("./../mw/favicon/index");
-        _self.appMaintenance.use(favicon_mw());
-        _self.soajs.log.info("Favicon middleware initialization done.");
-
-        callback();
-    });
+            callback();
+        });
+    }
 };
 
 /**
@@ -162,6 +173,18 @@ daemon.prototype.start = function (cb) {
             if (loaded) {
                 _self.soajs.log.info("Daemon Service provision loaded.");
                 _self.soajs.log.info("Starting Daemon Service ...");
+
+                core.registry.registerHost({
+                    "serviceName": _self.soajs.param.serviceName,
+                    "serviceVersion": _self.soajs.param.serviceVersion,
+                    "serviceIp": _self.soajs.param.serviceIp,
+                    "serviceHATask": _self.soajs.param.serviceHATask
+                }, registry, function (registered) {
+                    if (registered)
+                        _self.soajs.log.info("Host IP [" + _self.soajs.param.serviceIp + "] for daemon service [" + _self.soajs.param.serviceName + "@" + _self.soajs.param.serviceVersion + "] successfully registered.");
+                    else
+                        _self.soajs.log.warn("Unable to register host IP [" + _self.soajs.param.serviceIp + "] for daemon service [" + _self.soajs.param.serviceName + "@" + _self.soajs.param.serviceVersion + "]");
+                });
 
                 //MAINTENANCE Service Routes
                 _self.soajs.log.info("Adding Daemon Service Maintenance Routes ...");
@@ -379,7 +402,13 @@ daemon.prototype.start = function (cb) {
     var resume = function (err) {
         if (autoRegHost) {
             _self.soajs.log.info("Initiating service auto register for awareness ...");
-            core.registry.autoRegisterService(_self.soajs.param.serviceName, _self.soajs.param.serviceIp, _self.soajs.param.serviceVersion, "daemons", function (err, registered) {
+            core.registry.autoRegisterService({
+                "name": _self.soajs.param.serviceName,
+                "serviceIp": _self.soajs.param.serviceIp,
+                "serviceVersion": _self.soajs.param.serviceVersion,
+                "serviceHATask": _self.soajs.param.serviceHATask,
+                "what": "daemons"
+            }, function (err, registered) {
                 if (err) {
                     _self.soajs.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
                 } else if (registered) {

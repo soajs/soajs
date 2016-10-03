@@ -16,7 +16,8 @@ module.exports = {
         '135': "Error occurred while redirecting your request to the service",
         '136': "Controller catched an error while redirecting to service.",
 
-        '15x': "SERVICE CORE",
+        '14x': "SERVICE CORE",
+        '141': "Unable to start the service.",
         '150': "Something blew up @ service core!",
         '151': "You are trying to reach an unknown rest service!",
         '152': "Unable to load you product package information. Check provision configuration for this key.",
