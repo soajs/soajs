@@ -15,6 +15,10 @@ module.exports = {
 	"mail": require("./modules/soajs.mail"),
 	"mongo": require("./modules/soajs.mongo"),
 	"es": require("./modules/soajs.es"),
-    "contentBuilder": require("./modules/soajs.contentBuilder")
+    "contentBuilder": require("./modules/soajs.contentBuilder"),
+	"hasher": require("./modules/soajs.core").security.hasher,
+	"authorization": {
+		"generate": require("./modules/soajs.core").security.authorization.generate
+	}
 };
 

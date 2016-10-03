@@ -351,6 +351,13 @@ service.prototype.init = function (callback) {
             return core.registry.getCustom();
         };
 
+	    //exposing provision functionality to generate keys
+	    _self.provision = {
+		    "init": provision.init,
+		    "generateInternalKey": provision.generateInternalKey,
+		    "generateExtKey": provision.generateExtKey
+	    };
+
         callback();
     });
 };

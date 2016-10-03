@@ -143,6 +143,13 @@ daemon.prototype.init = function (callback) {
         _self.appMaintenance.use(favicon_mw());
         _self.soajs.log.info("Favicon middleware initialization done.");
 
+	    //exposing provision functionality to generate keys
+	    _self.provision = {
+		    "init": provision.init,
+		    "generateInternalKey": provision.generateInternalKey,
+		    "generateExtKey": provision.generateExtKey
+	    };
+	    
         callback();
     });
 };
