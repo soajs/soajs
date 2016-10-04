@@ -368,6 +368,10 @@ service.prototype.init = function (callback) {
 		        "generateInternalKey": provision.generateInternalKey,
 		        "generateExtKey": provision.generateExtKey
 	        };
+
+	        _self.registry = {
+		        "loadByEnv": core.registry.loadByEnv
+	        };
 	        
             callback();
         });
