@@ -49,6 +49,7 @@ module.exports = {
         "193": "Unable to find the record to version it",
         "194": "Invalid record version provided to Mongo",
         "195": "Invalid DB Config. please send a valid DB config to MongoDriver's constructor",
+        "196": "Invalid ES Config. please send a valid ES config to ESDriver's constructor",
 
         '20x': "PROVISION",
         '200': 'You need to provide an external key.',

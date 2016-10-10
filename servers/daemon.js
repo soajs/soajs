@@ -152,7 +152,18 @@ daemon.prototype.init = function (callback) {
             var favicon_mw = require("./../mw/favicon/index");
             _self.appMaintenance.use(favicon_mw());
             _self.soajs.log.info("Favicon middleware initialization done.");
+	
+	        //exposing provision functionality to generate keys
+	        _self.provision = {
+		        "init": provision.init,
+		        "generateInternalKey": provision.generateInternalKey,
+		        "generateExtKey": provision.generateExtKey
+	        };
 
+	        _self.registry = {
+		        "loadByEnv": core.registry.loadByEnv
+	        };
+	        
             callback();
         });
     }

@@ -1,7 +1,7 @@
 {
   "name": "soajs",
   "description": "soajs framework",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -20,7 +20,6 @@
   },
   "devDependencies": {
     "soajs.mongodb.data": "0.2.*",
-    "bcrypt": "*",
     "grunt": "0.4.5",
     "grunt-contrib-jshint": "*",
     "grunt-jsdoc": "*",
@@ -36,12 +35,15 @@
   },
   "dependencies": {
     "async": "*",
+    "bcrypt": "*",
     "body-parser": "*",
     "bunyan": "*",
     "bunyan-format": "*",
     "connect": "*",
     "cookie-parser": "*",
-    "dockerode" : "*",
+    "dockerode": "*",
+    "elasticsearch": "*",
+    "elasticsearch-deletebyquery": "*",
     "express": "*",
     "express-session": "*",
     "jsonschema": "*",
