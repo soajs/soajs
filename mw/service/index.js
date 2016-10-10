@@ -294,7 +294,31 @@ module.exports = function (configuration) {
             }
             if (!aclObj && obj.packObj.acl)
                 aclObj = obj.packObj.acl[obj.app.soajs.param.serviceName];
-            return aclObj;
+
+            if (aclObj && (aclObj.apis || aclObj.apisRegExp || aclObj.apisPermission))
+                return aclObj;
+            else {
+                //ACL with method support restful
+                var method = obj.req.method.toLocaleLowerCase();
+                console.log ("===================== ANTO")
+                console.log (aclObj)
+                console.log (method)
+                if (aclObj && aclObj[method] && typeof aclObj[method] === "object"){
+                    var newAclObj = {};
+                    if (aclObj.hasOwnProperty('access'))
+                        newAclObj.access = aclObj.access;
+                    if (aclObj[method].hasOwnProperty('apis'))
+                        newAclObj.apis = aclObj[method].apis;
+                    if (aclObj[method].hasOwnProperty('apisRegExp'))
+                        newAclObj.apisRegExp = aclObj[method].apisRegExp;
+                    if (aclObj[method].hasOwnProperty('apisPermission'))
+                        newAclObj.apisPermission = aclObj[method].apisPermission;
+                    console.log (newAclObj)
+                    return newAclObj;
+                }
+                else
+                    return aclObj;
+            }
         }
     };
 
