@@ -300,9 +300,6 @@ module.exports = function (configuration) {
             else {
                 //ACL with method support restful
                 var method = obj.req.method.toLocaleLowerCase();
-                console.log ("===================== ANTO")
-                console.log (aclObj)
-                console.log (method)
                 if (aclObj && aclObj[method] && typeof aclObj[method] === "object"){
                     var newAclObj = {};
                     if (aclObj.hasOwnProperty('access'))
@@ -313,7 +310,6 @@ module.exports = function (configuration) {
                         newAclObj.apisRegExp = aclObj[method].apisRegExp;
                     if (aclObj[method].hasOwnProperty('apisPermission'))
                         newAclObj.apisPermission = aclObj[method].apisPermission;
-                    console.log (newAclObj)
                     return newAclObj;
                 }
                 else
