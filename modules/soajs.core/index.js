@@ -28,7 +28,7 @@ exports.getHostIp = function (cb) {
             }
 
             var taskName = containerInfo.Config.Labels['com.docker.swarm.task.name'];
-            var swarmNetwork = containerInfo.NetworkSettings.Networks.ingress;
+            var swarmNetwork = containerInfo.NetworkSettings.Networks.soajsnet;
 
             return cb({
                 "result": true,
