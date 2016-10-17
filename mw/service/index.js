@@ -295,7 +295,7 @@ module.exports = function (configuration) {
             if (!aclObj && obj.packObj.acl)
                 aclObj = obj.packObj.acl[obj.app.soajs.param.serviceName];
 
-            if (aclObj && (aclObj.apis || aclObj.apisRegExp || aclObj.apisPermission))
+            if (aclObj && (aclObj.apis || aclObj.apisRegExp))
                 return aclObj;
             else {
                 //ACL with method support restful
@@ -310,6 +310,8 @@ module.exports = function (configuration) {
                         newAclObj.apisRegExp = aclObj[method].apisRegExp;
                     if (aclObj[method].hasOwnProperty('apisPermission'))
                         newAclObj.apisPermission = aclObj[method].apisPermission;
+                    else if (aclObj.hasOwnProperty('apisPermission'))
+                        newAclObj.apisPermission = aclObj.apisPermission;
                     return newAclObj;
                 }
                 else
