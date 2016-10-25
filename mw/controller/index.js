@@ -26,11 +26,11 @@ module.exports = function () {
         var service_n = service_nv;
         var service_v = null;
         var index = service_nv.indexOf(":");
-        if(index !== -1) {
+        if (index !== -1) {
             service_v = parseInt(service_nv.substr(index + 1));
-            if (isNaN(service_v)){
+            if (isNaN(service_v)) {
                 service_v = null;
-                req.soajs.log.warn('Service version must be integer: ['+service_nv+']');
+                req.soajs.log.warn('Service version must be integer: [' + service_nv + ']');
             }
             service_n = service_nv.substr(0, index);
         }
@@ -93,6 +93,8 @@ module.exports = function () {
  *
  * @param req
  * @param service
+ * @param service_nv
+ * @param version
  * @param url
  * @returns {*}
  */
@@ -107,11 +109,11 @@ function extractBuildParameters(req, service, service_nv, version, url) {
             extKeyRequired = req.soajs.registry.services[service].versions[version].extKeyRequired || false;
 
         var serviceInfo = {
-            "registry" : req.soajs.registry.services[service],
-            "name" : service,
-            "url" : url.substring(service_nv.length + 1),
+            "registry": req.soajs.registry.services[service],
+            "name": service,
+            "url": url.substring(service_nv.length + 1),
             "version": version,
-            "extKeyRequired" : extKeyRequired
+            "extKeyRequired": extKeyRequired
         };
 
         return serviceInfo;
@@ -124,42 +126,24 @@ function extractBuildParameters(req, service, service_nv, version, url) {
  * @param req
  * @param res
  */
-function simpleRTS (req, res) {
-    var restServiceParams = req.soajs.controller.serviceParams;
-    var config = req.soajs.registry.services.controller;
-    if (!config) {
-        return req.soajs.controllerResponse(core.error.getError(131));
-    }
-
-    req.soajs.awareness.getHost(restServiceParams.name, restServiceParams.version, function (host) {
-        if (!host) {
-            req.soajs.log.error('Unable to find any healthy host for service [' + restServiceParams.name + (restServiceParams.version ? ('@' + restServiceParams.version) : '') + ']');
-            return req.soajs.controllerResponse(core.error.getError(133));
-        }
-        var reqUrl = 'http://' + host + ':' + restServiceParams.registry.port + restServiceParams.url;
-
+function simpleRTS(req, res) {
+    preRedirect(req, res, function (obj) {
         req.pause();
 
-        var options = url.parse(reqUrl);
-        options.headers = req.headers;
-        options.method = req.method;
-        options.agent = false;
-        options.headers['host'] = options.host;
+        var requestOptions = url.parse(obj.uri);
+        requestOptions.headers = req.headers;
+        requestOptions.method = req.method;
+        requestOptions.agent = false;
+        requestOptions.headers['host'] = requestOptions.host;
 
-        req.soajs.log.info({
-            "serviceName": restServiceParams.name,
-            "host": host,
-            "url": restServiceParams.url,
-            "header": req.headers
-        });
+        if (obj.config.authorization)
+            isRequestAuthorized(req, requestOptions);
 
-        var connector = http.request(options, function (serverResponse) {
+        var connector = http.request(requestOptions, function (serverResponse) {
             serverResponse.pause();
-
             serverResponse.headers['access-control-allow-origin'] = '*';
 
             switch (serverResponse.statusCode) {
-                // pass through.  we're not too smart here...
                 case 200:
                 case 201:
                 case 202:
@@ -208,6 +192,7 @@ function simpleRTS (req, res) {
                     break;
             }
         });
+
         req.pipe(connector, {end: true});
         req.resume();
     });
@@ -220,27 +205,57 @@ function simpleRTS (req, res) {
  * @returns {*}
  */
 function redirectToService(req, res) {
+    preRedirect(req, res, function (obj) {
+        var requestOptions = {
+            'method': req.method,
+            'uri': obj.uri,
+            'timeout': 1000 * 3600,
+            'headers': req.headers,
+            'jar': false
+        };
+
+        if (obj.config.authorization)
+            isRequestAuthorized(req, requestOptions);
+
+        req.soajs.controller.redirectedRequest = request(requestOptions);
+        req.soajs.controller.redirectedRequest.on('error', function (err) {
+            req.soajs.log.error(err);
+            try {
+                return req.soajs.controllerResponse(core.error.getError(135));
+            } catch (e) {
+                req.soajs.log.error(e);
+            }
+        });
+
+        if (req.method === 'POST' || req.method === 'PUT') {
+            req.pipe(req.soajs.controller.redirectedRequest).pipe(res);
+        } else {
+            req.soajs.controller.redirectedRequest.pipe(res);
+        }
+    });
+}
+
+/**
+ *
+ * @param req
+ * @param res
+ * @param cb
+ */
+function preRedirect(req, res, cb) {
     var restServiceParams = req.soajs.controller.serviceParams;
     var config = req.soajs.registry.services.controller;
-    if (!config) {
+    if (!config)
         return req.soajs.controllerResponse(core.error.getError(131));
-    }
+
     var requestTOR = restServiceParams.registry.requestTimeoutRenewal || config.requestTimeoutRenewal;
     var requestTO = restServiceParams.registry.requestTimeout || config.requestTimeout;
 
     req.soajs.awareness.getHost(restServiceParams.name, restServiceParams.version, function (host) {
         if (!host) {
-            req.soajs.log.error('Unable to find any healthy host for service [' + restServiceParams.name + (restServiceParams.version?('@'+restServiceParams.version):'') + ']');
+            req.soajs.log.error('Unable to find any healthy host for service [' + restServiceParams.name + (restServiceParams.version ? ('@' + restServiceParams.version) : '') + ']');
             return req.soajs.controllerResponse(core.error.getError(133));
         }
-        var requestOptions = {
-            'method': req.method,
-            'uri': 'http://' + host + ':' + restServiceParams.registry.port + restServiceParams.url,
-            'timeout': 1000 * 3600,
-            //'pool': 'controller',
-            'headers': req.headers,
-            'jar': false
-        };
+
         req.soajs.log.info({
             "serviceName": restServiceParams.name,
             "host": host,
@@ -271,23 +286,12 @@ function redirectToService(req, res) {
                 return req.soajs.controllerResponse(core.error.getError(134));
             }
         });
-        if (config.authorization) {
-            isRequestAuthorized(req, requestOptions);
-        }
-        req.soajs.controller.redirectedRequest = request(requestOptions);
-        req.soajs.controller.redirectedRequest.on('error', function (err) {
-            req.soajs.log.error(err);
-            try {
-                return req.soajs.controllerResponse(core.error.getError(135));
-            } catch (e) {
-                req.soajs.log.error(e);
-            }
+
+        return cb({
+            'host': host,
+            'config': config,
+            'uri': 'http://' + host + ':' + restServiceParams.registry.port + restServiceParams.url
         });
-        if (req.method === 'POST' || req.method === 'PUT') {
-            req.pipe(req.soajs.controller.redirectedRequest).pipe(res);
-        } else {
-            req.soajs.controller.redirectedRequest.pipe(res);
-        }
     });
 }
 
