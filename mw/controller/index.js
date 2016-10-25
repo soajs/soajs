@@ -3,6 +3,7 @@
 var domain = require('domain');
 var url = require('url');
 var request = require('request');
+var http = require('http');
 
 var core = require('../../modules/soajs.core');
 /**
@@ -56,7 +57,7 @@ module.exports = function () {
                 d.dispose();
             }
         });
-
+        var soajsPassport = req.headers.soajsPassport || parsedUrl.query.soajsPassport;
         if (parameters.extKeyRequired) {
             var key = req.headers.key || parsedUrl.query.key;
             if (!key) {
@@ -70,14 +71,19 @@ module.exports = function () {
                 if (!req.headers.key) {
                     req.headers.key = key;
                 }
-
-                req.soajs.controller.gotoservice = redirectToService;
+                if (soajsPassport)
+                    req.soajs.controller.gotoservice = simpleRTS;
+                else
+                    req.soajs.controller.gotoservice = redirectToService;
 
                 next();
             });
         }
         else {
-            req.soajs.controller.gotoservice = redirectToService;
+            if (soajsPassport)
+                req.soajs.controller.gotoservice = simpleRTS;
+            else
+                req.soajs.controller.gotoservice = redirectToService;
             next();
         }
     };
@@ -111,6 +117,100 @@ function extractBuildParameters(req, service, service_nv, version, url) {
         return serviceInfo;
     }
     return null;
+}
+
+/**
+ *
+ * @param req
+ * @param res
+ */
+function simpleRTS (req, res) {
+    var restServiceParams = req.soajs.controller.serviceParams;
+    var config = req.soajs.registry.services.controller;
+    if (!config) {
+        return req.soajs.controllerResponse(core.error.getError(131));
+    }
+
+    req.soajs.awareness.getHost(restServiceParams.name, restServiceParams.version, function (host) {
+        if (!host) {
+            req.soajs.log.error('Unable to find any healthy host for service [' + restServiceParams.name + (restServiceParams.version ? ('@' + restServiceParams.version) : '') + ']');
+            return req.soajs.controllerResponse(core.error.getError(133));
+        }
+        var reqUrl = 'http://' + host + ':' + restServiceParams.registry.port + restServiceParams.url;
+
+        req.pause();
+
+        var options = url.parse(reqUrl);
+        options.headers = req.headers;
+        options.method = req.method;
+        options.agent = false;
+        options.headers['host'] = options.host;
+
+        req.soajs.log.info({
+            "serviceName": restServiceParams.name,
+            "host": host,
+            "url": restServiceParams.url,
+            "header": req.headers
+        });
+
+        var connector = http.request(options, function (serverResponse) {
+            serverResponse.pause();
+
+            serverResponse.headers['access-control-allow-origin'] = '*';
+
+            switch (serverResponse.statusCode) {
+                // pass through.  we're not too smart here...
+                case 200:
+                case 201:
+                case 202:
+                case 203:
+                case 204:
+                case 205:
+                case 206:
+                case 304:
+                case 400:
+                case 401:
+                case 402:
+                case 403:
+                case 404:
+                case 405:
+                case 406:
+                case 407:
+                case 408:
+                case 409:
+                case 410:
+                case 411:
+                case 412:
+                case 413:
+                case 414:
+                case 415:
+                case 416:
+                case 417:
+                case 418:
+                    res.writeHeader(serverResponse.statusCode, serverResponse.headers);
+                    serverResponse.pipe(res, {end: true});
+                    serverResponse.resume();
+                    break;
+
+                case 301:
+                case 302:
+                case 303:
+                    serverResponse.statusCode = 303;
+                    res.writeHeader(serverResponse.statusCode, serverResponse.headers);
+                    serverResponse.pipe(res, {end: true});
+                    serverResponse.resume();
+                    break;
+
+                // error everything else
+                default:
+                    serverResponse.resume();
+                    req.soajs.controllerResponse(core.error.getError(135));
+                    break;
+            }
+        });
+        req.pipe(connector, {end: true});
+        req.resume();
+    });
 }
 
 /**
