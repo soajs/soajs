@@ -183,7 +183,7 @@ module.exports = function (configuration) {
                 'package': obj.keyObj.application.package,
                 'appId': obj.keyObj.application.appId
             },
-            'request': {'service': obj.app.soajs.param.serviceName, 'api': obj.req.path},
+            'request': {'service': obj.app.soajs.param.serviceName, 'api': obj.req.route.path},
             'device': obj.device,
             'geo': obj.geo,
             'req': obj.req
@@ -216,10 +216,10 @@ module.exports = function (configuration) {
      */
     function apiCheck(obj, cb) {
         var system = _system.getAcl(obj);
-        var api = (system && system.apis ? system.apis[obj.req.path] : null);
+        var api = (system && system.apis ? system.apis[obj.req.route.path] : null);
         if (!api && system && system.apisRegExp && Object.keys(system.apisRegExp).length) {
             for (var jj = 0; jj < system.apisRegExp.length; jj++) {
-                if (system.apisRegExp[jj].regExp && obj.req.path.match(system.apisRegExp[jj].regExp)) {
+                if (system.apisRegExp[jj].regExp && obj.req.route.path.match(system.apisRegExp[jj].regExp)) {
                     api = system.apisRegExp[jj];
                 }
             }
