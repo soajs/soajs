@@ -58,15 +58,17 @@ function castType(value, type, cfg) {
             objCfg = cfg.properties || cfg.additionalProperties;
             for (var key in obj) {
                 if (Object.hasOwnProperty.call(obj, key)) {
-                    if (objCfg[key].type === 'array') {
-                        doArray(obj[key], objCfg[key].items);
-                    }
-                    else if (objCfg[key].type === 'object' || objCfg[key].patternProperties) {
-                        doObject(obj[key], objCfg[key]);
-                    }
-                    else if (objCfg[key].type) {
-                        obj[key] = castTypeSimpleData(obj[key], objCfg[key].type);
-                    }
+	                if (Object.hasOwnProperty.call(objCfg, key)) {
+		                if (objCfg[key].type === 'array') {
+	                        doArray(obj[key], objCfg[key].items);
+	                    }
+	                    else if (objCfg[key].type === 'object' || objCfg[key].patternProperties) {
+	                        doObject(obj[key], objCfg[key]);
+	                    }
+	                    else if (objCfg[key].type) {
+	                        obj[key] = castTypeSimpleData(obj[key], objCfg[key].type);
+	                    }
+	                }
                 }
             }
         }
