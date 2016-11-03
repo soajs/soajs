@@ -348,7 +348,8 @@ service.prototype.init = function (callback) {
             }
 
             var service_mw = require("./../mw/service/index");
-            _self.app.use(service_mw({"soajs": soajs, "app": _self.app, "param": soajs.param}));
+            soajs.serviceMW = service_mw({"soajs": soajs, "app": _self.app, "param": soajs.param});
+            //_self.app.use(service_mw({"soajs": soajs, "app": _self.app, "param": soajs.param}));
             _self.log.info("SOAJS Service middleware initialization done.");
 
             if (soajs.param.roaming) {
@@ -591,6 +592,25 @@ function injectInputmask(restApp, args) {
 }
 /**
  *
+ * @param restApp
+ * @param args
+ * @returns {*}
+ */
+function injectServiceMW(restApp, args) {
+    if (restApp.app.soajs.serviceMW) {
+        var len = args.length;
+        var argsNew = [];
+        argsNew.push(args[0]);
+        argsNew.push(restApp.app.soajs.serviceMW);
+        for (var i = 1; i < len; i++) {
+            argsNew[i + 1] = args[i];
+        }
+        return argsNew;
+    }
+    return args;
+}
+/**
+ *
  * @param app
  * @returns {boolean}
  */
@@ -603,12 +623,23 @@ function isSOAJready(app, log) {
 }
 /**
  *
+ * @param self
+ * @param args
+ * @returns {*}
+ */
+function routeInjection (_self, args){
+    args = injectInputmask(_self, args);
+    args = injectServiceMW (_self, args);
+    args = injectOauth(_self, args);
+    return args;
+}
+/**
+ *
  */
 service.prototype.all = function () {
     var _self = this;
     if (!isSOAJready(_self.app, _self.log)) return;
-    var args = injectOauth(_self, arguments);
-    args = injectInputmask(_self, args);
+    var args = routeInjection(_self, arguments);
     _self.app.all.apply(_self.app, args);
 };
 /**
@@ -617,8 +648,7 @@ service.prototype.all = function () {
 service.prototype.get = function () {
     var _self = this;
     if (!isSOAJready(_self.app, _self.log)) return;
-    var args = injectOauth(_self, arguments);
-    args = injectInputmask(_self, args);
+    var args = routeInjection(_self, arguments);
     _self.app.get.apply(_self.app, args);
 };
 /**
@@ -627,8 +657,7 @@ service.prototype.get = function () {
 service.prototype.post = function () {
     var _self = this;
     if (!isSOAJready(_self.app, _self.log)) return;
-    var args = injectOauth(_self, arguments);
-    args = injectInputmask(_self, args);
+    var args = routeInjection(_self, arguments);
     _self.app.post.apply(_self.app, args);
 };
 
@@ -638,8 +667,7 @@ service.prototype.post = function () {
 service.prototype.put = function () {
     var _self = this;
     if (!isSOAJready(_self.app, _self.log)) return;
-    var args = injectOauth(_self, arguments);
-    args = injectInputmask(_self, args);
+    var args = routeInjection(_self, arguments);
     _self.app.put.apply(_self.app, args);
 };
 /**
@@ -648,8 +676,7 @@ service.prototype.put = function () {
 service.prototype.delete = function () {
     var _self = this;
     if (!isSOAJready(_self.app, _self.log)) return;
-    var args = injectOauth(_self, arguments);
-    args = injectInputmask(_self, args);
+    var args = routeInjection(_self, arguments);
     _self.app.delete.apply(_self.app, args);
 };
 
