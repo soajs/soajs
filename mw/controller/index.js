@@ -22,7 +22,8 @@ module.exports = function () {
 
         var parsedUrl = url.parse(req.url, true);
 
-        var service_nv = parsedUrl.pathname.split('/')[1];
+        var serviceInfo = parsedUrl.pathname.split('/');
+        var service_nv = serviceInfo[1];
         var service_n = service_nv;
         var service_v = null;
         var index = service_nv.indexOf(":");
@@ -57,7 +58,11 @@ module.exports = function () {
                 d.dispose();
             }
         });
-        var soajsPassport = req.headers.soajsPassport || parsedUrl.query.soajsPassport;
+        var passportLogin = false;
+        if (serviceInfo[1] === "urac"){
+            if (serviceInfo[2] === "passport" && serviceInfo[3] === "login")
+                passportLogin = true;
+        }
         if (parameters.extKeyRequired) {
             var key = req.headers.key || parsedUrl.query.key;
             if (!key) {
@@ -71,7 +76,7 @@ module.exports = function () {
                 if (!req.headers.key) {
                     req.headers.key = key;
                 }
-                if (soajsPassport)
+                if (passportLogin)
                     req.soajs.controller.gotoservice = simpleRTS;
                 else
                     req.soajs.controller.gotoservice = redirectToService;
@@ -80,7 +85,7 @@ module.exports = function () {
             });
         }
         else {
-            if (soajsPassport)
+            if (passportLogin)
                 req.soajs.controller.gotoservice = simpleRTS;
             else
                 req.soajs.controller.gotoservice = redirectToService;
@@ -179,7 +184,7 @@ function simpleRTS(req, res) {
                 case 301:
                 case 302:
                 case 303:
-                    serverResponse.statusCode = 303;
+                    //serverResponse.statusCode = 303;
                     res.writeHeader(serverResponse.statusCode, serverResponse.headers);
                     serverResponse.pipe(res, {end: true});
                     serverResponse.resume();
@@ -187,12 +192,23 @@ function simpleRTS(req, res) {
 
                 // error everything else
                 default:
+                    res.writeHeader(serverResponse.statusCode, serverResponse.headers);
+                    serverResponse.pipe(res, {end: true});
                     serverResponse.resume();
-                    req.soajs.controllerResponse(core.error.getError(135));
                     break;
+                    //serverResponse.resume();
+                    //req.soajs.controllerResponse(core.error.getError(135));
+                    //break;
             }
         });
-
+        connector.on('aborted', function (err) {
+            req.soajs.log.error(err);
+            try {
+                return req.soajs.controllerResponse(core.error.getError(135));
+            } catch (e) {
+                req.soajs.log.error(e);
+            }
+        });
         req.pipe(connector, {end: true});
         req.resume();
     });
