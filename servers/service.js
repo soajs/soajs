@@ -41,7 +41,6 @@ function service(param) {
         param.oauth = false;
         param.awareness = false;
         param.awarenessEnv = false;
-        param.roaming = false;
     }
     if (param.extKeyRequired === true) {
         param.multitenant = true;
@@ -203,6 +202,8 @@ service.prototype.init = function (callback) {
                 }
                 return callback(new Error("Service shutdown due to failure!"));
             }
+
+            // Registry now is loaded and all param are assured
 
             _self.log.info("Service middleware initialization started...");
 
