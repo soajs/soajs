@@ -337,8 +337,8 @@ daemon.prototype.start = function (cb) {
                         }
                     }
                     else {
-                        _self.soajs.log.err('daemonConf is not valid for daemon [' + _self.daemonConf.daemon + '] and group [' + _self.daemonConf.daemonConfigGroup + ']');
-                        _self.soajs.log.err('Daemon [' + _self.daemonConf.daemon + '] failed to setup and will not start.');
+                        _self.soajs.log.error('daemonConf is not valid for daemon [' + _self.daemonConf.daemon + '] and group [' + _self.daemonConf.daemonConfigGroup + ']');
+                        _self.soajs.log.error('Daemon [' + _self.daemonConf.daemon + '] failed to setup and will not start.');
                     }
                 };
 
@@ -356,13 +356,13 @@ daemon.prototype.start = function (cb) {
                                 });
                                 _self.daemonCronJob.start();
                             } catch (ex) {
-                                _self.soajs.log.err('Cron configuration is not valid for daemon [' + _self.daemonConf.daemon + '] and group [' + _self.daemonConf.daemonConfigGroup + ']');
-                                _self.soajs.log.err('Daemon [' + _self.daemonConf.daemon + '] failed to setup and will not start.');
+                                _self.soajs.log.error('Cron configuration is not valid for daemon [' + _self.daemonConf.daemon + '] and group [' + _self.daemonConf.daemonConfigGroup + ']');
+                                _self.soajs.log.error('Daemon [' + _self.daemonConf.daemon + '] failed to setup and will not start.');
                             }
                         }
                         else {
-                            _self.soajs.log.err('Cron configuration is not valid for daemon [' + _self.daemonConf.daemon + '] and group [' + _self.daemonConf.daemonConfigGroup + ']');
-                            _self.soajs.log.err('Daemon [' + _self.daemonConf.daemon + '] failed to setup and will not start.');
+                            _self.soajs.log.error('Cron configuration is not valid for daemon [' + _self.daemonConf.daemon + '] and group [' + _self.daemonConf.daemonConfigGroup + ']');
+                            _self.soajs.log.error('Daemon [' + _self.daemonConf.daemon + '] failed to setup and will not start.');
                         }
                     }
                     else { // it is interval
