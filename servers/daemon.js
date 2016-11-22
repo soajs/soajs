@@ -305,17 +305,15 @@ daemon.prototype.start = function (cb) {
                 };
 
                 provision.loadDaemonGrpConf(process.env.SOAJS_DAEMON_GRP_CONF, _self.soajs.param.serviceName, function (err, daemonConf) {
-                    if (daemonConf) {
-                        _self.daemonConf = daemonConf;
-                        setupDaemon();
-                    }
+                    _self.daemonConf = daemonConf;
+                    setupDaemon();
                 });
 
                 var setupDaemon = function () {
                     if (_self.daemonConf) {
                         if (_self.daemonStats.step === "executing") {
                             //wait then configure
-                            _self.postExecutingFn = function (){
+                            _self.postExecutingFn = function () {
                                 if (_self.daemonCronJob)
                                     _self.daemonCronJob.stop();
                                 if (_self.daemonTimeout)
@@ -468,8 +466,8 @@ daemon.prototype.start = function (cb) {
                                 if (_self.daemonConf.type === "interval")
                                     _self.daemonTimeout = setTimeout(executeDaemon, _self.daemonConf.interval);
 
-                                if ( _self.postExecutingFn && typeof  _self.postExecutingFn === "function"){
-                                    _self.postExecutingFn ();
+                                if (_self.postExecutingFn && typeof  _self.postExecutingFn === "function") {
+                                    _self.postExecutingFn();
                                     _self.postExecutingFn = null;
                                 }
                             };
