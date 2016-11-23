@@ -88,7 +88,7 @@ daemon.prototype.init = function (callback) {
         _self.soajs.param.serviceIp = '127.0.0.1';
     }
     if (!_self.soajs.param.serviceIp) {
-        core.getHostIp(function(err, getHostIpResponse){
+        core.getHostIp(function (err, getHostIpResponse) {
             fetchedHostIp = getHostIpResponse;
             if (fetchedHostIp && fetchedHostIp.result) {
                 _self.soajs.param.serviceIp = fetchedHostIp.ip;
@@ -106,7 +106,7 @@ daemon.prototype.init = function (callback) {
         resume();
     }
 
-    function resume () {
+    function resume() {
         _self.soajs.jobList = extractJOBsList(_self.soajs.param.schema);
         core.registry.load({
             "type": "daemon",
@@ -152,18 +152,18 @@ daemon.prototype.init = function (callback) {
             var favicon_mw = require("./../mw/favicon/index");
             _self.appMaintenance.use(favicon_mw());
             _self.soajs.log.info("Favicon middleware initialization done.");
-	
-	        //exposing provision functionality to generate keys
-	        _self.provision = {
-		        "init": provision.init,
-		        "generateInternalKey": provision.generateInternalKey,
-		        "generateExtKey": provision.generateExtKey
-	        };
 
-	        _self.registry = {
-		        "loadByEnv": core.registry.loadByEnv
-	        };
-	        
+            //exposing provision functionality to generate keys
+            _self.provision = {
+                "init": provision.init,
+                "generateInternalKey": provision.generateInternalKey,
+                "generateExtKey": provision.generateExtKey
+            };
+
+            _self.registry = {
+                "loadByEnv": core.registry.loadByEnv
+            };
+
             callback();
         });
     }
@@ -249,6 +249,23 @@ daemon.prototype.start = function (cb) {
                     response['data'] = _self.daemonStats;
                     res.jsonp(response);
                 });
+                _self.appMaintenance.get("/reloadDaemonConf", function (req, res) {
+                    provision.loadDaemonGrpConf(process.env.SOAJS_DAEMON_GRP_CONF, _self.soajs.param.serviceName, function (err, daemonConf) {
+                        var response = maintenanceResponse(req);
+                        if (daemonConf) {
+                            _self.daemonConf = daemonConf;
+                            setupDaemon();
+                            response['result'] = true;
+                        }
+                        else {
+                            response['result'] = false;
+                            if (err)
+                                _self.soajs.log.warn("Failed to load daemon config for [" + _self.soajs.param.serviceName + "@" + process.env.SOAJS_DAEMON_GRP_CONF + "]. reusing from previous load. Reason: " + err.message);
+                        }
+                        response['data'] = _self.daemonConf;
+                        res.jsonp(response);
+                    });
+                });
                 _self.appMaintenance.all('*', function (req, res) {
                     var response = maintenanceResponse(req, "heartbeat");
                     response['result'] = true;
@@ -258,12 +275,26 @@ daemon.prototype.start = function (cb) {
                     _self.soajs.log.info(_self.soajs.param.serviceName + " daemon service maintenance is listening on port: " + maintenancePort);
                 });
 
+                //We only want to log once the error message while executing th daemon so we do not jam the logging system
+                var execErrorMsgMainOn = true;
+                var execErrorMsgSubOn = true;
+
                 var defaultInterval = 1800000; //30 minutes
                 var daemonConf_tpl = {
-                    "daemonConfigGroup": "group1",
-                    "daemon": "order",
-                    "status": 1,
+                    "daemonConfigGroup": "group1", //group name
+                    "daemon": "order", //daemon name
+                    "status": 1, //1=on, 0=off
+                    "processing": "sequential", //sequential, parallel
+                    "order": [ //run the jobs in specific order
+                        "hello"
+                    ],
+                    "solo": true,
                     "interval": 5000, //30 minutes
+                    "type": "interval", //interval, cron
+                    "cronConfig": {
+                        "cronTime": '00 30 11 * * 1-5', //can also be a specific date. new Date()
+                        "timeZone": 'America/Los_Angeles' //https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+                    },
                     "jobs": {
                         "hello": {
                             "type": "global", // "tenant" || "global"
@@ -273,163 +304,257 @@ daemon.prototype.start = function (cb) {
                     }
                 };
 
-                var executeDaemon = function () {
-                    provision.loadDaemonGrpConf(process.env.SOAJS_DAEMON_GRP_CONF, _self.soajs.param.serviceName, function (err, daemonConf) {
-                        if (daemonConf && daemonConf.status && daemonConf.jobs) {
-                            _self.daemonStats.daemonConfigGroup = daemonConf.daemonConfigGroup;
-                            _self.daemonStats.daemon = daemonConf.daemon;
-                            _self.daemonStats.status = daemonConf.status;
-                            _self.daemonStats.interval = daemonConf.interval;
-                            _self.daemonStats.ts = new Date().getTime();
-                            _self.daemonStats.step = "fetching";
+                provision.loadDaemonGrpConf(process.env.SOAJS_DAEMON_GRP_CONF, _self.soajs.param.serviceName, function (err, daemonConf) {
+                    _self.daemonConf = daemonConf;
+                    setupDaemon();
+                });
 
-                            var jobs_array = [];
-                            var buildJob = function (jobInfoObj, _job) {
-                                var jobObj = {};
-                                if (jobInfoObj.type === "global") {
-                                    jobObj = {
-                                        "soajs": {
-                                            "meta": core.meta,
-                                            "servicesConfig": jobInfoObj.serviceConfig
-                                        },
-                                        "job": _job,
-                                        "thread": "global"
-                                    };
-                                    jobs_array.push(jobObj);
-                                }
-                                else if (jobInfoObj.tenantExtKeys) { //type === "tenant"
-                                    for (var tCount = 0; tCount < jobInfoObj.tenantExtKeys.length; tCount++) {
-                                        jobObj = {
-                                            "soajs": {
-                                                "meta": core.meta
-                                            },
-                                            "job": _job
-                                        };
-                                        var tExtKey = jobInfoObj.tenantExtKeys[tCount];
-                                        jobObj.thread = tExtKey;
-                                        provision.getExternalKeyData(tExtKey, _self.soajs.daemonServiceConf._conf.key, function (err, keyObj) {
-                                            if (keyObj && keyObj.application && keyObj.application.package) {
-                                                provision.getPackageData(keyObj.application.package, function (err, packObj) {
-                                                    if (packObj) {
-                                                        jobObj.soajs.tenant = keyObj.tenant;
-                                                        jobObj.soajs.tenant.key = {
-                                                            "iKey": keyObj.key,
-                                                            "eKey": keyObj.extKey
-                                                        };
-                                                        jobObj.soajs.tenant.application = keyObj.application;
-                                                        jobObj.soajs.tenant.application.package_acl = packObj.acl;
-                                                        jobObj.soajs.servicesConfig = keyObj.config;
-                                                        jobs_array.push(jobObj);
-                                                    }
-                                                });
-                                            }
-                                        });
-                                    }
-                                }
+                var setupDaemon = function () {
+                    if (_self.daemonConf) {
+                        if (_self.daemonStats.step === "executing") {
+                            //wait then configure
+                            _self.postExecutingFn = function () {
+                                if (_self.daemonCronJob)
+                                    _self.daemonCronJob.stop();
+                                if (_self.daemonTimeout)
+                                    clearTimeout(_self.daemonTimeout);
+                                configureDaemon();
                             };
+                        }
+                        else if (_self.daemonStats.step === "waiting" || _self.daemonStats.step === "fetching") {
+                            //stop any daemon scheduled task
+                            if (_self.daemonCronJob)
+                                _self.daemonCronJob.stop();
+                            if (_self.daemonTimeout)
+                                clearTimeout(_self.daemonTimeout);
 
-                            if (daemonConf.daemonConfigGroup.processing && daemonConf.daemonConfigGroup.processing === "sequential") {
-                                if (daemonConf.daemonConfigGroup.order && Array.isArray(daemonConf.daemonConfigGroup.order)) {
-                                    for (var i = 0; i < daemonConf.daemonConfigGroup.order.length; i++) {
-                                        if (daemonConf.jobs[daemonConf.daemonConfigGroup.order[i]])
-                                            buildJob(daemonConf.jobs[daemonConf.daemonConfigGroup.order[i]], daemonConf.daemonConfigGroup.order[i]);
-                                    }
-                                }
-                            }
-                            else {
-                                for (var job in daemonConf.jobs) {
-                                    if ((Object.hasOwnProperty.call(daemonConf.jobs, job)) && struct_jobs[job]) {
-                                        buildJob(daemonConf.jobs[job], job);
-                                    }
-                                }
-                            }
+                            configureDaemon();
+                        }
+                        else { //initialize
+                            configureDaemon();
+                        }
+                    }
+                    else {
+                        _self.soajs.log.error('daemonConf is not valid for daemon [' + _self.daemonConf.daemon + '] and group [' + _self.daemonConf.daemonConfigGroup + ']');
+                        _self.soajs.log.error('Daemon [' + _self.daemonConf.daemon + '] failed to setup and will not start.');
+                    }
+                };
 
-                            if (jobs_array.length > 0) {
-                                _self.daemonStats.step = "executing";
-
-                                var asyncErrorFn = function (err) {
-                                    if (err)
-                                        _self.soajs.log.warn('Unable to complete daemon execution: ' + err);
-                                    _self.daemonStats.step = "waiting";
-                                    _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf.interval || defaultInterval));
-                                };
-                                var asyncIteratorFn = function (jobThread, callback) {
-                                    var threadStartTs = new Date().getTime();
-                                    jobThread.soajs.registry = core.registry.get();
-                                    jobThread.soajs.log = _self.soajs.log;
-                                    struct_jobs[jobThread.job](jobThread.soajs, function (err) {
-                                        if (err) {
-                                            callback(err);
-                                        }
-                                        else {
-                                            var threadEndTs = new Date().getTime();
-                                            if (!_self.daemonStats.jobs[job])
-                                                _self.daemonStats.jobs[job] = {};
-                                            _self.daemonStats.jobs[job].ts = threadStartTs;
-                                            if (_self.daemonStats.jobs[job].fastest) {
-                                                if (_self.daemonStats.jobs[job].fastest > (threadEndTs - threadStartTs))
-                                                    _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
-                                            }
-                                            else
-                                                _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
-                                            if (_self.daemonStats.jobs[job].slowest) {
-                                                if (_self.daemonStats.jobs[job].slowest < (threadEndTs - threadStartTs))
-                                                    _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
-                                            }
-                                            else
-                                                _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
-
-                                            callback();
-                                        }
-                                    });
-                                };
-
-                                if (daemonConf.daemonConfigGroup.processing && daemonConf.daemonConfigGroup.processing === "sequential") {
-                                    async.eachSeries(jobs_array, asyncIteratorFn, asyncErrorFn);
-                                }
-                                else {
-                                    async.each(jobs_array, asyncIteratorFn, asyncErrorFn);
-                                }
-                            }
-                            else {
-                                _self.soajs.log.info('Jobs stack is empty for daemon [' + daemonConf.daemon + '] and group [' + daemonConf.daemonConfigGroup + ']');
-                                _self.daemonStats.step = "waiting";
-                                _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf.interval || defaultInterval));
+                var configureDaemon = function () {
+                    _self.daemonConf.type = _self.daemonConf.type || "interval";
+                    if (_self.daemonConf.type === "cron") {
+                        if (_self.daemonConf.cronConfig) {
+                            try {
+                                var cronJob = require('cron').CronJob;
+                                _self.daemonCronJob = new cronJob({
+                                    "cronTime": _self.daemonConf.cronConfig.cronTime,
+                                    "onTick": executeDaemon,
+                                    "start": false,
+                                    "timeZone": _self.daemonConf.cronConfig.timeZone || null
+                                });
+                                _self.daemonCronJob.start();
+                            } catch (ex) {
+                                _self.soajs.log.error('Cron configuration is not valid for daemon [' + _self.daemonConf.daemon + '] and group [' + _self.daemonConf.daemonConfigGroup + ']');
+                                _self.soajs.log.error('Daemon [' + _self.daemonConf.daemon + '] failed to setup and will not start.');
                             }
                         }
                         else {
-                            _self.daemonStats.step = "waiting";
-                            _self.daemonTimeout = setTimeout(executeDaemon, (daemonConf ? daemonConf.interval : defaultInterval));
+                            _self.soajs.log.error('Cron configuration is not valid for daemon [' + _self.daemonConf.daemon + '] and group [' + _self.daemonConf.daemonConfigGroup + ']');
+                            _self.soajs.log.error('Daemon [' + _self.daemonConf.daemon + '] failed to setup and will not start.');
                         }
-                    });
+                    }
+                    else { // it is interval
+                        // Param assurance
+                        if (_self.daemonConf.interval) {
+                            _self.daemonConf.interval = parseInt(_self.daemonConf.interval);
+                            if (isNaN(_self.daemonConf.interval)) {
+                                _self.soajs.log.warn('Interval is not an integer for daemon [' + _self.daemonConf.daemon + '] and group [' + _self.daemonConf.daemonConfigGroup + '].');
+                                _self.daemonConf.interval = defaultInterval;
+                                _self.soajs.log.warn('The default interval [' + defaultInterval + '] will be used.');
+                            }
+                        }
+                        else {
+                            _self.daemonConf.interval = defaultInterval;
+                            _self.soajs.log.warn('The default interval [' + defaultInterval + '] will be used.');
+                        }
+                        _self.daemonTimeout = setTimeout(executeDaemon, _self.daemonConf.interval);
+                    }
                 };
-                executeDaemon();
-                resume();
+
+                var executeDaemon = function () {
+                    _self.daemonStats.step = "waiting";
+                    if (_self.daemonConf.status && _self.daemonConf.jobs) {
+                        execErrorMsgMainOn = true;
+                        //Set daemon stats object for stats maintenance route
+                        _self.daemonStats.daemonConfigGroup = _self.daemonConf.daemonConfigGroup;
+                        _self.daemonStats.daemon = _self.daemonConf.daemon;
+                        _self.daemonStats.status = _self.daemonConf.status;
+                        //_self.daemonStats.interval = _self.daemonConf.interval;
+                        _self.daemonStats.ts = new Date().getTime();
+                        _self.daemonStats.step = "fetching";
+
+                        //build the jobs array
+                        var jobs_array = [];
+                        var buildJob = function (jobInfoObj, _job) {
+                            var jobObj = {};
+                            if (jobInfoObj.type === "global") {
+                                jobObj = {
+                                    "soajs": {
+                                        "meta": core.meta,
+                                        "servicesConfig": jobInfoObj.serviceConfig
+                                    },
+                                    "job": _job,
+                                    "thread": "global"
+                                };
+                                jobs_array.push(jobObj);
+                            }
+                            else if (jobInfoObj.tenantExtKeys) { //type === "tenant"
+                                for (var tCount = 0; tCount < jobInfoObj.tenantExtKeys.length; tCount++) {
+                                    jobObj = {
+                                        "soajs": {
+                                            "meta": core.meta
+                                        },
+                                        "job": _job
+                                    };
+                                    var tExtKey = jobInfoObj.tenantExtKeys[tCount];
+                                    jobObj.thread = tExtKey;
+                                    provision.getExternalKeyData(tExtKey, _self.soajs.daemonServiceConf._conf.key, function (err, keyObj) {
+                                        if (keyObj && keyObj.application && keyObj.application.package) {
+                                            provision.getPackageData(keyObj.application.package, function (err, packObj) {
+                                                if (packObj) {
+                                                    jobObj.soajs.tenant = keyObj.tenant;
+                                                    jobObj.soajs.tenant.key = {
+                                                        "iKey": keyObj.key,
+                                                        "eKey": keyObj.extKey
+                                                    };
+                                                    jobObj.soajs.tenant.application = keyObj.application;
+                                                    jobObj.soajs.tenant.application.package_acl = packObj.acl;
+                                                    jobObj.soajs.servicesConfig = keyObj.config;
+                                                    jobs_array.push(jobObj);
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            }
+                        };
+                        if (_self.daemonConf.processing && _self.daemonConf.processing === "sequential") {
+                            if (_self.daemonConf.order && Array.isArray(_self.daemonConf.order)) {
+                                for (var i = 0; i < _self.daemonConf.order.length; i++) {
+                                    if (_self.daemonConf.jobs[_self.daemonConf.order[i]])
+                                        buildJob(_self.daemonConf.jobs[_self.daemonConf.order[i]], _self.daemonConf.order[i]);
+                                }
+                            }
+                        }
+                        else {
+                            for (var job in _self.daemonConf.jobs) {
+                                if ((Object.hasOwnProperty.call(_self.daemonConf.jobs, job)) && struct_jobs[job]) {
+                                    buildJob(_self.daemonConf.jobs[job], job);
+                                }
+                            }
+                        }
+
+                        //execute the jobs array
+                        if (jobs_array.length > 0) {
+                            execErrorMsgSubOn = true;
+                            _self.daemonStats.step = "executing";
+                            var asyncEndFn = function (err) {
+                                if (err)
+                                    _self.soajs.log.warn('Unable to complete daemon execution: ' + err);
+                                _self.daemonStats.step = "waiting";
+
+                                if (_self.daemonConf.type === "interval")
+                                    _self.daemonTimeout = setTimeout(executeDaemon, _self.daemonConf.interval);
+
+                                if (_self.postExecutingFn && typeof  _self.postExecutingFn === "function") {
+                                    _self.postExecutingFn();
+                                    _self.postExecutingFn = null;
+                                }
+                            };
+                            var asyncIteratorFn = function (jobThread, callback) {
+                                var threadStartTs = new Date().getTime();
+                                jobThread.soajs.registry = core.registry.get();
+                                jobThread.soajs.log = _self.soajs.log;
+                                struct_jobs[jobThread.job](jobThread.soajs, function (err) {
+                                    if (err) {
+                                        callback(err);
+                                    }
+                                    else {
+                                        var threadEndTs = new Date().getTime();
+                                        if (!_self.daemonStats.jobs[job])
+                                            _self.daemonStats.jobs[job] = {};
+                                        _self.daemonStats.jobs[job].ts = threadStartTs;
+                                        if (_self.daemonStats.jobs[job].fastest) {
+                                            if (_self.daemonStats.jobs[job].fastest > (threadEndTs - threadStartTs))
+                                                _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
+                                        }
+                                        else
+                                            _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
+                                        if (_self.daemonStats.jobs[job].slowest) {
+                                            if (_self.daemonStats.jobs[job].slowest < (threadEndTs - threadStartTs))
+                                                _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
+                                        }
+                                        else
+                                            _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
+
+                                        callback();
+                                    }
+                                });
+                            };
+
+                            if (_self.daemonConf.processing && _self.daemonConf.processing === "sequential")
+                                async.eachSeries(jobs_array, asyncIteratorFn, asyncEndFn);
+                            else
+                                async.each(jobs_array, asyncIteratorFn, asyncEndFn);
+                        }
+                        else {
+                            _self.daemonStats.step = "waiting";
+                            if (execErrorMsgSubOn)
+                                _self.soajs.log.info('Jobs stack is empty for daemon [' + _self.daemonConf.daemon + '] and group [' + _self.daemonConf.daemonConfigGroup + ']');
+                            execErrorMsgSubOn = false;
+                            if (_self.daemonConf.type === "interval")
+                                _self.daemonTimeout = setTimeout(executeDaemon, _self.daemonConf.interval);
+                        }
+                    }
+                    else {
+                        _self.daemonStats.step = "waiting";
+                        if (execErrorMsgMainOn) {
+                            execErrorMsgMainOn = false;
+                            if (!_self.daemonConf.status)
+                                _self.soajs.log.info('Daemon is OFF for daemon [' + _self.daemonConf.daemon + '] and group [' + _self.daemonConf.daemonConfigGroup + ']');
+                            if (!_self.daemonConf.jobs)
+                                _self.soajs.log.info('Jobs stack is empty for daemon [' + _self.daemonConf.daemon + '] and group [' + _self.daemonConf.daemonConfigGroup + ']');
+                        }
+                        if (_self.daemonConf.type === "interval")
+                            _self.daemonTimeout = setTimeout(executeDaemon, _self.daemonConf.interval);
+                    }
+                };
             }
+            if (autoRegHost) {
+                _self.soajs.log.info("Initiating service auto register for awareness ...");
+                core.registry.autoRegisterService({
+                    "name": _self.soajs.param.serviceName,
+                    "serviceIp": _self.soajs.param.serviceIp,
+                    "serviceVersion": _self.soajs.param.serviceVersion,
+                    "serviceHATask": _self.soajs.param.serviceHATask,
+                    "what": "daemons"
+                }, function (err, registered) {
+                    if (err) {
+                        _self.soajs.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
+                    } else if (registered) {
+                        _self.soajs.log.info('The autoRegisterService @ controllers for [' + _self.soajs.param.serviceName + '@' + _self.soajs.param.serviceIp + '] successfully finished.');
+                    }
+                });
+            }
+            else {
+                _self.soajs.log.info("Service auto register for awareness, skipped.");
+            }
+            return resume();
         });
     } else {
         return resume(new Error('Failed starting daemon service'));
     }
     var resume = function (err) {
-        if (autoRegHost) {
-            _self.soajs.log.info("Initiating service auto register for awareness ...");
-            core.registry.autoRegisterService({
-                "name": _self.soajs.param.serviceName,
-                "serviceIp": _self.soajs.param.serviceIp,
-                "serviceVersion": _self.soajs.param.serviceVersion,
-                "serviceHATask": _self.soajs.param.serviceHATask,
-                "what": "daemons"
-            }, function (err, registered) {
-                if (err) {
-                    _self.soajs.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
-                } else if (registered) {
-                    _self.soajs.log.info('The autoRegisterService @ controllers for [' + _self.soajs.param.serviceName + '@' + _self.soajs.param.serviceIp + '] successfully finished.');
-                }
-            });
-        }
-        else {
-            _self.soajs.log.info("Service auto register for awareness, skipped.");
-        }
         if (cb && typeof cb === "function") {
             cb(err);
         } else if (err) {
