@@ -72,7 +72,10 @@ module.exports = function (configuration) {
         req.soajs.roaming.roamExtKey = function (extKey, config, cb) {
             try {
                 provision.getExternalKeyData(extKey, req.soajs.registry.serviceConfig.key, function (err, keyObj) {
-                    if (keyObj && keyObj.application && keyObj.application.package) {
+	                if (err) {
+		                req.soajs.log.error(err);
+	                }
+	                if (keyObj && keyObj.application && keyObj.application.package) {
                         //TODO: verify if keyObj.application.package is a package in config (ie: to check if it is a dashboard package)
                         provision.getPackageData(keyObj.application.package, function (err, packObj) {
                             if (packObj) {
