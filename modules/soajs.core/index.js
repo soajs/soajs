@@ -19,23 +19,36 @@ exports.getHostIp = function (cb) {
     var ips = [];
     var ifnameLookupSequence = [];
     if (process.env.SOAJS_DEPLOY_HA) {
-        var Docker = require('dockerode');
-        var deployer = new Docker({socketPath: '/var/run/docker.sock'});
-        var container = deployer.getContainer(process.env.HOSTNAME);
-        container.inspect(function (error, containerInfo) {
-            if (error) {
+        if (process.env.SOAJS_DEPLOY_KUBE) {
+            if (!process.env.SOAJS_KUBE_POD_IP || !process.env.SOAJS_KUBE_POD_NAME) {
                 return cb({"result": false, "ip": null, "extra": {"ips": ips, "n": ifnameLookupSequence}});
             }
 
-            var taskName = containerInfo.Config.Labels['com.docker.swarm.task.name'];
-            var swarmNetwork = containerInfo.NetworkSettings.Networks.soajsnet;
-
             return cb({
                 "result": true,
-                "ip": swarmNetwork.IPAddress,
-                "extra": {"ips": ips, "n": ifnameLookupSequence, "swarmTask": taskName}
+                "ip": process.env.SOAJS_KUBE_POD_IP,
+                "extra": {"ips": ips, "n": ifnameLookupSequence, "swarmTask": process.env.SOAJS_KUBE_POD_NAME}
             });
-        });
+        }
+        else {
+            var Docker = require('dockerode');
+            var deployer = new Docker({socketPath: '/var/run/docker.sock'});
+            var container = deployer.getContainer(process.env.HOSTNAME);
+            container.inspect(function (error, containerInfo) {
+                if (error) {
+                    return cb({"result": false, "ip": null, "extra": {"ips": ips, "n": ifnameLookupSequence}});
+                }
+
+                var taskName = containerInfo.Config.Labels['com.docker.swarm.task.name'];
+                var swarmNetwork = containerInfo.NetworkSettings.Networks.soajsnet;
+
+                return cb({
+                    "result": true,
+                    "ip": swarmNetwork.IPAddress,
+                    "extra": {"ips": ips, "n": ifnameLookupSequence, "swarmTask": taskName}
+                });
+            });
+        }
     }
     else {
         var os = require('os');
