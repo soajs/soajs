@@ -568,6 +568,8 @@ daemon.prototype.stop = function (cb) {
     _self.soajs.log.info('stopping daemon service[' + _self.soajs.param.serviceName + '] on port:', _self.soajs.daemonServiceConf.info.port);
     if (_self.daemonTimeout)
         clearTimeout(_self.daemonTimeout);
+    if (_self.daemonCronJob)
+        _self.daemonCronJob.stop();
     _self.appMaintenance.httpServer.close(function (err) {
         if (cb) {
             cb(err);
