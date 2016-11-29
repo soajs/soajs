@@ -505,7 +505,19 @@ MultiTenantSession.prototype.getUrac = function (_ALL) {
             "oauthRefreshToken": this.session.sessions[tId].urac.oauthRefreshToken,
             "oauthAccessToken": this.session.sessions[tId].urac.oauthAccessToken
         };
+        
+        if(this.session.sessions[tId].urac.socialLogin){
+        	urac.socialLogin = {
+		        "strategy": this.session.sessions[tId].urac.socialLogin.strategy,
+		        "id": this.session.sessions[tId].urac.socialLogin.id
+	        };
+        }
+        
         if (_ALL) {
+        	if(this.session.sessions[tId].urac.socialLogin){
+		        urac.socialLogin.accessToken = this.session.sessions[tId].urac.socialLogin.accessToken;
+	        }
+        	
             urac.config = this.session.sessions[tId].urac.config;
         }
     }
