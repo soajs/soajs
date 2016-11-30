@@ -250,21 +250,28 @@ daemon.prototype.start = function (cb) {
                     res.jsonp(response);
                 });
                 _self.appMaintenance.get("/reloadDaemonConf", function (req, res) {
-                    provision.loadDaemonGrpConf(process.env.SOAJS_DAEMON_GRP_CONF, _self.soajs.param.serviceName, function (err, daemonConf) {
-                        var response = maintenanceResponse(req);
-                        if (daemonConf) {
-                            _self.daemonConf = daemonConf;
-                            setupDaemon();
-                            response['result'] = true;
-                        }
-                        else {
-                            response['result'] = false;
-                            if (err)
-                                _self.soajs.log.warn("Failed to load daemon config for [" + _self.soajs.param.serviceName + "@" + process.env.SOAJS_DAEMON_GRP_CONF + "]. reusing from previous load. Reason: " + err.message);
-                        }
-                        response['data'] = _self.daemonConf;
+                    var response = maintenanceResponse(req);
+                    if (!process.env.SOAJS_DAEMON_GRP_CONF){
+                        _self.soajs.log.error('Environment variable [SOAJS_DAEMON_GRP_CONF] for daemon [' + _self.soajs.param.serviceName + '] is not set.');
+                        response['result'] = false;
                         res.jsonp(response);
-                    });
+                    }
+                    else {
+                        provision.loadDaemonGrpConf(process.env.SOAJS_DAEMON_GRP_CONF, _self.soajs.param.serviceName, function (err, daemonConf) {
+                            if (daemonConf) {
+                                _self.daemonConf = daemonConf;
+                                setupDaemon();
+                                response['result'] = true;
+                            }
+                            else {
+                                response['result'] = false;
+                                if (err)
+                                    _self.soajs.log.warn("Failed to load daemon config for [" + _self.soajs.param.serviceName + "@" + process.env.SOAJS_DAEMON_GRP_CONF + "]. reusing from previous load. Reason: " + err.message);
+                            }
+                            response['data'] = _self.daemonConf;
+                            res.jsonp(response);
+                        });
+                    }
                 });
                 _self.appMaintenance.all('*', function (req, res) {
                     var response = maintenanceResponse(req, "heartbeat");
@@ -304,11 +311,6 @@ daemon.prototype.start = function (cb) {
                     }
                 };
 
-                provision.loadDaemonGrpConf(process.env.SOAJS_DAEMON_GRP_CONF, _self.soajs.param.serviceName, function (err, daemonConf) {
-                    _self.daemonConf = daemonConf;
-                    setupDaemon();
-                });
-
                 var setupDaemon = function () {
                     if (_self.daemonConf) {
                         if (_self.daemonStats.step === "executing") {
@@ -335,8 +337,8 @@ daemon.prototype.start = function (cb) {
                         }
                     }
                     else {
-                        _self.soajs.log.error('daemonConf is not valid for daemon [' + _self.daemonConf.daemon + '] and group [' + _self.daemonConf.daemonConfigGroup + ']');
-                        _self.soajs.log.error('Daemon [' + _self.daemonConf.daemon + '] failed to setup and will not start.');
+                        _self.soajs.log.error('daemonConf is not valid for daemon [' + _self.soajs.param.serviceName + '] and group [' + process.env.SOAJS_DAEMON_GRP_CONF + ']');
+                        _self.soajs.log.error('Daemon [' + _self.soajs.param.serviceName + '] failed to setup and will not start.');
                     }
                 };
 
@@ -377,7 +379,8 @@ daemon.prototype.start = function (cb) {
                             _self.daemonConf.interval = defaultInterval;
                             _self.soajs.log.warn('The default interval [' + defaultInterval + '] will be used.');
                         }
-                        _self.daemonTimeout = setTimeout(executeDaemon, _self.daemonConf.interval);
+                        executeDaemon ();
+                        //_self.daemonTimeout = setTimeout(executeDaemon, _self.daemonConf.interval);
                     }
                 };
 
@@ -529,6 +532,15 @@ daemon.prototype.start = function (cb) {
                             _self.daemonTimeout = setTimeout(executeDaemon, _self.daemonConf.interval);
                     }
                 };
+                if (!process.env.SOAJS_DAEMON_GRP_CONF){
+                    _self.soajs.log.error('Environment variable [SOAJS_DAEMON_GRP_CONF] for daemon [' + _self.soajs.param.serviceName + '] is not set.');
+                }
+                else {
+                    provision.loadDaemonGrpConf(process.env.SOAJS_DAEMON_GRP_CONF, _self.soajs.param.serviceName, function (err, daemonConf) {
+                        _self.daemonConf = daemonConf;
+                        setupDaemon();
+                    });
+                }
             }
             if (autoRegHost) {
                 _self.soajs.log.info("Initiating service auto register for awareness ...");
