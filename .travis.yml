@@ -22,5 +22,6 @@ before_script:
   - npm install -g grunt-cli
   - sleep 10
 
-after_success:
+script:
   - grunt coverage
+
