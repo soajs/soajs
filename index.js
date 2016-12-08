@@ -3,7 +3,7 @@
 require("./classes/http");
 
 process.on('uncaughtException', function (e) {
-    console.log(new Date().toString(), e.stack || e);
+    console.log(new Date().toISOString(), e.stack || e);
     process.exit(1);
 });
 
