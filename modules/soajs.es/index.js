@@ -10,6 +10,11 @@ var cacheDB = {};
 
 function EsDriver(configuration) {
 	this.config = configuration;
+	
+	if(!this.config.apiVersion){
+		this.config.apiVersion = config.apiVersion;
+	}
+	
 	this.db = null;
 
 	//initialize empty connection caching object
@@ -224,7 +229,8 @@ EsDriver.connect = function(callback){
 
 		var esConfig = {
 			hosts: hosts,
-			plugins: [deleteByQuery]
+			plugins: [deleteByQuery],
+			apiVersion: config.apiVersion
 		};
 
 		for (var i in config.extraParam) {
