@@ -11,8 +11,12 @@ var cacheDB = {};
 function EsDriver(configuration) {
 	this.config = configuration;
 	
-	if(!this.config.apiVersion){
-		this.config.apiVersion = config.apiVersion;
+	if(!this.config.extraParam){
+		this.config.extraParam = {};
+	}
+	
+	if(!this.config.extraParam.apiVersion){
+		apiVersion: config.apiVersion
 	}
 	
 	this.db = null;
@@ -229,10 +233,9 @@ EsDriver.connect = function(callback){
 
 		var esConfig = {
 			hosts: hosts,
-			plugins: [deleteByQuery],
-			apiVersion: config.apiVersion
+			plugins: [deleteByQuery]
 		};
-
+		
 		for (var i in config.extraParam) {
 			if (Object.hasOwnProperty.call(config.extraParam, i)) {
 				esConfig[i] = config.extraParam[i];
