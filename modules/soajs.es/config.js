@@ -1,4 +1,5 @@
 "use strict";
+//ES Reference: https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/configuration.html
 
 module.exports = {
 	"errors":{
