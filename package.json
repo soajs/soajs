@@ -47,6 +47,7 @@
     "elasticsearch-deletebyquery": "*",
     "express": "*",
     "express-session": "*",
+    "handlebars": "4.0.6",
     "jsonschema": "*",
     "merge": "*",
     "method-override": "*",
@@ -61,7 +62,6 @@
     "oauth2-server": "2.*",
     "object-hash": "*",
     "request": "*",
-    "swig": "*",
     "useragent": "*",
     "validator": "*"
   }

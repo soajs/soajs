@@ -4,17 +4,17 @@ var core = require("../soajs.core");
 var validator = new core.validator.Validator();
 
 var config = require("./config");
-var swig = null;
+var handlebars = null;
 
 var mailer = function(config) {
-	swig = require("swig");
+	handlebars = require("handlebars");
 	this.mail = new core.getMail(config);
 };
 
 mailer.prototype.renderTemplate = function(mailOptions) {
 	var tmplPath = (mailOptions.path) ? fs.readFileSync(mailOptions.path, {'encoding': 'utf8'}) : mailOptions.content;
 
-	var template = swig.compile(tmplPath);
+	var template = handlebars.compile(tmplPath);
 	mailOptions.html = template(mailOptions.data);
 	mailOptions.text = mailOptions.html.replace(/(<([^>]+)>)/ig, "");//strip tags
 
