@@ -174,6 +174,15 @@ daemon.prototype.init = function (callback) {
  */
 daemon.prototype.start = function (cb) {
     var _self = this;
+
+    var resume = function (err) {
+        if (cb && typeof cb === "function") {
+            cb(err);
+        } else if (err) {
+            throw err;
+        }
+    };
+
     if (_self.soajs) {
         _self.soajs.log.info("Daemon Service about to start ...");
 
@@ -566,13 +575,6 @@ daemon.prototype.start = function (cb) {
     } else {
         return resume(new Error('Failed starting daemon service'));
     }
-    var resume = function (err) {
-        if (cb && typeof cb === "function") {
-            cb(err);
-        } else if (err) {
-            throw err;
-        }
-    };
 };
 
 daemon.prototype.stop = function (cb) {
