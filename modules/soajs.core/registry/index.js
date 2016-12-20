@@ -221,6 +221,36 @@ var build = {
     },
 
     "buildSpecificRegistry": function (param, registry, registryDBInfo, callback) {
+
+        function resume(what) {
+            build.controllerHosts(registryDBInfo.ENV_hosts, registry["services"].controller);
+            if (!autoRegHost || param.reload) {
+                return callback(null);
+            }
+            else if (param.serviceIp) {
+                if (registry.serviceConfig.awareness.autoRegisterService) {
+                    registry[what][param.serviceName].newServiceOrHost = true;
+                    if (!registry[what][param.serviceName].hosts) {
+                        registry[what][param.serviceName].hosts = {};
+                        registry[what][param.serviceName].hosts.latest = param.serviceVersion;
+                        registry[what][param.serviceName].hosts[param.serviceVersion] = [];
+                    }
+                    if (!registry[what][param.serviceName].hosts[param.serviceVersion]) {
+                        registry[what][param.serviceName].hosts[param.serviceVersion] = [];
+                    }
+                    if (registry[what][param.serviceName].hosts[param.serviceVersion].indexOf(param.serviceIp) === -1)
+                        registry[what][param.serviceName].hosts[param.serviceVersion].push(param.serviceIp);
+                }
+                return callback(null);
+            }
+            else {
+                if (!param.serviceIp) {
+                    throw new Error("Unable to register new host ip [" + param.serviceIp + "] for service [" + param.serviceName + "]");
+                }
+                return callback(null);
+            }
+        }
+
         if (param.serviceName === "controller") {
             build.allServices(registryDBInfo.services_schema, registry["services"]);
             build.servicesHosts(registryDBInfo.ENV_hosts, registry["services"]);
@@ -295,34 +325,6 @@ var build = {
                         return resume("services");
                     });
                 }
-            }
-        }
-        function resume(what) {
-            build.controllerHosts(registryDBInfo.ENV_hosts, registry["services"].controller);
-            if (!autoRegHost || param.reload) {
-                return callback(null);
-            }
-            else if (param.serviceIp) {
-                if (registry.serviceConfig.awareness.autoRegisterService) {
-                    registry[what][param.serviceName].newServiceOrHost = true;
-                    if (!registry[what][param.serviceName].hosts) {
-                        registry[what][param.serviceName].hosts = {};
-                        registry[what][param.serviceName].hosts.latest = param.serviceVersion;
-                        registry[what][param.serviceName].hosts[param.serviceVersion] = [];
-                    }
-                    if (!registry[what][param.serviceName].hosts[param.serviceVersion]) {
-                        registry[what][param.serviceName].hosts[param.serviceVersion] = [];
-                    }
-                    if (registry[what][param.serviceName].hosts[param.serviceVersion].indexOf(param.serviceIp) === -1)
-                        registry[what][param.serviceName].hosts[param.serviceVersion].push(param.serviceIp);
-                }
-                return callback(null);
-            }
-            else {
-                if (!param.serviceIp) {
-                    throw new Error("Unable to register new host ip [" + param.serviceIp + "] for service [" + param.serviceName + "]");
-                }
-                return callback(null);
             }
         }
     }
