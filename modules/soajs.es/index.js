@@ -10,14 +10,16 @@ var cacheDB = {};
 
 function EsDriver(configuration) {
 	this.config = configuration;
-	
-	if(!this.config.extraParam){
-		this.config.extraParam = {};
-	}
-	
-	if(!this.config.extraParam.apiVersion){
-		apiVersion: config.apiVersion
-	}
+
+	if(this.config){
+        if(!this.config.extraParam){
+            this.config.extraParam = {};
+        }
+
+        if(!this.config.extraParam.apiVersion){
+            apiVersion: config.apiVersion
+        }
+    }
 	
 	this.db = null;
 
