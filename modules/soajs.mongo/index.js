@@ -683,15 +683,26 @@ MongoDriver.prototype.getMongoSkinDB = function (cb) {
 		if (!url) {
 			return cb(core.error.generate(190));
 		}
-		
+
 		var db = mongoSkin.db(url, obj.config.extraParam);
 		return cb(null, db);
 	}
-	
+
 	if (this.config.registryLocation && this.config.registryLocation.env && this.config.registryLocation.l1 && this.config.registryLocation.l2)
 		this.config = core.registry.get(this.config.registryLocation.env)[this.config.registryLocation.l1][this.config.registryLocation.l2];
-	
+
 	buildDB(this, cb);
+
+	//todo: test the below
+	// var self = this;
+	// connect(self, function(error){
+	// 	if(error){
+	// 		return cb(error);
+	// 	}
+    //
+		// return cb(null, self.db);
+	// });
+
 };
 
 /**
