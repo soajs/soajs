@@ -1,6 +1,6 @@
 'use strict';
 var core = require("../soajs.core");
-var mongoSkin = require('mongoskin');
+var mongodb = require('mongodb');
 var merge = require('merge');
 var objectHash = require("object-hash");
 var config = require('./config');
@@ -24,8 +24,8 @@ function MongoDriver(dbConfig) {
 	this.config = dbConfig;
 	this.db = null;
 	this.pending = false;
-	this.ObjectId = mongoSkin.ObjectID;
-	this.mongoSkin = mongoSkin;
+	this.ObjectId = mongodb.ObjectID;
+	this.mongodb = mongodb;
 	if (this.config && this.config.registryLocation && this.config.registryLocation.env && this.config.registryLocation.l1 && this.config.registryLocation.l2) {
 		if (!cacheDB)
 			cacheDB = {};
@@ -47,16 +47,16 @@ function MongoDriver(dbConfig) {
 MongoDriver.prototype.insert = function (collectionName, docs, cb) {
 	var self = this;
 	var versioning = false;
-	
+
 	if (!collectionName || !docs) {
 		return cb(core.error.generate(191));
 	}
-	
+
 	if (arguments.length === 4) {
 		versioning = arguments[2];
 		cb = arguments[3];
 	}
-	
+
 	connect(self, function (err) {
 		if (err) {
 			return cb(err);
@@ -76,7 +76,7 @@ MongoDriver.prototype.insert = function (collectionName, docs, cb) {
 				if (error) {
 					return cb(error);
 				}
-				
+
 				return cb(null, response.ops);
 			});
 		}
@@ -85,7 +85,7 @@ MongoDriver.prototype.insert = function (collectionName, docs, cb) {
 				if (error) {
 					return cb(error);
 				}
-				
+
 				return cb(null, response.ops);
 			});
 		}
@@ -106,7 +106,7 @@ MongoDriver.prototype.save = function (collectionName, docs, cb) {
 		versioning = arguments[2];
 		cb = arguments[3];
 	}
-	
+
 	if (!collectionName || !docs) {
 		return cb(core.error.generate(191));
 	}
@@ -119,7 +119,7 @@ MongoDriver.prototype.save = function (collectionName, docs, cb) {
 				if (error) {
 					return cb(error);
 				}
-				
+
 				docs.v = versionedDocument[0].v + 1;
 				docs.ts = new Date().getTime();
 				self.db.collection(collectionName).save(docs, cb);
@@ -148,16 +148,16 @@ MongoDriver.prototype.update = function (/*collectionName, criteria, record, [op
 		, extra = arguments[3]
 		, versioning = arguments.length === 6 ? arguments[4] : arguments[3]
 		, cb = arguments[arguments.length - 1];
-	
+
 	if (typeof(extra) === 'boolean') {
 		extra = {'safe': true, 'multi': true, 'upsert': false};
 	}
 	if (typeof(versioning) !== 'boolean') {
 		versioning = false;
 	}
-	
+
 	var self = this;
-	
+
 	if (!collectionName) {
 		return cb(core.error.generate(191));
 	}
@@ -165,13 +165,13 @@ MongoDriver.prototype.update = function (/*collectionName, criteria, record, [op
 		if (err) {
 			return cb(err);
 		}
-		
+
 		if (versioning) {
 			self.findOne(collectionName, criteria, function (error, originalRecord) {
 				if (error) {
 					return cb(error);
 				}
-				
+
 				if (!originalRecord && extra.upsert) {
 					updateOptions['$set'].v = 1;
 					updateOptions['$set'].ts = new Date().getTime();
@@ -187,17 +187,17 @@ MongoDriver.prototype.update = function (/*collectionName, criteria, record, [op
 						if (error) {
 							return cb(error);
 						}
-						
+
 						if (!updateOptions['$inc']) {
 							updateOptions['$inc'] = {};
 						}
 						updateOptions['$inc'].v = 1;
-						
+
 						if (!updateOptions['$set']) {
 							updateOptions['$set'] = {};
 						}
 						updateOptions['$set'].ts = new Date().getTime();
-						
+
 						self.db.collection(collectionName).update(criteria, updateOptions, extra, function (error, response) {
 							if (error) {
 								return cb(error);
@@ -231,7 +231,7 @@ MongoDriver.addVersionToRecords = function (collection, oneRecord, cb) {
 	if (!oneRecord) {
 		return cb(core.error.generate(192));
 	}
-	
+
 	this.findOne(collection, {'_id': oneRecord._id}, function (error, originalRecord) {
 		if (error) {
 			return cb(error);
@@ -239,12 +239,12 @@ MongoDriver.addVersionToRecords = function (collection, oneRecord, cb) {
 		if (!originalRecord) {
 			return cb(core.error.generate(193));
 		}
-		
+
 		originalRecord.v = originalRecord.v || 0;
 		originalRecord.ts = new Date().getTime();
 		originalRecord.refId = originalRecord._id;
 		delete originalRecord._id;
-		
+
 		self.insert(collection + '_versioning', originalRecord, cb);
 	});
 };
@@ -332,7 +332,7 @@ MongoDriver.prototype.find = MongoDriver.prototype.findFields = function () {
 		, cb = args[args.length - 1]
 		, self = this;
 	args.pop();
-	
+
 	if (!collectionName) {
 		return cb(core.error.generate(191));
 	}
@@ -359,7 +359,7 @@ MongoDriver.prototype.findStream = MongoDriver.prototype.findFieldsStream = func
 		, cb = args[args.length - 1]
 		, self = this;
 	args.pop();
-	
+
 	if (!collectionName) {
 		return cb(core.error.generate(191));
 	}
@@ -390,7 +390,7 @@ MongoDriver.prototype.findAndModify = function (/*collectionName, criteria, sort
 		, collectionName = args.shift()
 		, cb = args[args.length - 1]
 		, self = this;
-	
+
 	if (!collectionName) {
 		return cb(core.error.generate(191));
 	}
@@ -411,7 +411,7 @@ MongoDriver.prototype.findAndRemove = function () {
 		, collectionName = args.shift()
 		, cb = args[args.length - 1]
 		, self = this;
-	
+
 	if (!collectionName) {
 		return cb(core.error.generate(191));
 	}
@@ -437,7 +437,7 @@ MongoDriver.prototype.findOne = MongoDriver.prototype.findOneFields = function (
 		, collectionName = args.shift()
 		, cb = args[args.length - 1]
 		, self = this;
-	
+
 	if (!collectionName) {
 		return cb(core.error.generate(191));
 	}
@@ -523,7 +523,7 @@ MongoDriver.prototype.distinct = function () {
 		, collectionName = args.shift()
 		, cb = args[args.length - 1]
 		, self = this;
-	
+
 	if (!collectionName) {
 		return cb(core.error.generate(191));
 	}
@@ -540,7 +540,7 @@ MongoDriver.prototype.aggregate = function () {
 		, collectionName = args.shift()
 		, cb = args[args.length - 1]
 		, self = this;
-	
+
 	if (!collectionName) {
 		return cb(core.error.generate(191));
 	}
@@ -554,7 +554,7 @@ MongoDriver.prototype.aggregate = function () {
 
 MongoDriver.prototype.distinctStream = function (collectionName, fieldName, criteria, options, cb) {
 	var self = this;
-	
+
 	if (!collectionName) {
 		return cb(core.error.generate(191));
 	}
@@ -569,11 +569,11 @@ MongoDriver.prototype.distinctStream = function (collectionName, fieldName, crit
 				}
 			}
 		];
-		
+
 		if (criteria) {
 			args.unshift(criteria);
 		}
-		
+
 		if (options) {
 			for (var i in options) {
 				var oneOption = {};
@@ -583,7 +583,7 @@ MongoDriver.prototype.distinctStream = function (collectionName, fieldName, crit
 
 			console.log(args);
 		}
-		
+
 		var batchSize = 0;
 		if (self.config && self.config.streaming) {
 			if (self.config.streaming[collectionName] && self.config.streaming[collectionName].batchSize)
@@ -606,7 +606,7 @@ MongoDriver.prototype.aggregateStream = function () {
 		, cb = args[args.length - 1]
 		, self = this;
 	args.pop();
-	
+
 	if (!collectionName) {
 		return cb(core.error.generate(191));
 	}
@@ -614,7 +614,7 @@ MongoDriver.prototype.aggregateStream = function () {
 		if (err) {
 			return cb(err);
 		}
-		
+
 		var batchSize = 0;
 		if (self.config && self.config.streaming) {
 			if (self.config.streaming[collectionName] && self.config.streaming[collectionName].batchSize)
@@ -644,7 +644,7 @@ MongoDriver.prototype.remove = function (collectionName, criteria, cb) {
 	if (!criteria) {
 		criteria = {};
 	}
-	
+
 	if (!collectionName) {
 		return cb(core.error.generate(191));
 	}
@@ -669,30 +669,27 @@ MongoDriver.prototype.closeDb = function () {
 
 MongoDriver.prototype.flushDb = function () {
 	var self = this;
-	
+
 	self.db = null;
-	
+
 	if (self.config.registryLocation && self.config.registryLocation.env && self.config.registryLocation.l1 && self.config.registryLocation.l2) {
 		cacheDB[self.config.registryLocation.env][self.config.registryLocation.l1][self.config.registryLocation.l2].db = null;
 	}
 };
 
-MongoDriver.prototype.getMongoSkinDB = function (cb) {
-	function buildDB(obj, cb) {
-		var url = constructMongoLink(obj.config.name, obj.config.prefix, obj.config.servers, obj.config.URLParam, obj.config.credentials);
-		if (!url) {
-			return cb(core.error.generate(190));
-		}
-
-		var db = mongoSkin.db(url, obj.config.extraParam);
-		return cb(null, db);
-	}
-
-	if (this.config.registryLocation && this.config.registryLocation.env && this.config.registryLocation.l1 && this.config.registryLocation.l2)
-		this.config = core.registry.get(this.config.registryLocation.env)[this.config.registryLocation.l1][this.config.registryLocation.l2];
-
-	buildDB(this, cb);
+// this is to expose mongo db and replace getMongoSkinDB.
+// we can move to mongo native client driver
+MongoDriver.prototype.getMongoDB = function (cb) {
+	var self = this;
+    connect(self, function (err) {
+        if (err) {
+            return cb(err);
+        }
+        return cb(null, self.db);
+    });
 };
+
+
 
 /**
  * Ensure a connection to mongo without any race condition problem
@@ -707,7 +704,7 @@ function connect(obj, cb) {
 	if (!obj.config) {
 		return cb(core.error.generate(195));
 	}
-	
+
 	if (obj.config && obj.config.registryLocation && obj.config.registryLocation.env && obj.config.registryLocation.l1 && obj.config.registryLocation.l2) {
 		obj.config = core.registry.get(obj.config.registryLocation.env)[obj.config.registryLocation.l1][obj.config.registryLocation.l2];
 		if (!obj.db && cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].db)
@@ -717,7 +714,7 @@ function connect(obj, cb) {
 		if (cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash)
 			configCloneHash = cacheDB[obj.config.registryLocation.env][obj.config.registryLocation.l1][obj.config.registryLocation.l2].configCloneHash;
 	}
-	
+
 	if ((obj.db && obj.config.timeConnected && (timeConnected === obj.config.timeConnected)) || (obj.db && !obj.config.registryLocation)) {
 		return cb();
 	}
@@ -731,20 +728,20 @@ function connect(obj, cb) {
 			return cb();
 		}
 	}
-	
+
 	if (obj.pending) {
 		return setImmediate(function () {
 			connect(obj, cb);
 		});
 	}
 	obj.pending = true;
-	
+
 	var url = constructMongoLink(obj.config.name, obj.config.prefix, obj.config.servers, obj.config.URLParam, obj.config.credentials);
 	if (!url) {
 		return cb(core.error.generate(190));
 	}
-	
-	mongoSkin.connect(url, obj.config.extraParam, function (err, db) {
+
+	mongodb.connect(url, obj.config.extraParam, function (err, db) {
 		obj.config.timeConnected = new Date().getTime();
 		if (err) {
 			obj.pending = false;
