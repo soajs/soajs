@@ -692,17 +692,6 @@ MongoDriver.prototype.getMongoSkinDB = function (cb) {
 		this.config = core.registry.get(this.config.registryLocation.env)[this.config.registryLocation.l1][this.config.registryLocation.l2];
 
 	buildDB(this, cb);
-
-	//todo: test the below
-	// var self = this;
-	// connect(self, function(error){
-	// 	if(error){
-	// 		return cb(error);
-	// 	}
-    //
-		// return cb(null, self.db);
-	// });
-
 };
 
 /**
