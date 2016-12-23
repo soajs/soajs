@@ -381,7 +381,10 @@ function loadRegistry(param, cb) {
 
 var getRegistry = function (param, cb) {
     try {
-        if (param.reload || !registry_struct[regEnvironment] || registry_struct[regEnvironment].profileOnly) {
+
+        // added process.env.SOAJS_TEST to force load registry and bypass caching
+
+        if (param.reload || process.env.SOAJS_TEST || !registry_struct[regEnvironment] || registry_struct[regEnvironment].profileOnly) {
             loadRegistry(param, function (err) {
                 return cb(err, registry_struct[regEnvironment]);
             });
