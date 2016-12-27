@@ -104,8 +104,9 @@ module.exports = function () {
  * @returns {*}
  */
 function extractBuildParameters(req, service, service_nv, version, url) {
-    if (service && req.soajs.registry && req.soajs.registry.services && req.soajs.registry.services[service] && req.soajs.registry.services[service].port && req.soajs.registry.services[service].hosts) {
+    if (service && req.soajs.registry && req.soajs.registry.services && req.soajs.registry.services[service] && req.soajs.registry.services[service].port && (!process.env.SOAJS_DEPLOY_HA && req.soajs.registry.services[service].hosts)) {
 
+        //TODO: call the driver to fetch the latest version of the service
         if (!version)
             version = req.soajs.registry.services[service].hosts.latest;
 

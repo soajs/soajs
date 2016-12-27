@@ -84,10 +84,10 @@ daemon.prototype.init = function (callback) {
 
     var fetchedHostIp = null;
     var serviceIpNotDetected = false;
-    if (!autoRegHost) {
+    if (!autoRegHost && !process.env.SOAJS_DEPLOY_HA) {
         _self.soajs.param.serviceIp = '127.0.0.1';
     }
-    if (!_self.soajs.param.serviceIp) {
+    if (!_self.soajs.param.serviceIp && !process.env.SOAJS_DEPLOY_HA) {
         core.getHostIp(function (err, getHostIpResponse) {
             fetchedHostIp = getHostIpResponse;
             if (fetchedHostIp && fetchedHostIp.result) {
@@ -194,17 +194,19 @@ daemon.prototype.start = function (cb) {
                 _self.soajs.log.info("Daemon Service provision loaded.");
                 _self.soajs.log.info("Starting Daemon Service ...");
 
-                core.registry.registerHost({
-                    "serviceName": _self.soajs.param.serviceName,
-                    "serviceVersion": _self.soajs.param.serviceVersion,
-                    "serviceIp": _self.soajs.param.serviceIp,
-                    "serviceHATask": _self.soajs.param.serviceHATask
-                }, registry, function (registered) {
-                    if (registered)
-                        _self.soajs.log.info("Host IP [" + _self.soajs.param.serviceIp + "] for daemon service [" + _self.soajs.param.serviceName + "@" + _self.soajs.param.serviceVersion + "] successfully registered.");
-                    else
-                        _self.soajs.log.warn("Unable to register host IP [" + _self.soajs.param.serviceIp + "] for daemon service [" + _self.soajs.param.serviceName + "@" + _self.soajs.param.serviceVersion + "]");
-                });
+                if (!process.env.SOAJS_DEPLOY_HA) {
+                    core.registry.registerHost({
+                        "serviceName": _self.soajs.param.serviceName,
+                        "serviceVersion": _self.soajs.param.serviceVersion,
+                        "serviceIp": _self.soajs.param.serviceIp,
+                        "serviceHATask": _self.soajs.param.serviceHATask
+                    }, registry, function (registered) {
+                        if (registered)
+                            _self.soajs.log.info("Host IP [" + _self.soajs.param.serviceIp + "] for daemon service [" + _self.soajs.param.serviceName + "@" + _self.soajs.param.serviceVersion + "] successfully registered.");
+                        else
+                            _self.soajs.log.warn("Unable to register host IP [" + _self.soajs.param.serviceIp + "] for daemon service [" + _self.soajs.param.serviceName + "@" + _self.soajs.param.serviceVersion + "]");
+                    });
+                }
 
                 //MAINTENANCE Service Routes
                 _self.soajs.log.info("Adding Daemon Service Maintenance Routes ...");
@@ -551,7 +553,7 @@ daemon.prototype.start = function (cb) {
                     });
                 }
             }
-            if (autoRegHost) {
+            if (autoRegHost && !process.env.SOAJS_DEPLOY_HA) {
                 _self.soajs.log.info("Initiating service auto register for awareness ...");
                 core.registry.autoRegisterService({
                     "name": _self.soajs.param.serviceName,

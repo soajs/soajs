@@ -223,7 +223,9 @@ var build = {
     "buildSpecificRegistry": function (param, registry, registryDBInfo, callback) {
 
         function resume(what) {
-            build.controllerHosts(registryDBInfo.ENV_hosts, registry["services"].controller);
+            if (!process.env.SOAJS_DEPLOY_HA)
+                build.controllerHosts(registryDBInfo.ENV_hosts, registry["services"].controller);
+
             if (!autoRegHost || param.reload) {
                 return callback(null);
             }
@@ -244,7 +246,7 @@ var build = {
                 return callback(null);
             }
             else {
-                if (!param.serviceIp) {
+                if (!param.serviceIp && !process.env.SOAJS_DEPLOY_HA) {
                     throw new Error("Unable to register new host ip [" + param.serviceIp + "] for service [" + param.serviceName + "]");
                 }
                 return callback(null);
@@ -253,9 +255,15 @@ var build = {
 
         if (param.serviceName === "controller") {
             build.allServices(registryDBInfo.services_schema, registry["services"]);
-            build.servicesHosts(registryDBInfo.ENV_hosts, registry["services"]);
+
+            if (!process.env.SOAJS_DEPLOY_HA)
+                build.servicesHosts(registryDBInfo.ENV_hosts, registry["services"]);
+
             build.allDaemons(registryDBInfo.daemons_schema, registry["daemons"]);
-            build.servicesHosts(registryDBInfo.ENV_hosts, registry["daemons"]);
+
+            if (!process.env.SOAJS_DEPLOY_HA)
+                build.servicesHosts(registryDBInfo.ENV_hosts, registry["daemons"]);
+
             return resume("services");
         }
         else {

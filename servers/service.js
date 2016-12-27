@@ -132,10 +132,10 @@ service.prototype.init = function (callback) {
 
     var fetchedHostIp = null;
     var serviceIpNotDetected = false;
-    if (!autoRegHost) {
+    if (!autoRegHost && !process.env.SOAJS_DEPLOY_HA) {
         soajs.param.serviceIp = '127.0.0.1';
     }
-    if (!soajs.param.serviceIp) {
+    if (!soajs.param.serviceIp && !process.env.SOAJS_DEPLOY_HA) {
         core.getHostIp(function (getHostIpResponse) {
             fetchedHostIp = getHostIpResponse;
             if (fetchedHostIp && fetchedHostIp.result) {
@@ -408,7 +408,7 @@ service.prototype.start = function (cb) {
                         _self.log.error(core.error.generate(141));
                         _self.log.error(err);
                     }
-                    else {
+                    else if (!process.env.SOAJS_DEPLOY_HA) {
                         core.registry.registerHost({
                             "serviceName": _self.app.soajs.param.serviceName,
                             "serviceVersion": _self.app.soajs.param.serviceVersion,
