@@ -51,7 +51,6 @@
     "jsonschema": "*",
     "merge": "*",
     "method-override": "*",
-    "mongoskin": "2.1.*",
     "mongodb": "2.1.*",
     "morgan": "*",
     "netmask": "*",

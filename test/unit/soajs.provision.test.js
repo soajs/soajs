@@ -3,7 +3,7 @@ var assert = require('assert');
 var helper = require("../helper.js");
 var core = helper.requireModule('./modules/soajs.core');
 var soajsProvision = helper.requireModule('./modules/soajs.provision');
-var ObjectId = require("mongoskin").ObjectID;
+var ObjectId = require("mongodb").ObjectID;
 
 var keyConfig = {
     "algorithm": 'aes256',
