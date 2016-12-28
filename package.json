@@ -55,7 +55,7 @@
     "mongodb": "2.1.*",
     "morgan": "*",
     "netmask": "*",
-    "nodemailer": "*",
+    "nodemailer": "1.*.*",
     "nodemailer-direct-transport": "*",
     "nodemailer-sendmail-transport": "*",
     "nodemailer-smtp-transport": "*",
