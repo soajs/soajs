@@ -1,7 +1,7 @@
 'use strict';
 var jsonschema = require('jsonschema');
 
-if (jsonschema.SchemaPatterns || process.env.SOAJS_TEST) {
+if (jsonschema.SchemaPatterns || process.env.APP_DIR_FOR_CODE_COVERAGE) {
 	if(!jsonschema.SchemaPatterns){
 		jsonschema.SchemaPatterns = {};
 	}
@@ -9,7 +9,7 @@ if (jsonschema.SchemaPatterns || process.env.SOAJS_TEST) {
     jsonschema.SchemaPatterns['domain'] = /^([A-Za-z0-9-]*\.)+[a-zA-Z]{2,4}(\.[a-zA-Z]{2})?$/;
 }
 
-if(!jsonschema.SchemaPatterns || process.env.SOAJS_TEST){
+if(!jsonschema.SchemaPatterns || process.env.APP_DIR_FOR_CODE_COVERAGE){
 	if(!jsonschema.SchemaPatterns){
 		jsonschema.SchemaPatterns = {};
 	}
