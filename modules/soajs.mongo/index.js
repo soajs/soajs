@@ -787,7 +787,7 @@ function connect(obj, cb) {
 }
 
 /**
- *constructMongoLink: is a function that takes the below param and return the URL need to by mongoskin.connect
+ *constructMongoLink: is a function that takes the below param and return the URL need to by mongodb.connect
  *
  * @param dbName
  * @param prefix

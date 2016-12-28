@@ -189,7 +189,7 @@ describe("testing connection", function() {
         };
 
         mongo = new soajsMongo(dbConfig);
-        mongo.getMongoSkinDB(function(error, db){
+        mongo.getMongoDB(function(error, db){
             assert.ifError(error);
             assert.ok(db);
             done();
