@@ -308,6 +308,7 @@ var build = {
                         'name': param.serviceName,
                         'group': param.serviceGroup,
                         'port': registry["services"][param.serviceName].port,
+                        'swagger': param.swagger,
                         'requestTimeout': registry["services"][param.serviceName].requestTimeout,
                         'requestTimeoutRenewal': registry["services"][param.serviceName].requestTimeoutRenewal,
                         'versions': {}
@@ -317,7 +318,7 @@ var build = {
                         "apis": param.apiList,
                         "awareness": param.awareness
                     };
-
+	                
                     build.registerNewService(registry.coreDB.provision, newServiceObj, 'services', function (error) {
                         if (error) {
                             throw new Error('Unable to register new service ' + param.serviceName + ' : ' + error.message);

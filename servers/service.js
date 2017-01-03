@@ -129,6 +129,7 @@ service.prototype.init = function (callback) {
     soajs.param.awarenessEnv = soajs.param.awarenessEnv || false;
     soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
     soajs.param.serviceHATask = null;
+    soajs.param.swagger = soajs.param.swagger || false;
 
     var fetchedHostIp = null;
     var serviceIpNotDetected = false;
@@ -167,6 +168,7 @@ service.prototype.init = function (callback) {
             "requestTimeoutRenewal": soajs.param.requestTimeoutRenewal,
             "awareness": soajs.param.awareness,
             "serviceIp": soajs.param.serviceIp,
+	        "swagger": soajs.param.swagger,
             "apiList": soajs.apiList
         }, function (reg) {
             registry = reg;
