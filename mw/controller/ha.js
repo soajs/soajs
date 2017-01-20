@@ -15,15 +15,14 @@ function checkError(error, code, cb) {
 
 module.exports = {
     "init" : function (param){},
-    "getServiceHost" : function (serviceName, version, env, cb){
+    "getLatestVersion" : function (serviceName, env, cb){
         var options = {
             "params" : {
                 "serviceNane": serviceName,
-                "version": version,
                 "env": env
             }
         }
 
-        drivers.getServiceHost(options, cb);
+        drivers.getLatestVersion(options, cb);
     }
 };
