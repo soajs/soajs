@@ -147,11 +147,30 @@ daemon.prototype.init = function (callback) {
                 return callback(new Error("Daemon Service shutdown due to failure!"));
             }
 
+            // Registry now is loaded and all param are assured
+
             _self.soajs.log.info("Daemon Service middleware initialization started...");
+
+            //This object will hold all the middleware needed by the daemon
+            _self.soajs.mw = {};
 
             var favicon_mw = require("./../mw/favicon/index");
             _self.appMaintenance.use(favicon_mw());
             _self.soajs.log.info("Favicon middleware initialization done.");
+
+            if (_self.soajs.param.awarenessEnv) {
+                var awarenessEnv_mw = require("./../mw/awarenessEnv/index");
+                _self.soajs.mw.awarenessEnv = (awarenessEnv_mw({
+                    "awarenessEnv": _self.soajs.param.awarenessEnv,
+                    "log": _self.soajs.log
+                }));
+                _self.soajs.log.info("AwarenessEnv middleware initialization done.");
+            }
+            else {
+                _self.soajs.log.info("AwarenessEnv middleware initialization skipped.");
+            }
+
+            //Expose some core function after init
 
             //exposing provision functionality to generate keys
             _self.provision = {
@@ -485,33 +504,48 @@ daemon.prototype.start = function (cb) {
                             };
                             var asyncIteratorFn = function (jobThread, callback) {
                                 var threadStartTs = new Date().getTime();
+
+                                var afterMWLoaded = function (){
+                                    struct_jobs[jobThread.job](jobThread.soajs, function (err) {
+                                        if (err) {
+                                            callback(err);
+                                        }
+                                        else {
+                                            var threadEndTs = new Date().getTime();
+                                            if (!_self.daemonStats.jobs[job])
+                                                _self.daemonStats.jobs[job] = {};
+                                            _self.daemonStats.jobs[job].ts = threadStartTs;
+                                            if (_self.daemonStats.jobs[job].fastest) {
+                                                if (_self.daemonStats.jobs[job].fastest > (threadEndTs - threadStartTs))
+                                                    _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
+                                            }
+                                            else
+                                                _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
+                                            if (_self.daemonStats.jobs[job].slowest) {
+                                                if (_self.daemonStats.jobs[job].slowest < (threadEndTs - threadStartTs))
+                                                    _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
+                                            }
+                                            else
+                                                _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
+
+                                            callback();
+                                        }
+                                    });
+                                };
+
+                                //Build soajs object to be passed to all the registered jobs
                                 jobThread.soajs.registry = core.registry.get();
                                 jobThread.soajs.log = _self.soajs.log;
-                                struct_jobs[jobThread.job](jobThread.soajs, function (err) {
-                                    if (err) {
-                                        callback(err);
-                                    }
-                                    else {
-                                        var threadEndTs = new Date().getTime();
-                                        if (!_self.daemonStats.jobs[job])
-                                            _self.daemonStats.jobs[job] = {};
-                                        _self.daemonStats.jobs[job].ts = threadStartTs;
-                                        if (_self.daemonStats.jobs[job].fastest) {
-                                            if (_self.daemonStats.jobs[job].fastest > (threadEndTs - threadStartTs))
-                                                _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
-                                        }
-                                        else
-                                            _self.daemonStats.jobs[job].fastest = threadEndTs - threadStartTs;
-                                        if (_self.daemonStats.jobs[job].slowest) {
-                                            if (_self.daemonStats.jobs[job].slowest < (threadEndTs - threadStartTs))
-                                                _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
-                                        }
-                                        else
-                                            _self.daemonStats.jobs[job].slowest = threadEndTs - threadStartTs;
 
-                                        callback();
-                                    }
-                                });
+                                //Execute awarenessEnv MW
+                                if (_self.soajs.mw.awarenessEnv){
+                                    _self.soajs.mw.awarenessEnv(jobThread, null, function (error){
+                                        afterMWLoaded();
+                                    })
+                                }
+                                else {
+                                    afterMWLoaded();
+                                }
                             };
 
                             if (_self.daemonConf.processing && _self.daemonConf.processing === "sequential")
