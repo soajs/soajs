@@ -170,6 +170,10 @@ service.prototype.init = function (callback) {
             "apiList": soajs.apiList
         }, function (reg) {
             registry = reg;
+
+            console.log(registry);
+            process.exit();
+
             soajs.serviceConf = lib.registry.getServiceConf(soajs.param.serviceName, registry);
 
             _self.log = core.getLogger(soajs.param.serviceName, registry.serviceConfig.logger);

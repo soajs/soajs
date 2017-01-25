@@ -1,28 +1,28 @@
 'use strict';
 
 var drivers = require('soajs.core.drivers');
+var core = require('../../modules/soajs.core');
 
-function checkError(error, code, cb) {
-    if(error)
-        return cb({
-            "error": error,
-            "code": code,
-            "msg": errorFile[code]
-        });
-    else
-        return cb();
-}
-
-module.exports = {
+var ha = {
     "init" : function (param){},
-    "getLatestVersion" : function (serviceName, env, cb){
+    "getLatestVersion" : function (serviceName, cb){
         var options = {
-            "params" : {
+            "strategy": process.env.SOAJS_HA,
+            "driver": core.registry.get().deployer.slected.split('.')[1] + "." + core.registry.get().deployer.slected.split('.')[2],
+            "deploterConfig": core.registry.get().deployer,
+            "soajs": {
+                "registry": core.registry.get()
+            },
+            "model": {},
+            "params": {
                 "serviceNane": serviceName,
-                "env": env
+                "version": version,
+                "env": process.env.SOAJS_ENV
             }
-        }
+        };
 
         drivers.getLatestVersion(options, cb);
     }
 };
+
+module.exports = ha;
