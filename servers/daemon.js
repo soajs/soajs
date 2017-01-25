@@ -171,6 +171,9 @@ daemon.prototype.init = function (callback) {
             }
 
             //Expose some core function after init
+            _self.getCustomRegistry = function () {
+                return core.registry.getCustom();
+            };
 
             //exposing provision functionality to generate keys
             _self.provision = {
