@@ -195,6 +195,8 @@ var build = {
         }
         registry["serviceConfig"] = registryDBInfo.ENV_schema.services.config;
 
+        registry["deployer"] = registryDBInfo.ENV_schema.deployer || {};
+
         registry["custom"] = registryDBInfo.ENV_schema.custom || {};
 
         for (var coreDBName in metaAndCoreDB.coreDB) {
