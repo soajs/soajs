@@ -4,6 +4,7 @@
  * @returns {Function}
  */
 module.exports = function (param) {
+    var driver;
     if (param.awareness) {
         if (!process.env.SOAJS_DEPLOY_HA) {
             driver = require("./custom.js");
@@ -16,7 +17,7 @@ module.exports = function (param) {
     }
     return function (req, res, next) {
         if (param.awareness) {
-            req.soajs.awarenessEnv = {
+            req.soajs.awareness = {
                 "getHost": driver.getServiceHost
             };
         }
