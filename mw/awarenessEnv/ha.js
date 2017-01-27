@@ -2,6 +2,7 @@
 
 var drivers = require('soajs.core.drivers');
 var core = require('../../modules/soajs.core');
+var param = null;
 
 var lib = {
 	"constructDriverParam": function(serviceName){
@@ -25,13 +26,14 @@ var lib = {
 	
     "getLatestVersion" : function (serviceName, cb){
         var options = lib.constructDriverParam(serviceName);
-	    console.log(JSON.stringify(options, null, 2));
         drivers.getLatestVersion(options, cb);
     }
 };
 
 var ha = {
-    "init" : function (param){},
+    "init" : function (_param){
+    	param = _param;
+    },
     "getControllerEnvHost" : function (env, v, cb){
         if (!cb && typeof v === "function") {
             cb = v;
@@ -45,18 +47,28 @@ var ha = {
             lib.getLatestVersion("controller", function (err, obtainedVersion) {
                 if(err){
                     //todo: need to find a better way to do this log
-                    console.log(err);
+	                param.log.error(err);
                     return cb(null);
                 }
                 options.params.version = obtainedVersion;
-	            console.log(JSON.stringify(options, null, 2));
-                drivers.getServiceHost(options, cb);
+                drivers.getServiceHost(options, function(error, response){
+	                if(error){
+		                param.log.error(error);
+		                return cb(null);
+	                }
+	                return cb(response);
+                });
             });
         }
         else{
             options.params.version = v;
-	        console.log(JSON.stringify(options, null, 2));
-            drivers.getServiceHost(options, cb);
+            drivers.getServiceHost(options, function(error, response){
+	            if(error){
+		            param.log.error(error);
+		            return cb(null);
+	            }
+	            return cb(response);
+            });
         }
     }
 };

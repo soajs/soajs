@@ -140,7 +140,6 @@ function extractBuildParameters(req, service, service_nv, version, url, callback
 			        }
 		        };
 		
-		        console.log(JSON.stringify(options, null, 2));
 		        drivers.getLatestVersion(options, function(error, latestVersion){
 		        	if(error){
 				        return callback(error);
