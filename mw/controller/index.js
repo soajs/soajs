@@ -6,6 +6,8 @@ var request = require('request');
 var http = require('http');
 
 var core = require('../../modules/soajs.core');
+var drivers = require('soajs.core.drivers');
+
 /**
  *
  * @returns {Function}
@@ -35,62 +37,68 @@ module.exports = function () {
             }
             service_n = service_nv.substr(0, index);
         }
-        var parameters = extractBuildParameters(req, service_n, service_nv, service_v, parsedUrl.path);
-        if (!parameters) {
-            req.soajs.log.fatal("url[", req.url, "] couldn't be matched to a service or the service entry in registry is missing [port || hosts]");
-            return req.soajs.controllerResponse(core.error.getError(130));
-        }
-
-        req.soajs.controller.serviceParams = parameters;
-
-        var d = domain.create();
-        d.add(req);
-        d.add(res);
-        d.on('error', function (err) {
-            req.soajs.log.error('Error', err, req.url);
-            try {
-                req.soajs.log.error('Controller domain error, trying to dispose ...');
-                res.on('close', function () {
-                    d.dispose();
-                });
-            } catch (err) {
-                req.soajs.log.error('Controller domain error, unable to dispose: ', err, req.url);
-                d.dispose();
-            }
+        extractBuildParameters(req, service_n, service_nv, service_v, parsedUrl.path, function(error, parameters){
+        	if(error){
+		        req.soajs.log.fatal(error);
+		        return req.soajs.controllerResponse(core.error.getError(130));
+	        }
+	
+	        if (!parameters) {
+		        req.soajs.log.fatal("url[", req.url, "] couldn't be matched to a service or the service entry in registry is missing [port || hosts]");
+		        return req.soajs.controllerResponse(core.error.getError(130));
+	        }
+	
+	        req.soajs.controller.serviceParams = parameters;
+	
+	        var d = domain.create();
+	        d.add(req);
+	        d.add(res);
+	        d.on('error', function (err) {
+		        req.soajs.log.error('Error', err, req.url);
+		        try {
+			        req.soajs.log.error('Controller domain error, trying to dispose ...');
+			        res.on('close', function () {
+				        d.dispose();
+			        });
+		        } catch (err) {
+			        req.soajs.log.error('Controller domain error, unable to dispose: ', err, req.url);
+			        d.dispose();
+		        }
+	        });
+	        var passportLogin = false;
+	        if (serviceInfo[1] === "urac"){
+		        if (serviceInfo[2] === "passport" && serviceInfo[3] === "login")
+			        passportLogin = true;
+	        }
+	        if (parameters.extKeyRequired) {
+		        var key = req.headers.key || parsedUrl.query.key;
+		        if (!key) {
+			        return req.soajs.controllerResponse(core.error.getError(132));
+		        }
+		        core.key.getInfo(key, req.soajs.registry.serviceConfig.key, function (err, keyObj) {
+			        if (err) {
+				        req.soajs.log.warn(err.message);
+				        return req.soajs.controllerResponse(core.error.getError(132));
+			        }
+			        if (!req.headers.key) {
+				        req.headers.key = key;
+			        }
+			        if (passportLogin)
+				        req.soajs.controller.gotoservice = simpleRTS;
+			        else
+				        req.soajs.controller.gotoservice = redirectToService;
+			
+			        next();
+		        });
+	        }
+	        else {
+		        if (passportLogin)
+			        req.soajs.controller.gotoservice = simpleRTS;
+		        else
+			        req.soajs.controller.gotoservice = redirectToService;
+		        next();
+	        }
         });
-        var passportLogin = false;
-        if (serviceInfo[1] === "urac"){
-            if (serviceInfo[2] === "passport" && serviceInfo[3] === "login")
-                passportLogin = true;
-        }
-        if (parameters.extKeyRequired) {
-            var key = req.headers.key || parsedUrl.query.key;
-            if (!key) {
-                return req.soajs.controllerResponse(core.error.getError(132));
-            }
-            core.key.getInfo(key, req.soajs.registry.serviceConfig.key, function (err, keyObj) {
-                if (err) {
-                    req.soajs.log.warn(err.message);
-                    return req.soajs.controllerResponse(core.error.getError(132));
-                }
-                if (!req.headers.key) {
-                    req.headers.key = key;
-                }
-                if (passportLogin)
-                    req.soajs.controller.gotoservice = simpleRTS;
-                else
-                    req.soajs.controller.gotoservice = redirectToService;
-
-                next();
-            });
-        }
-        else {
-            if (passportLogin)
-                req.soajs.controller.gotoservice = simpleRTS;
-            else
-                req.soajs.controller.gotoservice = redirectToService;
-            next();
-        }
     };
 };
 
@@ -103,28 +111,72 @@ module.exports = function () {
  * @param url
  * @returns {*}
  */
-function extractBuildParameters(req, service, service_nv, version, url) {
-    if (service && req.soajs.registry && req.soajs.registry.services && req.soajs.registry.services[service] && req.soajs.registry.services[service].port && (!process.env.SOAJS_DEPLOY_HA && req.soajs.registry.services[service].hosts)) {
+function extractBuildParameters(req, service, service_nv, version, url, callback) {
+    if (service &&
+	    req.soajs.registry &&
+	    req.soajs.registry.services &&
+	    req.soajs.registry.services[service] &&
+	    req.soajs.registry.services[service].port &&
+	    (process.env.SOAJS_DEPLOY_HA || req.soajs.registry.services[service].hosts)
+    ) {
 
         //TODO: call the driver to fetch the latest version of the service
-        if (!version)
-            version = req.soajs.registry.services[service].hosts.latest;
-
-        var extKeyRequired = false;
-        if (req.soajs.registry.services[service].versions && req.soajs.registry.services[service].versions[version])
-            extKeyRequired = req.soajs.registry.services[service].versions[version].extKeyRequired || false;
-
-        var serviceInfo = {
-            "registry": req.soajs.registry.services[service],
-            "name": service,
-            "url": url.substring(service_nv.length + 1),
-            "version": version,
-            "extKeyRequired": extKeyRequired
-        };
-
-        return serviceInfo;
+        if (!version){
+        	if(process.env.SOAJS_DEPLOY_HA){
+        		var info = req.soajs.registry.deployer.selected.split('.');
+        		var deployerConfig = req.soajs.registry.deployer.container[info[1]][info[2]];
+        		
+		        var options = {
+			        "strategy": process.env.SOAJS_DEPLOY_HA,
+			        "driver": info[1] + "." + info[2],
+			        "deployerConfig": deployerConfig,
+			        "soajs": {
+				        "registry": req.soajs.registry
+			        },
+			        "model": {},
+			        "params": {
+				        "serviceName": service,
+				        "env": process.env.SOAJS_ENV
+			        }
+		        };
+		
+		        console.log(JSON.stringify(options, null, 2));
+		        drivers.getLatestVersion(options, function(error, latestVersion){
+		        	if(error){
+				        return callback(error);
+			        }
+			        version = latestVersion;
+			        nextStep(version);
+		        });
+	        }
+	        else if(req.soajs.registry.services[service].hosts){
+		        version = req.soajs.registry.services[service].hosts.latest;
+		        nextStep(version);
+	        }
+	        else{
+		        return callback(null, null);
+	        }
+        }
     }
-    return null;
+    else{
+	    return callback(null, null);
+    }
+    
+    function nextStep(version){
+	    var extKeyRequired = false;
+	    if (req.soajs.registry.services[service].versions && req.soajs.registry.services[service].versions[version])
+		    extKeyRequired = req.soajs.registry.services[service].versions[version].extKeyRequired || false;
+	
+	    var serviceInfo = {
+		    "registry": req.soajs.registry.services[service],
+		    "name": service,
+		    "url": url.substring(service_nv.length + 1),
+		    "version": version,
+		    "extKeyRequired": extKeyRequired
+	    };
+	
+	    return callback(null, serviceInfo);
+    }
 }
 
 /**
