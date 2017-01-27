@@ -4,23 +4,27 @@ var drivers = require('soajs.core.drivers');
 var core = require('../../modules/soajs.core');
 
 var lib = {
+	"constructDriverParam": function(serviceName){
+		var info = core.registry.get().deployer.selected.split('.');
+		var deployerConfig = core.registry.get().deployer.container[info[1]][info[2]];
+		
+		return {
+			"strategy": process.env.SOAJS_DEPLOY_HA,
+			"driver": info[1] + "." + info[2],
+			"deployerConfig": deployerConfig,
+			"soajs": {
+				"registry": core.registry.get()
+			},
+			"model": {},
+			"params": {
+				"serviceName": serviceName,
+				"env": process.env.SOAJS_ENV
+			}
+		};
+	},
+	
     "getLatestVersion" : function (serviceName, cb){
-	    var info = req.soajs.registry.deployer.selected.split('.');
-	    var deployerConfig = req.soajs.registry.deployer.container[info[1]][info[2]];
-	    
-        var options = {
-            "strategy": process.env.SOAJS_DEPLOY_HA,
-            "driver": info[1] + "." + info[2],
-            "deployerConfig": deployerConfig,
-            "soajs": {
-                "registry": core.registry.get()
-            },
-            "model": {},
-            "params": {
-                "serviceName": serviceName,
-                "env": process.env.SOAJS_ENV
-            }
-        };
+        var options = lib.constructDriverParam(serviceName);
 	    console.log(JSON.stringify(options, null, 2));
         drivers.getLatestVersion(options, cb);
     }
@@ -33,24 +37,9 @@ var ha = {
             cb = v;
             v = null;
         }
-	
-	    var info = req.soajs.registry.deployer.selected.split('.');
-	    var deployerConfig = req.soajs.registry.deployer.container[info[1]][info[2]];
 	    
-        var options = {
-            "strategy": process.env.SOAJS_DEPLOY_HA,
-            "driver": info[1] + "." + info[2],
-            "deployerConfig": deployerConfig,
-            "soajs": {
-                "registry": core.registry.get()
-            },
-            "model": {},
-            "params": {
-                "serviceName": "controller",
-                "version": null,
-                "env": process.env.SOAJS_ENV
-            }
-        };
+        var options = lib.constructDriverParam("controller");
+        
         //if no version was supplied, find the latest version of the service
         if(!v){
             lib.getLatestVersion("controller", function (err, obtainedVersion) {
