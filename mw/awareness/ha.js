@@ -7,8 +7,8 @@ var lib = {
     "getLatestVersion" : function (serviceName, cb){
         var options = {
             "strategy": process.env.SOAJS_DEPLOY_HA,
-            "driver": core.registry.get().deployer.slected.split('.')[1] + "." + core.registry.get().deployer.slected.split('.')[2],
-            "deploterConfig": core.registry.get().deployer,
+            "driver": core.registry.get().deployer.selected.split('.')[1] + "." + core.registry.get().deployer.selected.split('.')[2],
+            "deployerConfig": core.registry.get().deployer,
             "soajs": {
                 "registry": core.registry.get()
             },
@@ -33,8 +33,8 @@ var ha = {
 
         var options = {
             "strategy": process.env.SOAJS_DEPLOY_HA,
-            "driver": core.registry.get().deployer.slected.split('.')[1] + "." + core.registry.get().deployer.slected.split('.')[2],
-            "deploterConfig": core.registry.get().deployer,
+            "driver": core.registry.get().deployer.selected.split('.')[1] + "." + core.registry.get().deployer.selected.split('.')[2],
+            "deployerConfig": core.registry.get().deployer,
             "soajs": {
                 "registry": core.registry.get()
             },
