@@ -121,6 +121,23 @@ function extractBuildParameters(req, service, service_nv, version, url, callback
     ) {
 
         //TODO: call the driver to fetch the latest version of the service
+
+        var nextStep = function(version){
+            var extKeyRequired = false;
+            if (req.soajs.registry.services[service].versions && req.soajs.registry.services[service].versions[version])
+                extKeyRequired = req.soajs.registry.services[service].versions[version].extKeyRequired || false;
+
+            var serviceInfo = {
+                "registry": req.soajs.registry.services[service],
+                "name": service,
+                "url": url.substring(service_nv.length + 1),
+                "version": version,
+                "extKeyRequired": extKeyRequired
+            };
+
+            return callback(null, serviceInfo);
+        };
+
         if (!version){
         	if(process.env.SOAJS_DEPLOY_HA){
         		var info = req.soajs.registry.deployer.selected.split('.');
@@ -156,25 +173,11 @@ function extractBuildParameters(req, service, service_nv, version, url, callback
 		        return callback(null, null);
 	        }
         }
+        else
+            nextStep(version);
     }
     else{
 	    return callback(null, null);
-    }
-    
-    function nextStep(version){
-	    var extKeyRequired = false;
-	    if (req.soajs.registry.services[service].versions && req.soajs.registry.services[service].versions[version])
-		    extKeyRequired = req.soajs.registry.services[service].versions[version].extKeyRequired || false;
-	
-	    var serviceInfo = {
-		    "registry": req.soajs.registry.services[service],
-		    "name": service,
-		    "url": url.substring(service_nv.length + 1),
-		    "version": version,
-		    "extKeyRequired": extKeyRequired
-	    };
-	
-	    return callback(null, serviceInfo);
     }
 }
 

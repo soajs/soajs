@@ -172,6 +172,8 @@ var roundRobin = function (s, v, cb) {
                     return roundRobin(s, v, cb);
                 }
             }
+            else
+                return cb(null);
         }
         else
             return cb(null);

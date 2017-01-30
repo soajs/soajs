@@ -163,6 +163,7 @@ describe("testing controller", function() {
 			"security": false,
 			"multitenant": false,
 			"acl": false,
+			"awareness":false,
 			"config": {
 				"serviceName": 'example01',
 				"serviceVersion": 1,
@@ -197,7 +198,7 @@ describe("testing controller", function() {
 					setTimeout(function() {
 						assert.ifError(err);
 						done();
-					}, 500);
+					}, 1000);
 				});
 			});
 		});
@@ -207,7 +208,7 @@ describe("testing controller", function() {
 				done();
 			});
 		});
-		it('Testing /example01', function(done) {
+		it('Testing /example01 version 1', function(done) {
 			requester('get', {
 				uri: 'http://localhost:4000/example01:1'
 			}, function(err, body, response) {

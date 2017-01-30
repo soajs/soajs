@@ -48,7 +48,7 @@ describe("testing connection", function() {
 	});
 });
 
-describe("TESTING soajs.mongo", function() {
+describe("TESTING soajs.es", function() {
 	var es = null;
 	var dbConfig = {
 		"name": 'es',
