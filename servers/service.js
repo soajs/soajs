@@ -129,13 +129,14 @@ service.prototype.init = function (callback) {
     soajs.param.awarenessEnv = soajs.param.awarenessEnv || false;
     soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
     soajs.param.serviceHATask = null;
+    soajs.param.swagger = soajs.param.swagger || false;
 
     var fetchedHostIp = null;
     var serviceIpNotDetected = false;
-    if (!autoRegHost) {
+    if (!autoRegHost && !process.env.SOAJS_DEPLOY_HA) {
         soajs.param.serviceIp = '127.0.0.1';
     }
-    if (!soajs.param.serviceIp) {
+    if (!soajs.param.serviceIp && !process.env.SOAJS_DEPLOY_HA) {
         core.getHostIp(function (getHostIpResponse) {
             fetchedHostIp = getHostIpResponse;
             if (fetchedHostIp && fetchedHostIp.result) {
@@ -167,9 +168,11 @@ service.prototype.init = function (callback) {
             "requestTimeoutRenewal": soajs.param.requestTimeoutRenewal,
             "awareness": soajs.param.awareness,
             "serviceIp": soajs.param.serviceIp,
+	        "swagger": soajs.param.swagger,
             "apiList": soajs.apiList
         }, function (reg) {
             registry = reg;
+
             soajs.serviceConf = lib.registry.getServiceConf(soajs.param.serviceName, registry);
 
             _self.log = core.getLogger(soajs.param.serviceName, registry.serviceConfig.logger);
@@ -411,7 +414,7 @@ service.prototype.start = function (cb) {
                         _self.log.error(core.error.generate(141));
                         _self.log.error(err);
                     }
-                    else {
+                    else if (!process.env.SOAJS_DEPLOY_HA) {
                         core.registry.registerHost({
                             "serviceName": _self.app.soajs.param.serviceName,
                             "serviceVersion": _self.app.soajs.param.serviceVersion,

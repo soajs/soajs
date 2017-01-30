@@ -198,6 +198,7 @@ var lib = {
 			"session": true,
 			"roaming": true,
 			"awarenessEnv": true,
+			"swagger": true,
 			"serviceVersion": 1,
 			"requestTimeout": 2,
 			"requestTimeoutRenewal": 2,
