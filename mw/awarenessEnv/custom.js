@@ -4,6 +4,9 @@ var request = require('request');
 var async = require('async');
 var core = require('../../modules/soajs.core');
 
+var regEnvironment = (process.env.SOAJS_ENV || "dev");
+regEnvironment = regEnvironment.toLowerCase();
+
 var serviceAwarenessObj = {};
 var controllerHosts = null;
 var timeLoaded = 0;
@@ -82,12 +85,14 @@ var awareness_healthCheck = function () {
 };
 
 
-function roundRobin (env, v, cb) {
-    if (!cb && typeof v === "function") {
-        cb = v;
-        v = null;
+function roundRobin (env, cb) {
+    if (!cb && typeof env === "function") {
+        cb = env;
+        env = regEnvironment;
     }
     var s = "controller";
+    var v = 1;
+
     if (env, s && serviceAwarenessObj[env] && serviceAwarenessObj[env][s] && serviceAwarenessObj[env][s].healthy) {
         if (!v)
             v = serviceAwarenessObj[env][s].latest;
