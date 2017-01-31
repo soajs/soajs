@@ -85,13 +85,20 @@ var awareness_healthCheck = function () {
 };
 
 
-function roundRobin (env, cb) {
+function roundRobin (s, v, env, cb) {
     if (!cb && typeof env === "function") {
         cb = env;
         env = regEnvironment;
     }
-    var s = "controller";
-    var v = 1;
+    else if (!cb && typeof v === "function") {
+        cb = v;
+        v = null;
+    }
+    else if (!cb && typeof s === "function") {
+        cb = s;
+        s = "controller";
+    }
+
 
     if (env, s && serviceAwarenessObj[env] && serviceAwarenessObj[env][s] && serviceAwarenessObj[env][s].healthy) {
         if (!v)

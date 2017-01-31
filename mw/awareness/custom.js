@@ -150,14 +150,19 @@ var awareness_healthCheck = function () {
     setTimeout(awareness_healthCheck, registry.serviceConfig.awareness.healthCheckInterval);
 };
 
-var roundRobin = function (env, cb) {
+var roundRobin = function (s, v, env, cb) {
     if (!cb && typeof env === "function") {
         cb = env;
         env = regEnvironment;
     }
-
-    var s = "controller";
-    var v = 1;
+    else if (!cb && typeof v === "function") {
+        cb = v;
+        v = null;
+    }
+    else if (!cb && typeof s === "function") {
+        cb = s;
+        s = "controller";
+    }
 
     if (s && registry.services[s] && registry.services[s].hosts && registry.services[s].hosts.latest && serviceAwarenessObj[s] && serviceAwarenessObj[s].healthy) {
         if (!v)
