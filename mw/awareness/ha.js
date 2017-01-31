@@ -10,7 +10,7 @@ var lib = {
 	"constructDriverParam": function(serviceName){
 		var info = core.registry.get().deployer.selected.split('.');
 		var deployerConfig = core.registry.get().deployer.container[info[1]][info[2]];
-		
+
 		return {
 			"strategy": process.env.SOAJS_DEPLOY_HA,
 			"driver": info[1] + "." + info[2],
@@ -25,7 +25,7 @@ var lib = {
 			}
 		};
 	},
-	
+
 	"getLatestVersion" : function (serviceName, cb){
 		var options = lib.constructDriverParam(serviceName);
 		drivers.getLatestVersion(options, cb);
@@ -36,34 +36,34 @@ var ha = {
     "init": function (_param) {
     	param = _param;
     },
-	
+
     "getServiceHost": function () {
     	var serviceName, version, env, cb;
 	    cb = arguments[arguments.length -1];
-	
+
 	    switch(arguments.length){
 	    	//controller, cb
 		    case 2:
 			    serviceName = arguments[0];
 			    break;
-			    
+
 		    //controller, 1, cb
 		    case 3:
 			    serviceName = arguments[0];
 			    version = arguments[1];
 			    break;
-			    
+
 		    //controller, 1, dash, cb [dash is ignored]
 		    case 4:
 			    serviceName = arguments[0];
 			    version = arguments[1];
 			    break;
 	    }
-	
+
 	    env = regEnvironment;
-	
+
         if(serviceName === 'controller'){
-        	return cb(env + "_" + serviceName);
+        	return cb(env + "-" + serviceName);
         }
         else{
 	        var options = lib.constructDriverParam(serviceName);

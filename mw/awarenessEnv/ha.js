@@ -12,7 +12,7 @@ var ha = {
     "getControllerEnvHost" : function (){
     	var serviceName, version, env, cb;
     	cb = arguments[arguments.length -1];
-    	
+
     	switch(arguments.length){
     		//dash, cb
 		    case 2:
@@ -29,10 +29,10 @@ var ha = {
 			    env = arguments[2];
 		    	break;
 	    }
-    	
+
         env = env || regEnvironment;
 	    serviceName = "controller";
-		return cb(env + "_" + serviceName);
+		return cb(env + "-" + serviceName);
     }
 };
 
