@@ -47,6 +47,7 @@
     "express": "4.14.0",
     "express-session": "1.14.2",
     "handlebars": "4.0.6",
+    "http-proxy": "^1.16.2",
     "jsonschema": "1.1.1",
     "merge": "1.2.0",
     "method-override": "2.3.7",

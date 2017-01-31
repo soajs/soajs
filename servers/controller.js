@@ -3,6 +3,7 @@
 var connect = require('connect');
 var http = require('http');
 var request = require('request');
+var httpProxy = require('http-proxy');
 var url = require('url');
 var core = require('./../modules/soajs.core/index.js');
 
@@ -153,6 +154,9 @@ controller.prototype.init = function (callback) {
                         return res.end(JSON.stringify(response));
                     });
                 };
+	
+	            var proxy = httpProxy.createProxyServer({});
+                
                 if (parsedUrl.pathname === '/reloadRegistry') {
                     reloadRegistry();
                 }
@@ -200,6 +204,27 @@ controller.prototype.init = function (callback) {
                                 return res.end(JSON.stringify(response));
                             });
                     }
+                }
+                else if(parsedUrl.pathname.match('/proxySocket/.*')){
+	                
+                	req.url = req.url.split('/socketProxy')[1];
+	                req.headers.host = '127.0.0.1';
+	
+	                _self.log.info('Incoming request from [ ' + req.connection.remoteAddress + ' - ' + req.headers['user-agent'] + ' ] for ' + req.url + ' ...');
+	                
+	                var haTarget;
+	                if(process.env.SOAJS_DEPLOY_HA === 'swarm'){
+		                haTarget = {
+			                socketPath: process.env.SOAJS_SWARM_UNIX_PORT || '/var/run/docker.sock'
+		                };
+	                }
+	                else{
+	                	haTarget = {
+			                host: process.env.SOAJS_KUBECTL_PROXY_HOST || '127.0.0.1',
+			                port: process.env.SOAJS_KUBECTL_PROXY_PORT || 8001
+		                };
+	                }
+	                proxy.web(req, res, { target: haTarget });
                 }
                 else {
                     var heartbeat = function (res) {
