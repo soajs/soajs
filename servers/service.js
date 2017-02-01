@@ -303,12 +303,15 @@ service.prototype.init = function (callback) {
                     debug: registry.serviceConfig.oauth.debug
                 });
 
-                soajs.oauthService = soajs.param.oauthService || {"name": "oauth", "tokenApi": "/token"};
+                soajs.oauthService = soajs.param.oauthService || {"name": "oauth", "tokenApi": "/token", "authorizationApi": "/authorization"};
                 if (!soajs.oauthService.name) {
                     soajs.oauthService.name = "oauth";
                 }
                 if (!soajs.oauthService.tokenApi) {
                     soajs.oauthService.tokenApi = "/token";
+                }
+                if (!soajs.oauthService.authorizationApi) {
+                    soajs.oauthService.authorizationApi = "/authorization";
                 }
 
                 soajs.oauth = _self.oauth.authorise();
@@ -552,7 +555,7 @@ service.prototype.stop = function (cb) {
  * @returns {*}
  */
 function injectOauth(restApp, args) {
-    if (restApp.app.soajs.oauthService && restApp.app.soajs.param.serviceName === restApp.app.soajs.oauthService.name && args[0] === restApp.app.soajs.oauthService.tokenApi) {
+    if (restApp.app.soajs.oauthService && restApp.app.soajs.param.serviceName === restApp.app.soajs.oauthService.name && (args[0] === restApp.app.soajs.oauthService.tokenApi || args[0] === restApp.app.soajs.oauthService.authorizationApi)) {
         return args;
     }
 
