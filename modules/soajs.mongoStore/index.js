@@ -96,8 +96,7 @@ module.exports = function (connect) {
         };
         var tenant = null;
         if (!(session.persistSession.state.ALL || session.persistSession.state.TENANT ) &&
-            (session.persistSession.state.KEY || session.persistSession.state.SERVICE || session.persistSession.state.CLIENTINFO ||
-            session.persistSession.state.URAC || session.persistSession.state.URACPACKAGE || session.persistSession.state.URACPACKAGEACL || session.persistSession.state.URACKEY || session.persistSession.state.URACKEYCONFIG || session.persistSession.state.URACKEYACL)) {
+            (session.persistSession.state.KEY || session.persistSession.state.SERVICE || session.persistSession.state.CLIENTINFO)) {
             tenant = getTenant(session);
             if (!tenant) {
                 return cb();
@@ -121,44 +120,6 @@ module.exports = function (connect) {
             //CLIENTINFO
             if (session.persistSession.state.CLIENTINFO) {
                 s.$set['session.sessions.' + tenant.id + '.clientInfo'] = session.sessions[tenant.id].clientInfo;
-            }
-
-            //URAC
-            //URAC --> URACPACKAGE
-            //URAC --> URACPACKAGE --> URACPACKAGEACL
-            //URAC --> URACKEY
-            //URAC --> URACKEY --> URACKEYACL
-            //URAC --> URACKEY --> URACKEYCONFIG
-            if (session.persistSession.state.URAC) {
-                s.$set['session.sessions.' + tenant.id + '.urac'] = session.sessions[tenant.id].urac;
-            }
-            else {
-                var product = null;
-                if (session.persistSession.state.URACPACKAGE) {
-                    product = getProduct(session);
-                    if (product) {
-                        s.$set['session.sessions.' + tenant.id + '.urac.config.packages.' + product.package] = session.sessions[tenant.id].urac.config.packages[product.package];
-                    }
-                }
-                else {
-                    if (session.persistSession.state.URACPACKAGEACL) {
-                        product = getProduct(session);
-                        if (product) {
-                            s.$set['session.sessions.' + tenant.id + '.urac.config.packages.' + product.package + '.acl'] = session.sessions[tenant.id].urac.config.packages[product.package].acl;
-                        }
-                    }
-                }
-                if (session.persistSession.state.URACKEY) {
-                    s.$set['session.sessions.' + tenant.id + '.urac.config.keys.' + tenant.key] = session.sessions[tenant.id].urac.config.keys[tenant.key];
-                }
-                else {
-                    if (session.persistSession.state.URACKEYACL) {
-                        s.$set['session.sessions.' + tenant.id + '.urac.config.keys.' + tenant.key + '.acl'] = session.sessions[tenant.id].urac.config.keys[tenant.key].acl;
-                    }
-                    if (session.persistSession.state.URACKEYCONFIG) {
-                        s.$set['session.sessions.' + tenant.id + '.urac.config.keys.' + tenant.key + '.config'] = session.sessions[tenant.id].urac.config.keys[tenant.key].config;
-                    }
-                }
             }
 
             session.persistSession.state = {"DONE": true};

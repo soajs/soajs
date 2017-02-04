@@ -3,6 +3,8 @@
 var core = require('../../modules/soajs.core');
 var provision = require("../../modules/soajs.provision");
 var MultiTenantSession = require("../../classes/MultiTenantSession");
+var uracDriver = require("./urac.js");
+
 var async = require("async");
 var Netmask = require('netmask').Netmask;
 var useragent = require('useragent');
@@ -118,23 +120,23 @@ module.exports = function (configuration) {
                         }
                     }
                     if (da.os && da.os !== '*') {
-	                      if(uaObj.os && uaObj.os.family){
-	                        if (uaObj.os.family.trim().toUpperCase().indexOf(da.os.family.trim().toUpperCase()) === -1) {
-	                            return false;
-	                        }
-	                        if (!validateField('major', uaObj.os, da.os)) {
-	                            return false;
-	                        }
-	                        if (!validateField('minor', uaObj.os, da.os)) {
-	                            return false;
-	                        }
-	                        if (!validateField('patch', uaObj.os, da.os)) {
-	                            return false;
-	                        }
-	                      }
-	                      else{
-		                      return false;
-	                      }
+                        if (uaObj.os && uaObj.os.family) {
+                            if (uaObj.os.family.trim().toUpperCase().indexOf(da.os.family.trim().toUpperCase()) === -1) {
+                                return false;
+                            }
+                            if (!validateField('major', uaObj.os, da.os)) {
+                                return false;
+                            }
+                            if (!validateField('minor', uaObj.os, da.os)) {
+                                return false;
+                            }
+                            if (!validateField('patch', uaObj.os, da.os)) {
+                                return false;
+                            }
+                        }
+                        else {
+                            return false;
+                        }
                     }
                     if (!validateField('major', uaObj, da)) {
                         return false;
@@ -200,12 +202,22 @@ module.exports = function (configuration) {
      * @returns {*}
      */
     function uracCheck(obj, cb) {
-        var userServiceConf = {};
-        if (obj.req.soajs.session)
-            userServiceConf = obj.req.soajs.session.getConfig();
-        var tenantServiceConf = obj.keyObj.config;
-        obj.req.soajs.servicesConfig = merge.recursive(true, tenantServiceConf, userServiceConf);
-        return cb(null, obj);
+        //TODO: add the driver here and init
+        var urac = new uracDriver({"soajs": obj.req.soajs, "oauth": obj.req.oauth});
+        urac.init(function (error, uracProfile) {
+            if (error)
+                obj.req.soajs.log.error(error);
+
+            obj.req.soajs.uracDriver = urac;
+
+            var userServiceConf = urac.getConfig();
+            userServiceConf = userServiceConf || {};
+
+            var tenantServiceConf = obj.keyObj.config;
+            obj.req.soajs.servicesConfig = merge.recursive(true, tenantServiceConf, userServiceConf);
+
+            return cb(null, obj);
+        });
     }
 
     /**
@@ -284,8 +296,8 @@ module.exports = function (configuration) {
     var _system = {
         "getAcl": function (obj) {
             var aclObj = null;
-            if (obj.req.soajs.session) {
-                var uracACL = obj.req.soajs.session.getAcl();
+            if (obj.req.soajs.uracDriver) {
+                var uracACL = obj.req.soajs.uracDriver.getAcl();
                 if (uracACL)
                     aclObj = uracACL[obj.app.soajs.param.serviceName];
             }
@@ -300,7 +312,7 @@ module.exports = function (configuration) {
             else {
                 //ACL with method support restful
                 var method = obj.req.method.toLocaleLowerCase();
-                if (aclObj && aclObj[method] && typeof aclObj[method] === "object"){
+                if (aclObj && aclObj[method] && typeof aclObj[method] === "object") {
                     var newAclObj = {};
                     if (aclObj.hasOwnProperty('access'))
                         newAclObj.access = aclObj.access;
@@ -328,14 +340,14 @@ module.exports = function (configuration) {
     var _urac = {
         "getUser": function (req) {
             var urac = null;
-            if (req.soajs.session)
-                urac = req.soajs.session.getUrac();
+            if (req.soajs.uracDriver)
+                urac = req.soajs.uracDriver.getProfile();
             return urac;
         },
         "getGroups": function (req) {
             var groups = null;
-            if (req.soajs.session)
-                groups = req.soajs.session.getGroups();
+            if (req.soajs.uracDriver)
+                groups = req.soajs.uracDriver.getGroups();
             return groups;
         }
     };
@@ -396,11 +408,14 @@ module.exports = function (configuration) {
                                 req.soajs.tenant.application.package_acl = packObj.acl;
                                 req.soajs.tenant.application.package_acl_all_env = packObj.acl_all_env;
                                 var serviceCheckArray = [function (cb) {
-                                    cb(null, {"app": app, "res": res, "req": req, "keyObj": keyObj, "packObj": packObj});
+                                    cb(null, {
+                                        "app": app,
+                                        "res": res,
+                                        "req": req,
+                                        "keyObj": keyObj,
+                                        "packObj": packObj
+                                    });
                                 }];
-                                
-                                if (!param.session && param.multitenant)
-                                    serviceCheckArray.push(serviceCheck);
 
                                 if (param.security) {
                                     serviceCheckArray.push(securityGeoCheck);
@@ -412,8 +427,7 @@ module.exports = function (configuration) {
 
                                 if (param.multitenant) {
                                     serviceCheckArray.push(uracCheck);
-                                    if (param.session)
-                                        serviceCheckArray.push(serviceCheck);
+                                    serviceCheckArray.push(serviceCheck);
                                 }
 
                                 if (param.multitenant && param.acl)
