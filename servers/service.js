@@ -36,7 +36,7 @@ function service(param) {
     }
     if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true") {
         param.extKeyRequired = false;
-        param.roaming = false;
+        //param.roaming = false;
         param.session = false;
         param.oauth = false;
         param.awareness = false;
@@ -178,7 +178,7 @@ service.prototype.init = function (callback) {
             _self.log = core.getLogger(soajs.param.serviceName, registry.serviceConfig.logger);
 
             if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true")
-                _self.log.info("SOAJS is in SOLO mode, the following got turned OFF [extKeyRequired, roaming, session, oauth, awareness, awarenessEnv, roaming].");
+                _self.log.info("SOAJS is in SOLO mode, the following got turned OFF [extKeyRequired, session, oauth, awareness, awarenessEnv].");
 
             if (soajs.param.oldStyleConfiguration)
                 _self.log.warn("Old style configuration detected. Please start using the new way of passing param when creating a new service.");
@@ -356,11 +356,11 @@ service.prototype.init = function (callback) {
             //_self.app.use(service_mw({"soajs": soajs, "app": _self.app, "param": soajs.param}));
             _self.log.info("SOAJS Service middleware initialization done.");
 
-            if (soajs.param.roaming) {
-                var roaming_mw = require("./../mw/roaming/index");
-                _self.app.use(roaming_mw({"app": _self.app}));
-                _self.log.info("SOAJS Roaming middleware initialization done.");
-            }
+            //if (soajs.param.roaming) {
+            //    var roaming_mw = require("./../mw/roaming/index");
+            //    _self.app.use(roaming_mw({"app": _self.app}));
+            //    _self.log.info("SOAJS Roaming middleware initialization done.");
+            //}
 
             //Expose some core function after init
             _self.getCustomRegistry = function () {
