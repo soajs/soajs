@@ -42,6 +42,7 @@ module.exports = {
             token: accessToken,
             clientId: clientId,
             userId: userId,
+            env: regEnvironment,
             expires: expires
         };
         mongo.insert(tokenCollectionName, tokenRecord, function (err, data) {
@@ -54,6 +55,7 @@ module.exports = {
             token: refreshToken,
             clientId: clientId,
             userId: userId,
+            env: regEnvironment,
             expires: expires
         };
         mongo.insert(tokenCollectionName, tokenRecord, function (err, data) {
@@ -137,15 +139,21 @@ module.exports = {
             }
             var keyStruct = null;
             var oauthStruct = null;
+            var tenantStruct = null;
             if (tenants) {
                 var tenLen = tenants.length;
                 for (var i = 0; i < tenLen; i++) {
+
                     if (tenants[i].oauth) {
-                        if (!oauthStruct) {
+                        if (!oauthStruct)
                             oauthStruct = {};
-                        }
                         oauthStruct[tenants[i]._id.toString()] = tenants[i].oauth;
                     }
+
+                    if (!tenantStruct)
+                        tenantStruct = {};
+                    tenantStruct[tenants[i]._id.toString()] = {"code": tenants[i].code};
+
                     if (tenants[i].applications) {
                         var appLen = tenants[i].applications.length;
                         for (var j = 0; j < appLen; j++) {
@@ -199,7 +207,7 @@ module.exports = {
                 }
             }
             if (oauth) {
-                return cb(null, {"keyData": keyStruct, "oauthData": oauthStruct});
+                return cb(null, {"keyData": keyStruct, "oauthData": oauthStruct, "tenantData": tenantStruct});
             } else {
                 return cb(null, keyStruct);
             }

@@ -189,7 +189,7 @@ describe('testing soajs provisioning', function() {
 			});
 		});
 	});
-
+/*
 	describe("testing getTenantKeys", function() {
 
 		it("fail - no param given", function(done) {
@@ -217,6 +217,7 @@ describe('testing soajs provisioning', function() {
 			});
 		});
 	});
+	*/
 /*
 	describe("getOAuthToken", function() {
 		it("fail - no params", function(done) {

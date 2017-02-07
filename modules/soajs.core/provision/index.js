@@ -46,6 +46,14 @@ var provision = {
             return cb(null, data[key]);
         });
     },
+    "getTenant": function (tId, cb) {
+        return provision.model.getKeyFromDb(null, tId, true, function (err, data) {
+            if (err || !(data && data[tenantData] && data[tenantData][tId])) {
+                return cb(err);
+            }
+            return cb(null, data[tenantData][tId]);
+        });
+    },
     "getPackage": function (code, cb) {
         return provision.model.getPackagesFromDb(code, function (err, data) {
             if (err || !(data && data[code])) {
@@ -53,10 +61,10 @@ var provision = {
             }
             return cb(null, data[code]);
         });
-    },
+    },/*
     "getTenantKeys": function (tId, cb) {
         return provision.model.getKeyFromDb(null, tId, false, cb);
-    },
+    },*/
     "getDaemonGrpConf": function (grp, name, cb) {
         return provision.model.getDaemonGrpConf(grp, name, cb);
     }

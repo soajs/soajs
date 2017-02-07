@@ -159,7 +159,7 @@ describe("core provision tests", function() {
 			});
 		});
 	});
-
+/*
 	describe("getTenantKeys", function() {
 		it("fail - wrong tId provided", function(done) {
 			coreProvision.init(metaData);
@@ -190,5 +190,5 @@ describe("core provision tests", function() {
 			});
 		});
 	});
-
+*/
 });

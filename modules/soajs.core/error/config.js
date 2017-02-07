@@ -56,6 +56,8 @@ module.exports = {
         '201': 'You need to provide a package code.',
         '202': 'Unable to load tenant keys data.',
         '203': 'Unable to generate external key from provided key.',
-        '204': 'Unable to generate internal key.'
+        '204': 'Unable to generate internal key.',
+        '205': 'You need to provide a tenant ID.',
+        '206': "Unable to load provision information for the provided tenant ID."
     }
 };

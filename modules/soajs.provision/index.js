@@ -6,6 +6,7 @@ var log = null;
 var struct_oauths = {};
 var struct_keys = {};
 var struct_packages = {};
+var struct_tenants = {};
 
 /**
  *
@@ -81,6 +82,21 @@ var provision = {
             });
         });
     },
+    "getTenantData" : function (tId, cb){
+        if (!tId)
+            return cb(core.error.generate(205));
+        if (struct_tenants[tId])
+            return cb (null,struct_tenants[tId]);
+
+        core.provision.getTenantData(tId, function (err, tenant) {
+            if (err)
+                return cb(err);
+            if (!tenant)
+                return cb(core.error.generate(206));
+            struct_tenants[tId] = tenant;
+            return cb(null, tenant);
+        });
+    },
     "getPackageData": function (code, cb) {
         if (!code)
             return cb(core.error.generate(201));
@@ -114,6 +130,7 @@ var provision = {
                         if (keysOauths) {
                             struct_keys = keysOauths.keyData;
                             struct_oauths = keysOauths.oauthData;
+                            struct_tenants = keysOauths.tenantData;
                         }
                         cb(true);
                     }
@@ -138,7 +155,7 @@ var provision = {
             log.error("unable to load daemon group config for daemon [" + name + "] and group [" + grp + "]");
             return cb(false, null);
         }
-    },
+    },/*
     "getTenantKeys": function (tId, cb) {
         core.provision.getTenantKeys(tId, function (err, data) {
             if (err) {
@@ -147,7 +164,7 @@ var provision = {
             }
             return cb(null, data);
         });
-    },
+    },*/
     "generateInternalKey": function (cb) {
         core.key.generateInternalKey(function (err, intKey) {
             if (err) {

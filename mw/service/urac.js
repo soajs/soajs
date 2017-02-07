@@ -96,8 +96,10 @@ urac.prototype.getConfig = function () {
         return null;
     }
     var config = null;
-    if (_self.userRecord.config.keys[key] && _self.userRecord.config.keys[key].config) {
-        config = _self.userRecord.config.keys[key].config;
+    if (_self.userRecord.config && _self.userRecord.config.keys) {
+        if (_self.userRecord.config.keys[key] && _self.userRecord.config.keys[key].config) {
+            config = _self.userRecord.config.keys[key].config;
+        }
     }
 
     return config;
