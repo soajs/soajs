@@ -48,10 +48,10 @@ var provision = {
     },
     "getTenant": function (tId, cb) {
         return provision.model.getKeyFromDb(null, tId, true, function (err, data) {
-            if (err || !(data && data[tenantData] && data[tenantData][tId])) {
+            if (err || !(data && data.tenantData && data.tenantData[tId])) {
                 return cb(err);
             }
-            return cb(null, data[tenantData][tId]);
+            return cb(null, data.tenantData[tId]);
         });
     },
     "getPackage": function (code, cb) {

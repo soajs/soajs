@@ -202,22 +202,39 @@ module.exports = function (configuration) {
      * @returns {*}
      */
     function uracCheck(obj, cb) {
-        //TODO: add the driver here and init
-        var urac = new uracDriver({"soajs": obj.req.soajs, "oauth": obj.req.oauth});
-        urac.init(function (error, uracProfile) {
-            if (error)
-                obj.req.soajs.log.error(error);
+        var callURACDriver = function () {
+            var urac = new uracDriver({"soajs": obj.req.soajs, "oauth": obj.req.oauth});
+            urac.init(function (error, uracProfile) {
+                if (error)
+                    obj.req.soajs.log.error(error);
 
-            obj.req.soajs.uracDriver = urac;
+                obj.req.soajs.uracDriver = urac;
 
-            var userServiceConf = urac.getConfig();
-            userServiceConf = userServiceConf || {};
+                var userServiceConf = urac.getConfig();
+                userServiceConf = userServiceConf || {};
 
-            var tenantServiceConf = obj.keyObj.config;
-            obj.req.soajs.servicesConfig = merge.recursive(true, tenantServiceConf, userServiceConf);
+                var tenantServiceConf = obj.keyObj.config;
+                obj.req.soajs.servicesConfig = merge.recursive(true, tenantServiceConf, userServiceConf);
 
-            return cb(null, obj);
-        });
+                return cb(null, obj);
+            });
+        };
+        if (obj.req && obj.req.oauth && obj.req.oauth.bearerToken && obj.req.oauth.bearerToken.env === "dashboard") {
+            obj.soajs.tenant.roaming = {
+                "tId": obj.req.oauth.bearerToken.clientId,
+                "userId": obj.req.oauth.bearerToken.userId
+            };
+            provision.getTenantData(obj.req.oauth.bearerToken.clientId, function (error, tenant) {
+                if (error || !tenant) {
+                    return cb(error);
+                }
+                obj.soajs.tenant.roaming.code = tenant.code;
+                return callURACDriver();
+            });
+        }
+        else {
+            return callURACDriver();
+        }
     }
 
     /**
