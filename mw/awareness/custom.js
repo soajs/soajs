@@ -43,7 +43,7 @@ var awareness_healthCheck = function () {
             "servicesArr": []
         };
         for (var s in registry.services) {
-            if (Object.hasOwnProperty.call(registry.services, s) && s !== param.serviceName) {
+            if (Object.hasOwnProperty.call(registry.services, s)) {
                 if (!serviceAwarenessObj[s])
                     serviceAwarenessObj[s] = {"healthy": {}, "indexes": {}};
                 if (!serviceAwarenessObj[s].healthy)
