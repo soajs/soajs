@@ -69,6 +69,10 @@ urac.prototype.getAcl = function () {
 
     var acl = null;
 
+    if (!_self.userRecord) {
+        return acl;
+    }
+
     if (_self.userRecord.config) {
         if (_self.userRecord.config.keys && _self.userRecord.config.keys[key] && _self.userRecord.config.keys[key].acl) {
             acl = _self.userRecord.config.keys[key].acl;
