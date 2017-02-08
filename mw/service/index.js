@@ -10,6 +10,9 @@ var Netmask = require('netmask').Netmask;
 var useragent = require('useragent');
 var merge = require('merge');
 
+var regEnvironment = (process.env.SOAJS_ENV || "dev");
+regEnvironment = regEnvironment.toLowerCase();
+
 /**
  *
  * @param configuration
@@ -219,7 +222,7 @@ module.exports = function (configuration) {
                 return cb(null, obj);
             });
         };
-        if (obj.req && obj.req.oauth && obj.req.oauth.bearerToken && obj.req.oauth.bearerToken.env === "dashboard") {
+        if (obj.req && obj.req.oauth && obj.req.oauth.bearerToken && obj.req.oauth.bearerToken.env === "dashboard" && regEnvironment !== "dashboard") {
             obj.soajs.tenant.roaming = {
                 "tId": obj.req.oauth.bearerToken.clientId,
                 "userId": obj.req.oauth.bearerToken.userId
@@ -228,6 +231,7 @@ module.exports = function (configuration) {
                 if (error || !tenant) {
                     return cb(error);
                 }
+                //TODO fetch registry by env and add tenantMetaDB and add it to roaming obj
                 obj.soajs.tenant.roaming.code = tenant.code;
                 return callURACDriver();
             });
