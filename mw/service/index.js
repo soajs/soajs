@@ -206,14 +206,12 @@ module.exports = function (configuration) {
      */
     function uracCheck(obj, cb) {
         var callURACDriver = function () {
-            var urac = new uracDriver({"soajs": obj.req.soajs, "oauth": obj.req.oauth});
-            urac.init(function (error, uracProfile) {
+            obj.req.soajs.uracDriver = new uracDriver({"soajs": obj.req.soajs, "oauth": obj.req.oauth});
+            obj.req.soajs.uracDriver.init(function (error, uracProfile) {
                 if (error)
                     obj.req.soajs.log.error(error);
 
-                obj.req.soajs.uracDriver = urac;
-
-                var userServiceConf = urac.getConfig();
+                var userServiceConf = obj.req.soajs.uracDriver.getConfig();
                 userServiceConf = userServiceConf || {};
 
                 var tenantServiceConf = obj.keyObj.config;
@@ -223,7 +221,7 @@ module.exports = function (configuration) {
             });
         };
         if (obj.req && obj.req.oauth && obj.req.oauth.bearerToken && obj.req.oauth.bearerToken.env === "dashboard" && regEnvironment !== "dashboard") {
-            obj.soajs.tenant.roaming = {
+            obj.req.soajs.tenant.roaming = {
                 "tId": obj.req.oauth.bearerToken.clientId,
                 "userId": obj.req.oauth.bearerToken.userId
             };
@@ -233,12 +231,12 @@ module.exports = function (configuration) {
                 }
                 core.registry.loadByEnv({"env" : obj.req.oauth.bearerToken.env}, function (error, registry){
                     if (error){
-                        req.soajs.log.error(error);
+                        obj.req.soajs.log.error(error);
                         return cb(170);
                     }
                     if (registry && registry.tenantMetaDB)
-                        obj.soajs.tenant.roaming.tenantMetaDB = registry.tenantMetaDB;
-                    obj.soajs.tenant.roaming.code = tenant.code;
+                        obj.req.soajs.tenant.roaming.tenantMetaDB = registry.tenantMetaDB;
+                    obj.req.soajs.tenant.roaming.code = tenant.code;
 
                     return callURACDriver();
                 })

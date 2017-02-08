@@ -97,8 +97,8 @@ var lib = {
 		};
 
 		holder.urac = new soajs.server.service({
-			"oauth": false,
-			"session": true,
+			"oauth": true,
+			//"session": true,
 			"security": true,
 			"multitenant": true,
 			"acl": true,
@@ -111,11 +111,11 @@ var lib = {
 		});
 		holder.urac.init(function() {
 			holder.urac.get("/logout", function(req, res) {
-				req.soajs.session.clearURAC(function(err) {
+				//req.soajs.session.clearURAC(function(err) {
 					req.soajs.session.deleteTenantSession(function() {
 						res.json(req.soajs.buildResponse(err, true));
 					});
-				});
+				//});
 			});
 
 			holder.urac.post("/login", function(req, res) {
@@ -157,7 +157,7 @@ var lib = {
 				
 				function proceed(record){
 					var cloneRecord = utils.cloneObj(record);
-					req.soajs.session.setURAC(cloneRecord, function(err) {
+					//req.soajs.session.setURAC(cloneRecord, function(err) {
 						if(err) {
 							return res.jsonp(req.soajs.buildResponse({
 								"code": 401,
@@ -165,7 +165,7 @@ var lib = {
 							}));
 						}
 
-						var all = req.soajs.session.getUrac(true);
+						var all = req.soajs.uracDriver.getUrac(true);
 
 						req.soajs.session.setSERVICE({'user': req.soajs.inputmaskData}, function(error) {
 							if(error) {
@@ -175,30 +175,30 @@ var lib = {
 								}));
 							}
 
-							var groups = req.soajs.session.getGroups();
+							var groups = req.soajs.uracDriver.getGroups();
 
 							if(cloneRecord.config.keys && Object.keys(cloneRecord.config.keys).length > 0){
 								var newKey = Object.keys(cloneRecord.config.keys)[0];
-								req.soajs.session.setURACKEYCONFIG(cloneRecord.config.keys[newKey].config, function(error) {
-									if(error) {
-										return res.jsonp(req.soajs.buildResponse({
-											"code": 401,
-											"msg": config.errors[401]
-										}));
-									}
+								//req.soajs.session.setURACKEYCONFIG(cloneRecord.config.keys[newKey].config, function(error) {
+									//if(error) {
+									//	return res.jsonp(req.soajs.buildResponse({
+									//		"code": 401,
+									//		"msg": config.errors[401]
+									//	}));
+									//}
 
 									var newAcl = cloneRecord.config.keys[newKey].acl;
-									req.soajs.session.setURACKEYACL(newAcl, function(error) {
-										if(error) {
-											return res.jsonp(req.soajs.buildResponse({
-												"code": 401,
-												"msg": config.errors[401]
-											}));
-										}
+									//req.soajs.session.setURACKEYACL(newAcl, function(error) {
+										//if(error) {
+										//	return res.jsonp(req.soajs.buildResponse({
+										//		"code": 401,
+										//		"msg": config.errors[401]
+										//	}));
+										//}
 
 										proceedAgain(newAcl, record);
-									});
-								});
+									//});
+								//});
 							}
 							else{
 								var acl = {};
@@ -208,29 +208,29 @@ var lib = {
 								if(record.username === 'user10004'){
 									var cloneRecord2 = utils.cloneObj(record);
 									cloneRecord2.config = {key: {}, packages: {} };
-									req.soajs.session.setURAC(cloneRecord2, function(err) {
+									//req.soajs.session.setURAC(cloneRecord2, function(err) {
 										proceedAgain(acl, record, false);
-									});
+									//});
 								}
 								else{
 									proceedAgain(acl, record, true);
 								}
 							}
 						});
-					});
+					//});
 				}
 
 				function proceedAgain(newAcl, record, updatepackageAcl){
 					if(updatepackageAcl){
-						req.soajs.session.setURACPACKAGEACL(newAcl, function(error) {
-							if(error) {
-								return res.jsonp(req.soajs.buildResponse({
-									"code": 401,
-									"msg": config.errors[401]
-								}));
-							}
+						//req.soajs.session.setURACPACKAGEACL(newAcl, function(error) {
+						//	if(error) {
+						//		return res.jsonp(req.soajs.buildResponse({
+						//			"code": 401,
+						//			"msg": config.errors[401]
+						//		}));
+						//	}
 							leave(record);
-						});
+						//});
 					}
 					else{
 						leave(record);
