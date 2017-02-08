@@ -31,9 +31,13 @@ module.exports = {
     },
 
     "getAccessToken": function (bearerToken, cb) {
+        //TODO verify that the env in token is dashboard and the current env can be anything
+        //TODO verify that if the env in token is not dashboard must be equal to current env
         mongo.findOne(tokenCollectionName, {"token": bearerToken, "type": "accessToken"}, cb);
     },
     "getRefreshToken": function (bearerToken, cb) {
+        //TODO verify that the env in token is dashboard and the current env can be anything
+        //TODO verify that if the env in token is not dashboard must be equal to current env
         mongo.findOne(tokenCollectionName, {"token": bearerToken, "type": "refreshToken"}, cb);
     },
     "saveAccessToken": function (accessToken, clientId, expires, userId, cb) {
