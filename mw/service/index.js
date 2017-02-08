@@ -231,9 +231,17 @@ module.exports = function (configuration) {
                 if (error || !tenant) {
                     return cb(error);
                 }
-                //TODO fetch registry by env and add tenantMetaDB and add it to roaming obj
-                obj.soajs.tenant.roaming.code = tenant.code;
-                return callURACDriver();
+                core.registry.loadByEnv({"env" : obj.req.oauth.bearerToken.env}, function (error, registry){
+                    if (error){
+                        req.soajs.log.error(error);
+                        return cb(170);
+                    }
+                    if (registry && registry.tenantMetaDB)
+                        obj.soajs.tenant.roaming.tenantMetaDB = registry.tenantMetaDB;
+                    obj.soajs.tenant.roaming.code = tenant.code;
+
+                    return callURACDriver();
+                })
             });
         }
         else {
