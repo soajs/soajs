@@ -238,13 +238,13 @@ var lib = {
 				}
 
 				function leave(record){
-					var acl = req.soajs.session.getAcl();
+					//var acl = req.soajs.session.getAcl();
 
-					var packageAcl = req.soajs.session.getPackageAcl();
+					//var packageAcl = req.soajs.session.getPackageAcl();
 
-					var onePackageAcl = req.soajs.session.getPackageAcl('TPROD_BASIC');
+					//var onePackageAcl = req.soajs.session.getPackageAcl('TPROD_BASIC');
 
-					var getAclAllEnv = req.soajs.session.getAclAllEnv();
+					//var getAclAllEnv = req.soajs.session.getAclAllEnv();
 
 					return res.jsonp(req.soajs.buildResponse(null, record));
 				}
