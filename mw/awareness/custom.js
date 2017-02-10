@@ -75,7 +75,7 @@ var awareness_healthCheck = function () {
         }
 
         for (var s in registry.daemons) {
-            if (Object.hasOwnProperty.call(registry.daemons, s) && s !== param.serviceName) {
+            if (Object.hasOwnProperty.call(registry.daemons, s)) {
                 if (!serviceAwarenessObj[s])
                     serviceAwarenessObj[s] = {"healthy": {}, "indexes": {}};
                 if (!serviceAwarenessObj[s].healthy)
