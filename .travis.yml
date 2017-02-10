@@ -6,14 +6,21 @@ services:
   - mongodb
   - elasticsearch
 
+env:
+  - CXX=g++-4.8
 
 branches:
   only:
     - master
 
 addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
   hosts:
     - localhost
+  packages:
+    - g++-4.8
 
 before_install:
   - sudo apt-get update && sudo apt-get install sendmail python make g++
