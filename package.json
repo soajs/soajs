@@ -1,7 +1,7 @@
 {
   "name": "soajs",
   "description": "soajs framework",
-  "version": "0.4.1",
+  "version": "0.4.3",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -61,7 +61,7 @@
     "oauth2-server": "2.4.1",
     "object-hash": "1.1.5",
     "request": "2.79.0",
-    "soajs.core.drivers": "git+https://github.com/soajs/soajs.core.drivers.git#feature/DASHBOARD-50",
+    "soajs.core.drivers": "0.0.*",
     "useragent": "2.1.10",
     "validator": "6.2.0"
   }
