@@ -60,7 +60,6 @@ function daemon(param) {
 
     _self.soajs = {};
     _self.soajs.param = param;
-	_self.soajs.param.serviceName = _self.soajs.param.serviceName.toLowerCase();
     _self.daemonStats = {
         "step": "initialize",
         "jobs": {}
@@ -73,6 +72,7 @@ daemon.prototype.init = function (callback) {
     var _self = this;
     var registry = null;
 
+    _self.soajs.param.serviceName = _self.soajs.param.serviceName.toLowerCase();
     _self.soajs.param.serviceGroup = _self.soajs.param.serviceGroup || "No Group Daemon";
     _self.soajs.param.serviceVersion = _self.soajs.param.serviceVersion || 1;
     _self.soajs.param.serviceVersion = parseInt(_self.soajs.param.serviceVersion);
