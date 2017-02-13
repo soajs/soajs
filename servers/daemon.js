@@ -60,6 +60,7 @@ function daemon(param) {
 
     _self.soajs = {};
     _self.soajs.param = param;
+	_self.soajs.param.serviceName = _self.soajs.param.serviceName.toLowerCase();
     _self.daemonStats = {
         "step": "initialize",
         "jobs": {}

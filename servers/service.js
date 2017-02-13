@@ -63,7 +63,7 @@ function service(param) {
 
     var soajs = {};
     soajs.param = param;
-
+	soajs.param.serviceName = soajs.param.serviceName.toLowerCase();
     _self.app = express();
     _self.appMaintenance = express();
 
