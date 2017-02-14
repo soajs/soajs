@@ -31,14 +31,28 @@ module.exports = {
     },
 
     "getAccessToken": function (bearerToken, cb) {
-        //TODO verify that the env in token is dashboard and the current env can be anything
-        //TODO verify that if the env in token is not dashboard must be equal to current env
-        mongo.findOne(tokenCollectionName, {"token": bearerToken, "type": "accessToken"}, cb);
+        mongo.findOne(tokenCollectionName, {"token": bearerToken, "type": "accessToken"}, function (err, rec) {
+            if (rec && rec.env === regEnvironment)
+                return cb (err, rec);
+            else {
+                if (rec && rec.env === "dashboard")
+                    return cb(err, rec);
+                else
+                    return (err, null);
+            }
+        });
     },
     "getRefreshToken": function (bearerToken, cb) {
-        //TODO verify that the env in token is dashboard and the current env can be anything
-        //TODO verify that if the env in token is not dashboard must be equal to current env
-        mongo.findOne(tokenCollectionName, {"token": bearerToken, "type": "refreshToken"}, cb);
+        mongo.findOne(tokenCollectionName, {"token": bearerToken, "type": "refreshToken"}, function (err, rec) {
+            if (rec && rec.env === regEnvironment)
+                return cb (err, rec);
+            else {
+                if (rec && rec.env === "dashboard")
+                    return cb(err, rec);
+                else
+                    return (err, null);
+            }
+        });
     },
     "saveAccessToken": function (accessToken, clientId, expires, userId, cb) {
         var tokenRecord = {
