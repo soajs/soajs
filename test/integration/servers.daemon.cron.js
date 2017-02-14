@@ -5,10 +5,10 @@ var soajs = helper.requireModule('index.js');
 
 var requester = helper.requester;
 
-describe('Testing helloDaemonCron', function() {
+describe('Testing hellodaemoncron', function() {
     var daemon = new soajs.server.daemon({
         "config": {
-            serviceName: "helloDaemonCron",
+            serviceName: "hellodaemoncron",
             "serviceVersion": 1,
             servicePort: 4201,
             "errors": {},

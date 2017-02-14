@@ -63,7 +63,6 @@ function service(param) {
 
     var soajs = {};
     soajs.param = param;
-
     _self.app = express();
     _self.appMaintenance = express();
 
@@ -116,6 +115,8 @@ service.prototype.init = function (callback) {
     var _self = this;
     var registry = null;
     var soajs = _self.app.soajs;
+
+    soajs.param.serviceName = soajs.param.serviceName.toLowerCase();
     soajs.param.serviceGroup = soajs.param.serviceGroup || "No Group Service";
     soajs.param.serviceVersion = soajs.param.serviceVersion || 1;
     soajs.param.serviceVersion = parseInt(soajs.param.serviceVersion);

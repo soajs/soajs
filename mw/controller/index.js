@@ -120,7 +120,8 @@ function extractBuildParameters(req, service, service_nv, version, url, callback
 	    (process.env.SOAJS_DEPLOY_HA || req.soajs.registry.services[service].hosts)
     ) {
 
-        //TODO: call the driver to fetch the latest version of the service
+        service = service.toLowerCase();
+        service_nv = service_nv.toLowerCase();
 
         var nextStep = function(version){
             var extKeyRequired = false;
