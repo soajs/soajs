@@ -63,7 +63,6 @@ function service(param) {
 
     var soajs = {};
     soajs.param = param;
-
     _self.app = express();
     _self.appMaintenance = express();
 
@@ -116,6 +115,8 @@ service.prototype.init = function (callback) {
     var _self = this;
     var registry = null;
     var soajs = _self.app.soajs;
+
+    soajs.param.serviceName = soajs.param.serviceName.toLowerCase();
     soajs.param.serviceGroup = soajs.param.serviceGroup || "No Group Service";
     soajs.param.serviceVersion = soajs.param.serviceVersion || 1;
     soajs.param.serviceVersion = parseInt(soajs.param.serviceVersion);
@@ -303,12 +304,15 @@ service.prototype.init = function (callback) {
                     debug: registry.serviceConfig.oauth.debug
                 });
 
-                soajs.oauthService = soajs.param.oauthService || {"name": "oauth", "tokenApi": "/token"};
+                soajs.oauthService = soajs.param.oauthService || {"name": "oauth", "tokenApi": "/token", "authorizationApi": "/authorization"};
                 if (!soajs.oauthService.name) {
                     soajs.oauthService.name = "oauth";
                 }
                 if (!soajs.oauthService.tokenApi) {
                     soajs.oauthService.tokenApi = "/token";
+                }
+                if (!soajs.oauthService.authorizationApi) {
+                    soajs.oauthService.authorizationApi = "/authorization";
                 }
 
                 soajs.oauth = _self.oauth.authorise();
@@ -552,7 +556,7 @@ service.prototype.stop = function (cb) {
  * @returns {*}
  */
 function injectOauth(restApp, args) {
-    if (restApp.app.soajs.oauthService && restApp.app.soajs.param.serviceName === restApp.app.soajs.oauthService.name && args[0] === restApp.app.soajs.oauthService.tokenApi) {
+    if (restApp.app.soajs.oauthService && restApp.app.soajs.param.serviceName === restApp.app.soajs.oauthService.name && (args[0] === restApp.app.soajs.oauthService.tokenApi || args[0] === restApp.app.soajs.oauthService.authorizationApi)) {
         return args;
     }
 

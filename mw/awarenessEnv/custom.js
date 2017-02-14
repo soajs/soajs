@@ -82,20 +82,29 @@ var awareness_healthCheck = function () {
 };
 
 
-function roundRobin (s, v, env, cb) {
-    if (!cb && typeof env === "function") {
-        cb = env;
-        env = regEnvironment;
-    }
-    else if (!cb && typeof v === "function") {
-        cb = v;
-        v = null;
-    }
-    else if (!cb && typeof s === "function") {
-        cb = s;
-        s = "controller";
-    }
-
+function roundRobin () {
+	var s, v, env, cb;
+	cb = arguments[arguments.length -1];
+	
+	switch(arguments.length){
+		//dash, cb
+		case 2:
+			env = arguments[0];
+			break;
+		case 3:
+			//1, dash, cb
+			v = arguments[0];
+			env = arguments[1];
+			break;
+		case 4:
+			//controller, 1, dash, cb
+			v = arguments[1];
+			env = arguments[2];
+			break;
+	}
+	
+	env = env || regEnvironment;
+	s = "controller";
 
     if (env, s && serviceAwarenessObj[env] && serviceAwarenessObj[env][s] && serviceAwarenessObj[env][s].healthy) {
         if (!v)

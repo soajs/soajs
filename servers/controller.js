@@ -221,15 +221,15 @@ controller.prototype.init = function (callback) {
 	                _self.log.info('Incoming proxy request for ' + req.url);
 
 	                var haTarget;
-	                if(process.env.SOAJS_DEPLOY_HA === 'swarm'){
-		                haTarget = {
-			                socketPath: process.env.SOAJS_SWARM_UNIX_PORT || '/var/run/docker.sock'
-		                };
-	                }
-	                else{
+	                if(process.env.SOAJS_DEPLOY_HA === 'kubernetes'){
 	                	haTarget = {
 			                host: process.env.SOAJS_KUBECTL_PROXY_HOST || '127.0.0.1',
 			                port: process.env.SOAJS_KUBECTL_PROXY_PORT || 8001
+		                };
+	                }
+	                else{
+		                haTarget = {
+			                socketPath: process.env.SOAJS_SWARM_UNIX_PORT || '/var/run/docker.sock'
 		                };
 	                }
 	                proxy.web(req, res, { target: haTarget });
