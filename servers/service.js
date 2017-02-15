@@ -636,9 +636,9 @@ function isSOAJready(app, log) {
  * @returns {*}
  */
 function routeInjection (_self, args){
-    args = injectOauth(_self, args);
-    args = injectServiceMW (_self, args);
     args = injectInputmask(_self, args);
+    args = injectServiceMW (_self, args);
+    args = injectOauth(_self, args);
     return args;
 }
 /**
