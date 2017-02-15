@@ -18,6 +18,7 @@ urac.prototype.init = function (cb) {
     var _self = this;
     if (_self.id) {
         uracDriver.getRecord(_self.soajs, {id: _self.id.id.toString()}, function (err, record) {
+	        _self.userRecord = record;
             cb(err, record);
         });
     }
