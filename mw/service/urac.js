@@ -14,11 +14,17 @@ function urac(param) {
     _self.userRecord = null;
 }
 
+/**
+ * Initialize Driver and set userRecord if found
+ * @param cb
+ */
 urac.prototype.init = function (cb) {
     var _self = this;
     if (_self.id) {
         uracDriver.getRecord(_self.soajs, {id: _self.id.id.toString()}, function (err, record) {
-	        _self.userRecord = record;
+	        if(record){
+        	    _self.userRecord = record;
+	        }
             cb(err, record);
         });
     }
@@ -27,6 +33,12 @@ urac.prototype.init = function (cb) {
         cb(error, null);
     }
 };
+
+/**
+ * Get User Profile, if parameter provided, return Config and accessToken as well.
+ * @param {Boolean} _ALL
+ * @returns {*}
+ */
 urac.prototype.getProfile = function (_ALL) {
     var _self = this;
     if (!_self.userRecord) {
@@ -64,6 +76,11 @@ urac.prototype.getProfile = function (_ALL) {
     }
     return urac;
 };
+
+/**
+ * Get User Acl in current environment
+ * @returns {*}
+ */
 urac.prototype.getAcl = function () {
     var _self = this;
     var key = _self.soajs.tenant.key.iKey;
@@ -95,6 +112,46 @@ urac.prototype.getAcl = function () {
 
     return acl;
 };
+
+/**
+ * Get user Acl in all environments
+ */
+urac.prototype.getAclAllEnv = function(){
+	var _self = this;
+	var key = _self.soajs.tenant.key.iKey;
+	var packageCode = _self.soajs.tenant.application.package;
+	
+	var acl = null;
+	
+	if (!_self.userRecord) {
+		return acl;
+	}
+	
+	if (_self.userRecord.config) {
+		if (_self.userRecord.config.keys && _self.userRecord.config.keys[key] && _self.userRecord.config.keys[key].acl_all_env) {
+			acl = _self.userRecord.config.keys[key].acl_all_env;
+		}
+		if (!acl && _self.userRecord.config.packages && _self.userRecord.config.packages[packageCode] && _self.userRecord.config.packages[packageCode].acl_all_env) {
+			acl = _self.userRecord.config.packages[packageCode].acl_all_env;
+		}
+	}
+	
+	if (!acl && _self.userRecord.groupsConfig) {
+		if (_self.userRecord.groupsConfig.keys && _self.userRecord.groupsConfig.keys[key] && _self.userRecord.groupsConfig.keys[key].acl_all_env) {
+			acl = _self.userRecord.groupsConfig.keys[key].acl_all_env;
+		}
+		if (_self.userRecord.groupsConfig.packages && _self.userRecord.groupsConfig.packages[packageCode] && _self.userRecord.groupsConfig.packages[packageCode].acl_all_env) {
+			acl = _self.userRecord.groupsConfig.packages[packageCode].acl_all_env;
+		}
+	}
+	
+	return acl;
+};
+
+/**
+ * Get User Config
+ * @returns {*}
+ */
 urac.prototype.getConfig = function () {
     var _self = this;
     var key = _self.soajs.tenant.iKey;
@@ -110,6 +167,11 @@ urac.prototype.getConfig = function () {
 
     return config;
 };
+
+/**
+ * Get User Groups
+ * @returns {*}
+ */
 urac.prototype.getGroups = function () {
     var _self = this;
     if (!_self.userRecord) {
