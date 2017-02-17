@@ -158,12 +158,12 @@ var lib = {
 				function proceed(record){
 					var cloneRecord = utils.cloneObj(record);
 					//req.soajs.session.setURAC(cloneRecord, function(err) {
-						if(err) {
+						//if(err) {
 							return res.jsonp(req.soajs.buildResponse({
 								"code": 401,
 								"msg": config.errors[401]
 							}));
-						}
+						//}
 
 						var all = req.soajs.uracDriver.getUrac(true);
 

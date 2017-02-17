@@ -198,6 +198,81 @@ module.exports = function (configuration) {
         return cb(null, obj);
     }
 
+    function oauthCheck(obj, cb) {
+        var tenantServiceConf = obj.keyObj.config;
+        obj.req.soajs.servicesConfig = tenantServiceConf;
+
+        var oAuthTurnedOn = true;
+        if (obj.app.soajs.oauthService && obj.app.soajs.param.serviceName === obj.app.soajs.oauthService.name && (obj.req.route.path === obj.app.soajs.oauthService.tokenApi || obj.req.route.path === obj.app.soajs.oauthService.authorizationApi))
+            oAuthTurnedOn = false;
+        if (obj.app.soajs.oauth)
+            oAuthTurnedOn = true;
+
+        if (oAuthTurnedOn) {
+            var oauthExec = function () {
+                if (obj.req.soajs.servicesConfig && obj.req.soajs.servicesConfig[obj.app.soajs.oauthService] && obj.req.soajs.servicesConfig[obj.app.soajs.oauthService].disabled)
+                    return cb(null, obj);
+                return obj.app.soajs.oauth(obj.req, obj.res, function (error) {
+                    return cb(error, obj);
+                });
+            };
+
+            var system = _system.getAcl(obj);
+            var api = (system && system.apis ? system.apis[obj.req.route.path] : null);
+            if (!api && system && system.apisRegExp && Object.keys(system.apisRegExp).length) {
+                for (var jj = 0; jj < system.apisRegExp.length; jj++) {
+                    if (system.apisRegExp[jj].regExp && obj.req.route.path.match(system.apisRegExp[jj].regExp)) {
+                        api = system.apisRegExp[jj];
+                    }
+                }
+            }
+
+            //public means:
+            //-------------
+            //case 0:
+            //acl.systemName.access = false
+            //no apiName
+            //case 1:
+            //acl.systemName.access = false
+            //acl.systemName.apis.apiName.access = false
+            //case 2:
+            //acl.systemName.access = true
+            //acl.systemName.apisRegExp.access = false
+            //case 3:
+            //acl.systemName.access = false
+            //acl.systemName.apisRegExp.access = false
+            //case 4:
+            //acl.systemName.access = true
+            //acl.systemName.apis.apiName.access = false
+            //case 5:
+            //acl.systemName.apisPermission = "restricted"
+            //acl.systemName.apis.apiName.access = false
+
+            var serviceApiPublic = false;
+            if (system) {
+                if (system.access) {
+                    if (api && !api.access)
+                        serviceApiPublic = true; //case 4 & case 2
+                }
+                else {
+                    if (!api || (api && !api.access))
+                        serviceApiPublic = true; //case 1 & case 3 & case 0
+                }
+                if ('restricted' === system.apisPermission) {
+                    if (api && !api.access)
+                        serviceApiPublic = true; //case 5
+                }
+            }
+
+            if (serviceApiPublic)
+                return cb(null, obj);
+            else
+                return oauthExec();
+        }
+        else
+            return cb(null, obj);
+    }
+
     /**
      *
      * @param obj
@@ -229,8 +304,8 @@ module.exports = function (configuration) {
                 if (error || !tenant) {
                     return cb(error);
                 }
-                core.registry.loadByEnv({"env" : obj.req.oauth.bearerToken.env}, function (error, registry){
-                    if (error){
+                core.registry.loadByEnv({"env": obj.req.oauth.bearerToken.env}, function (error, registry) {
+                    if (error) {
                         obj.req.soajs.log.error(error);
                         return cb(170);
                     }
@@ -447,6 +522,10 @@ module.exports = function (configuration) {
                                 if (param.security) {
                                     serviceCheckArray.push(securityGeoCheck);
                                     serviceCheckArray.push(securityDeviceCheck);
+                                }
+
+                                if (param.oauth){
+                                    serviceCheckArray.push(oauthCheck);
                                 }
 
                                 if (param.session)

@@ -555,36 +555,6 @@ service.prototype.stop = function (cb) {
  * @param args
  * @returns {*}
  */
-function injectOauth(restApp, args) {
-    if (restApp.app.soajs.oauthService && restApp.app.soajs.param.serviceName === restApp.app.soajs.oauthService.name && (args[0] === restApp.app.soajs.oauthService.tokenApi || args[0] === restApp.app.soajs.oauthService.authorizationApi)) {
-        return args;
-    }
-
-    var oauthExec = function (req, res, next) {
-        if (req.soajs.servicesConfig && req.soajs.servicesConfig[restApp.app.soajs.oauthService] && req.soajs.servicesConfig[restApp.app.soajs.oauthService].disabled)
-            return next();
-        return restApp.app.soajs.oauth(req, res, next);
-    };
-
-    if (restApp.app.soajs.oauth) {
-        var len = args.length;
-        var argsNew = [];
-        argsNew.push(args[0]);
-        argsNew.push(oauthExec);
-        for (var i = 1; i < len; i++) {
-            argsNew[i + 1] = args[i];
-        }
-
-        return argsNew;
-    }
-    return args;
-}
-/**
- *
- * @param restApp
- * @param args
- * @returns {*}
- */
 function injectInputmask(restApp, args) {
     if (restApp.app.soajs.inputmask) {
         var len = args.length;
@@ -638,7 +608,6 @@ function isSOAJready(app, log) {
 function routeInjection (_self, args){
     args = injectInputmask(_self, args);
     args = injectServiceMW (_self, args);
-    args = injectOauth(_self, args);
     return args;
 }
 /**
