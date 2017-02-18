@@ -32,13 +32,14 @@ module.exports = {
 
     "getAccessToken": function (bearerToken, cb) {
         mongo.findOne(tokenCollectionName, {"token": bearerToken, "type": "accessToken"}, function (err, rec) {
-            if (rec && rec.env === regEnvironment)
-                return cb (err, rec);
+            if (rec && rec.env === regEnvironment) {
+                return cb(err, rec);
+            }
             else {
                 if (rec && rec.env === "dashboard")
                     return cb(err, rec);
                 else
-                    return (err, null);
+                    return cb (err, null);
             }
         });
     },
@@ -50,7 +51,7 @@ module.exports = {
                 if (rec && rec.env === "dashboard")
                     return cb(err, rec);
                 else
-                    return (err, null);
+                    return cb (err, null);
             }
         });
     },

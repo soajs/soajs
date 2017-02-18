@@ -199,14 +199,11 @@ module.exports = function (configuration) {
     }
 
     function oauthCheck(obj, cb) {
-        var tenantServiceConf = obj.keyObj.config;
-        obj.req.soajs.servicesConfig = tenantServiceConf;
-
         var oAuthTurnedOn = true;
-        if (obj.app.soajs.oauthService && obj.app.soajs.param.serviceName === obj.app.soajs.oauthService.name && (obj.req.route.path === obj.app.soajs.oauthService.tokenApi || obj.req.route.path === obj.app.soajs.oauthService.authorizationApi))
-            oAuthTurnedOn = false;
         if (obj.app.soajs.oauth)
             oAuthTurnedOn = true;
+        if (obj.app.soajs.oauthService && obj.app.soajs.param.serviceName === obj.app.soajs.oauthService.name && (obj.req.route.path === obj.app.soajs.oauthService.tokenApi || obj.req.route.path === obj.app.soajs.oauthService.authorizationApi))
+            oAuthTurnedOn = false;
 
         if (oAuthTurnedOn) {
             var oauthExec = function () {
@@ -318,7 +315,10 @@ module.exports = function (configuration) {
             });
         }
         else {
-            return callURACDriver();
+            if (obj.req && obj.req.oauth && obj.req.oauth.bearerToken)
+                return callURACDriver();
+            else
+                return cb(null, obj);
         }
     }
 
@@ -509,6 +509,8 @@ module.exports = function (configuration) {
                             if (packObj) {
                                 req.soajs.tenant.application.package_acl = packObj.acl;
                                 req.soajs.tenant.application.package_acl_all_env = packObj.acl_all_env;
+                                req.soajs.servicesConfig = keyObj.config;
+
                                 var serviceCheckArray = [function (cb) {
                                     cb(null, {
                                         "app": app,
