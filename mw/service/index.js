@@ -523,7 +523,6 @@ module.exports = function (configuration) {
                                     serviceCheckArray.push(securityGeoCheck);
                                     serviceCheckArray.push(securityDeviceCheck);
                                 }
-
                                 if (param.oauth){
                                     serviceCheckArray.push(oauthCheck);
                                 }
@@ -562,7 +561,13 @@ module.exports = function (configuration) {
             }
         }
         else {
-            return next();
+            var oauthExec = function () {
+                app.soajs.oauth(req, res, next);
+            };
+            if (param.oauth)
+                return oauthExec();
+            else
+                return next();
         }
     };
 };
