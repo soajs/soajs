@@ -260,6 +260,10 @@ module.exports = function (configuration) {
                         serviceApiPublic = true; //case 5
                 }
             }
+            if (serviceApiPublic){
+                if (obj.req && obj.req.query && obj.req.query.access_token)
+                    serviceApiPublic = false;
+            }
 
             if (serviceApiPublic)
                 return cb(null, obj);
