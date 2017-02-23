@@ -3,10 +3,10 @@
 var path = require('path');
 var os = require('os');
 
-var provision = require("./../modules/soajs.provision/index.js");
-var core = require("./../modules/soajs.core/index.js");
-
-var lib = require("./../lib/index");
+var coreModules = require ("soajs.core.modules");
+var core = coreModules.core;
+var provision = coreModules.provision;
+var lib = require ("soajs.core.libs");
 
 var express = require("./../classes/express");
 
@@ -262,7 +262,7 @@ service.prototype.init = function (callback) {
 
             if (soajs.param.session) {
                 var session = require('express-session');
-                var MongoStore = require('./../modules/soajs.mongoStore/index.js')(session);
+                var MongoStore = coreModules.mongoStore(session);
                 var store = new MongoStore(registry.coreDB.session);
                 _self.log.info(registry.coreDB.session);
                 var sessConf = {};

@@ -5,7 +5,8 @@ var url = require('url');
 var request = require('request');
 var http = require('http');
 
-var core = require('../../modules/soajs.core');
+var coreModules = require ("soajs.core.modules");
+var core = coreModules.core;
 var drivers = require('soajs.core.drivers');
 
 /**

@@ -1,6 +1,7 @@
 'use strict';
 var drivers = require('soajs.core.drivers');
-var core = require('../../modules/soajs.core');
+var coreModules = require ("soajs.core.modules");
+var core = coreModules.core;
 var param = null;
 
 var regEnvironment = (process.env.SOAJS_ENV || "dev");

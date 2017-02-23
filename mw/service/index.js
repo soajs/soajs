@@ -1,7 +1,8 @@
 'use strict';
 
-var core = require('../../modules/soajs.core');
-var provision = require("../../modules/soajs.provision");
+var coreModules = require ("soajs.core.modules");
+var core = coreModules.core;
+var provision = coreModules.provision;
 var MultiTenantSession = require("../../classes/MultiTenantSession");
 var uracDriver = require("./urac.js");
 

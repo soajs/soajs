@@ -7,7 +7,8 @@
  * @returns {Function}
  */
 module.exports = function (config, inputmaskSrc) {
-    var core = require("../../modules/soajs.core");
+    var coreModules = require ("soajs.core.modules");
+    var core = coreModules.core;
     var validator = core.validator;
     var configSchemaValidator = require('./schemas.js')(validator);
     var inputmask = require("./inputmask.js");

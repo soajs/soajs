@@ -1,6 +1,7 @@
 'use strict';
 
 require("./classes/http");
+var coreModules = require ("soajs.core.modules");
 
 process.on('uncaughtException', function (e) {
     console.log(new Date().toISOString(), e.stack || e);
@@ -17,13 +18,11 @@ module.exports = {
         "controller": require("./servers/controller.js"),
         "daemon": require("./servers/daemon.js")
     },
-    "mail": require("./modules/soajs.mail"),
-    "mongo": require("./modules/soajs.mongo"),
-    "es": require("./modules/soajs.es"),
-    "contentBuilder": require("./modules/soajs.contentBuilder"),
-    "hasher": require("./modules/soajs.core").security.hasher,
-    "authorization": {
-        "generate": require("./modules/soajs.core").security.authorization.generate
-    }
+    //"contentBuilder": coreModules.contentBuilder,
+    //"es": coreModules.es,
+    //"mail": coreModules.mail,
+    //"mongo": coreModules.mongo,
+    //"hasher": coreModules.hasher,
+    //"authorization": coreModules.authorization
 };
 

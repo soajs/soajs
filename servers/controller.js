@@ -5,7 +5,9 @@ var http = require('http');
 var request = require('request');
 var httpProxy = require('http-proxy');
 var url = require('url');
-var core = require('./../modules/soajs.core/index.js');
+
+var coreModules = require ("soajs.core.modules");
+var core = coreModules.core;
 
 var favicon_mw = require('./../mw/favicon/index');
 var cors_mw = require('./../mw/cors/index');

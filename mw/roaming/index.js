@@ -1,11 +1,12 @@
 'use strict';
 
-var core = require('../../modules/soajs.core');
-var Mongo = require('../../modules/soajs.mongo');
-var provision = require("../../modules/soajs.provision");
+var coreModules = require ("soajs.core.modules");
+var core = coreModules.core;
+var Mongo = coreModules.mongo;
+var provision = coreModules.provision;
 var MultiTenantSession = require("../../classes/MultiTenantSession");
 var async = require("async");
-var utils = require("../../lib/utils");
+var utils = require ("soajs.core.libs").utils;
 
 /**
  *

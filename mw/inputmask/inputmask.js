@@ -1,5 +1,5 @@
 'use strict';
-var utils = require('../../lib').utils;
+var utils = require ("soajs.core.libs").utils;
 var merge = require('merge');
 
 function mergeCommonFields(params, commonFields) {

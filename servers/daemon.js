@@ -3,10 +3,10 @@
 var path = require('path');
 var async = require('async');
 
-var provision = require("./../modules/soajs.provision/index.js");
-var core = require("./../modules/soajs.core/index.js");
-
-var lib = require("./../lib/index");
+var coreModules = require ("soajs.core.modules");
+var core = coreModules.core;
+var provision = coreModules.provision;
+var lib = require ("soajs.core.libs");
 
 var express = require("./../classes/express");
 

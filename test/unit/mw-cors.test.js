@@ -1,7 +1,6 @@
 "use strict";
 var assert = require('assert');
 var helper = require("../helper.js");
-var soajs = helper.requireModule('./modules/soajs.core/index');
 var cors = helper.requireModule('./mw/cors');
 
 describe("testing cors", function() {

@@ -1,7 +1,7 @@
 'use strict';
 
-var core = require('../../modules/soajs.core');
-var registry = null;
+var coreModules = require ("soajs.core.modules");
+var core = coreModules.core;
 var log = null;
 /**
  *
