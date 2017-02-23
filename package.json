@@ -50,6 +50,7 @@
     "soajs.core.drivers": "0.0.*",
     "soajs.core.libs": "0.0.*",
     "soajs.core.modules": "0.0.*",
+    "soajs.urac.driver": "0.0.*",
     "useragent": "2.1.10",
     "validator": "6.2.0"
   }
