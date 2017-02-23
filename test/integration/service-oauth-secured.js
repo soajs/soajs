@@ -4,7 +4,7 @@ var request = require("request");
 var helper = require("../helper.js");
 var soajs = helper.requireModule('index.js');
 
-var Mongo = soajs.mongo;
+var Mongo = require("soajs.core.modules").mongo;
 var coreDbConfig = {
     "name": 'core_provision',
     "prefix": "",
@@ -177,7 +177,7 @@ var lib = {
                 var userCollectionName = "oauth_urac";
                 var tokenCollectionName = "oauth_token";
                 var Hasher = helper.hasher;
-                var Mongo = soajs.mongo;
+                var Mongo = require("soajs.core.modules").mongo;
                 var mongo = null;
 
                 function login(req, cb) {
