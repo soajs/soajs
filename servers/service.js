@@ -301,7 +301,9 @@ service.prototype.init = function (callback) {
                 _self.oauth = oauthserver({
                     model: provision.oauthModel,
                     grants: registry.serviceConfig.oauth.grants,
-                    debug: registry.serviceConfig.oauth.debug
+                    debug: registry.serviceConfig.oauth.debug,
+	                accessTokenLifetime: registry.serviceConfig.oauth.accessTokenLifetime,
+	                refreshTokenLifetime: registry.serviceConfig.oauth.refreshTokenLifetime
                 });
 
                 soajs.oauthService = soajs.param.oauthService || {"name": "oauth", "tokenApi": "/token", "authorizationApi": "/authorization"};
