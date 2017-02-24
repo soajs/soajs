@@ -79,6 +79,13 @@ urac.prototype.getProfile = function (_ALL) {
             urac.config = _self.userRecord.config;
         }
     }
+    else if (_self.userRecord.userId){
+        urac = {
+            "_id": _self.userRecord._id,
+            "username": _self.userRecord.userId,
+            "tenant": _self.userRecord.tId
+        };
+    }
     return urac;
 };
 
