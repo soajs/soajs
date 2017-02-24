@@ -24,7 +24,7 @@ function urac(param) {
 urac.prototype.init = function (cb) {
     var _self = this;
     if (_self.userRecord)
-        cb(err, _self.userRecord);
+        cb(null, _self.userRecord);
     if (_self.id) {
         uracDriver.getRecord(_self.soajs, {id: _self.id.id.toString()}, function (err, record) {
 	        if(record){
