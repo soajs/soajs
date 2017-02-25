@@ -58,9 +58,7 @@ urac.prototype.getProfile = function (_ALL) {
             "email": _self.userRecord.email,
             "groups": _self.userRecord.groups,
             "profile": _self.userRecord.profile,
-            "tenant": _self.userRecord.tenant,
-            "oauthRefreshToken": _self.userRecord.oauthRefreshToken,
-            "oauthAccessToken": _self.userRecord.oauthAccessToken
+            "tenant": _self.userRecord.tenant
         };
 
         if (_self.userRecord.socialLogin) {
