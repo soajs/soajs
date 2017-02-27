@@ -142,6 +142,7 @@ module.exports = {
                 obj['ENV_schema'] = envRecord;
                 return cb(null, obj);
             }
+            return cb(null, obj);
         });
     },
     "loadOtherEnvHosts": function (param, cb) {
