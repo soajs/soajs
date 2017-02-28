@@ -300,7 +300,7 @@ module.exports = function (configuration) {
         if (obj.req && obj.req.oauth && obj.req.oauth.bearerToken && obj.req.oauth.bearerToken.env === "dashboard" && regEnvironment !== "dashboard") {
             obj.req.soajs.tenant.roaming = {
                 "tId": obj.req.oauth.bearerToken.clientId,
-                "userId": obj.req.oauth.bearerToken.userId
+                "user": obj.req.oauth.bearerToken.user
             };
             provision.getTenantData(obj.req.oauth.bearerToken.clientId, function (error, tenant) {
                 if (error || !tenant) {
