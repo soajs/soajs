@@ -297,16 +297,23 @@ module.exports = function (configuration) {
                 return cb(null, obj);
             });
         };
-        if (obj.req && obj.req.oauth && obj.req.oauth.bearerToken && obj.req.oauth.bearerToken.env === "dashboard" && regEnvironment !== "dashboard") {
+        
+        // if (obj.req && obj.req.oauth && obj.req.oauth.bearerToken && obj.req.oauth.bearerToken.env === "dashboard" && regEnvironment !== "dashboard") {
+        if (obj.req && obj.req.oauth && obj.req.oauth.bearerToken && obj.req.oauth.bearerToken.env === "dashboard") {
             obj.req.soajs.tenant.roaming = {
                 "tId": obj.req.oauth.bearerToken.clientId,
                 "user": obj.req.oauth.bearerToken.user
             };
+            
+            //if environment is dashboard don't load by env
+	        
+	        //if tenant id === client id, don't get tenant data
+	        
             provision.getTenantData(obj.req.oauth.bearerToken.clientId, function (error, tenant) {
                 if (error || !tenant) {
                     return cb(error);
                 }
-                core.registry.loadByEnv({"env": obj.req.oauth.bearerToken.env}, function (error, registry) {
+                core.registry.loadByEnv({"envCode": obj.req.oauth.bearerToken.env}, function (error, registry) {
                     if (error) {
                         obj.req.soajs.log.error(error);
                         return cb(170);
