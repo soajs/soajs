@@ -297,33 +297,76 @@ module.exports = function (configuration) {
                 return cb(null, obj);
             });
         };
+	
+	    /**
+	     * returns code for the requested tenant.
+	     * if tenant is the same in the request, returns tenant from request
+	     * @param {Function} cb
+	     * @returns {*}
+	     */
+	    var getTenantInfo = function(cb){
+	        //if tenant id === client id, don't get tenant data
+	        if(obj.req.soajs.tenant.id === obj.req.oauth.bearerToken.clientId){
+	        	obj.req.soajs.log.debug("loading tenant data from req.soajs.tenant.id");
+	        	return cb(null, obj.req.soajs.tenant);
+	        }
+		
+		    obj.req.soajs.log.debug("loading tenant data from req.oauth.bearerToken.clientId");
+	        provision.getTenantData(obj.req.oauth.bearerToken.clientId, function (error, tenant) {
+		        if (error || !tenant) {
+			        if(!tenant){
+			        	error = new Error("Tenant not found for:" + obj.req.oauth.bearerToken.clientId);
+			        }
+			        obj.req.soajs.log.error(error);
+			        return cb(error);
+		        }
+		        
+		        return cb(null, tenant);
+	        });
+        };
+	
+	    /**
+	     * load the registry of the requested environment.
+	     * if environment is the same in the request, return registry from request
+	     * @param {Function} cb
+	     * @returns {*}
+	     */
+        var getEnvRegistry = function(cb){
+	        //if environment is the same as regEnvironment, use it
+	        if(obj.req.oauth.bearerToken.env === regEnvironment){
+		        obj.req.soajs.log.debug("loading env registry from req.soajs.registry");
+	        	return cb(null, obj.req.soajs.registry);
+	        }
+		
+		    obj.req.soajs.log.debug("loading env registry from req.oauth.bearerToken.env");
+	        core.registry.loadByEnv({"envCode": obj.req.oauth.bearerToken.env}, function (error, registry) {
+		        if (error || !registry) {
+			        if(!registry){
+				        error = new Error("Registry not found for:" + obj.req.oauth.bearerToken.env);
+			        }
+			        obj.req.soajs.log.error(error);
+			        return cb(error);
+		        }
+		        return cb(null, registry);
+	        });
+	    };
         
-        // if (obj.req && obj.req.oauth && obj.req.oauth.bearerToken && obj.req.oauth.bearerToken.env === "dashboard" && regEnvironment !== "dashboard") {
         if (obj.req && obj.req.oauth && obj.req.oauth.bearerToken && obj.req.oauth.bearerToken.env === "dashboard") {
             obj.req.soajs.tenant.roaming = {
                 "tId": obj.req.oauth.bearerToken.clientId,
                 "user": obj.req.oauth.bearerToken.user
             };
-            
-            //if environment is dashboard don't load by env
 	        
-	        //if tenant id === client id, don't get tenant data
-	        
-            provision.getTenantData(obj.req.oauth.bearerToken.clientId, function (error, tenant) {
-                if (error || !tenant) {
-                    return cb(error);
-                }
-                core.registry.loadByEnv({"envCode": obj.req.oauth.bearerToken.env}, function (error, registry) {
-                    if (error) {
-                        obj.req.soajs.log.error(error);
-                        return cb(170);
-                    }
-                    if (registry && registry.tenantMetaDB)
-                        obj.req.soajs.tenant.roaming.tenantMetaDB = registry.tenantMetaDB;
-                    obj.req.soajs.tenant.roaming.code = tenant.code;
-
-                    return callURACDriver();
-                })
+	        async.parallel({ "tenant": getTenantInfo, "registry": getEnvRegistry }, function(error, response){
+		        if(error){
+			        return cb(170);
+		        }
+		        
+	            if (response.registry && response.registry.tenantMetaDB)
+		            obj.req.soajs.tenant.roaming.tenantMetaDB = response.registry.tenantMetaDB;
+	            obj.req.soajs.tenant.roaming.code = response.tenant.code;
+	
+	            return callURACDriver();
             });
         }
         else {
