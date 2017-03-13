@@ -32,7 +32,7 @@ var ha = {
 
         env = env || regEnvironment;
 	    serviceName = "controller";
-		return cb(env + "-" + serviceName);
+		return cb(env + "-" + serviceName + "-v1-service");
     }
 };
 

@@ -63,7 +63,7 @@ var ha = {
 	    env = regEnvironment;
 
         if(serviceName === 'controller'){
-        	return cb(env + "-" + serviceName);
+        	return cb(env + "-" + serviceName + "-v1-service");
         }
         else{
 	        var options = lib.constructDriverParam(serviceName);
