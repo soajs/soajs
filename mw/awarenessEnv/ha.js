@@ -1,6 +1,7 @@
 'use strict';
 
 var param = null;
+var core = require('../../modules/soajs.core');
 
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
@@ -32,7 +33,17 @@ var ha = {
 
         env = env || regEnvironment;
 	    serviceName = "controller";
-		return cb(env + "-" + serviceName);
+        var info = core.registry.get().deployer.selected.split('.');
+        var deployerConfig = core.registry.get().deployer.container[info[1]][info[2]];
+        var namespace = '';
+        if (deployerConfig && deployerConfig.namespace && deployerConfig.namespace.default) {
+            namespace = '.' + deployerConfig.namespace.default;
+            if (deployerConfig.namespace.perService) {
+                namespace += '-' + env + '-controller';
+            }
+        }
+
+        return cb(env + "-" + serviceName + "-v1-service" + namespace);
     }
 };
 

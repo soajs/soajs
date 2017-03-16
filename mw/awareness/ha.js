@@ -64,7 +64,17 @@ var ha = {
 	    env = regEnvironment;
 
         if(serviceName === 'controller'){
-        	return cb(env + "-" + serviceName);
+			var info = core.registry.get().deployer.selected.split('.');
+			var deployerConfig = core.registry.get().deployer.container[info[1]][info[2]];
+			var namespace = '';
+			if (deployerConfig && deployerConfig.namespace && deployerConfig.namespace.default) {
+				namespace = '.' + deployerConfig.namespace.default;
+				if (deployerConfig.namespace.perService) {
+					namespace += '-' + env + '-controller';
+				}
+			}
+
+        	return cb(env + "-" + serviceName + "-v1-service" + namespace);
         }
         else{
 	        var options = lib.constructDriverParam(serviceName);

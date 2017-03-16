@@ -157,7 +157,7 @@ controller.prototype.init = function (callback) {
                     });
                 };
 
-	            var proxy = httpProxy.createProxyServer({});
+                var proxy = httpProxy.createProxyServer({});
                 proxy.on('error', function (error, req, res) {
                     _self.log.error('Failed to proxy ' + req.url);
                     _self.log.error('Internal proxy error: ' + error);
@@ -217,24 +217,17 @@ controller.prototype.init = function (callback) {
                 }
                 else if(parsedUrl.pathname.match('/proxySocket/.*')){
 
-                	req.url = req.url.split('/proxySocket')[1];
-	                req.headers.host = '127.0.0.1';
+                    req.url = req.url.split('/proxySocket')[1];
+                    req.headers.host = '127.0.0.1';
 
-	                _self.log.info('Incoming proxy request for ' + req.url);
+                    _self.log.info('Incoming proxy request for ' + req.url);
 
-	                var haTarget;
-	                if(process.env.SOAJS_DEPLOY_HA === 'kubernetes'){
-	                	haTarget = {
-			                host: process.env.SOAJS_KUBECTL_PROXY_HOST || '127.0.0.1',
-			                port: process.env.SOAJS_KUBECTL_PROXY_PORT || 8001
-		                };
-	                }
-	                else{
-		                haTarget = {
-			                socketPath: process.env.SOAJS_SWARM_UNIX_PORT || '/var/run/docker.sock'
-		                };
-	                }
-	                proxy.web(req, res, { target: haTarget });
+                    var haTarget;
+
+                    haTarget = {
+                        socketPath: process.env.SOAJS_SWARM_UNIX_PORT || '/var/run/docker.sock'
+                    };
+                    proxy.web(req, res, { target: haTarget });
                 }
                 else {
                     var heartbeat = function (res) {
