@@ -247,8 +247,11 @@ MultiTenantSession.prototype.setURAC = function (urac, cb) {
 	else {
 		for (var packageCode in urac.config.packages) {
 			if (Object.hasOwnProperty.call(urac.config.packages, packageCode)) {
-				var ACL = urac.config.packages[packageCode].acl;
-				urac.config.packages[packageCode].acl_all_env = urac.config.packages[packageCode].acl;
+				var ACL = urac.config.packages[packageCode].acl_all_env;
+				if(!ACL){
+					ACL = urac.config.packages[packageCode].acl_all_env = urac.config.packages[packageCode].acl;
+				}
+				
 				if (ACL && typeof ACL === "object") {
 					if (ACL[regEnvironment]) {
 						if (!Object.hasOwnProperty.call(ACL[regEnvironment], 'access') && !Object.hasOwnProperty.call(ACL[regEnvironment],'apis') && !Object.hasOwnProperty.call(ACL[regEnvironment],'apisRegExp') && !Object.hasOwnProperty.call(ACL[regEnvironment],'apisPermission')) {
@@ -265,8 +268,11 @@ MultiTenantSession.prototype.setURAC = function (urac, cb) {
 		//urac.config.keys[key].acl
 		for (var key in urac.config.keys) {
 			if (Object.hasOwnProperty.call(urac.config.keys, key)) {
-				var ACL = urac.config.keys[key].acl;
-				urac.config.keys[key].acl_all_env = urac.config.keys[key].acl;
+				var ACL = urac.config.keys[key].acl_all_env;
+				if(!ACL){
+					ACL = urac.config.keys[key].acl_all_env = urac.config.keys[key].acl;
+				}
+				
 				if (ACL && typeof ACL === "object") {
 					if (ACL[regEnvironment]) {
 						if (!Object.hasOwnProperty.call(ACL[regEnvironment], 'access') && !Object.hasOwnProperty.call(ACL[regEnvironment],'apis') && !Object.hasOwnProperty.call(ACL[regEnvironment],'apisRegExp') && !Object.hasOwnProperty.call(ACL[regEnvironment],'apisPermission')) {
