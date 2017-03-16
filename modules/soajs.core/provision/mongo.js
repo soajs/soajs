@@ -101,7 +101,7 @@ module.exports = {
                                 var ACL_ALL_ENV = products[i].packages[j].acl;
                                 var ACL = ACL_ALL_ENV;
                                 if (ACL_ALL_ENV && typeof ACL_ALL_ENV === "object") {
-                                    if (ACL_ALL_ENV[regEnvironment] && (!ACL_ALL_ENV[regEnvironment].access && !ACL_ALL_ENV[regEnvironment].apis && !ACL_ALL_ENV[regEnvironment].apisRegExp && !ACL_ALL_ENV[regEnvironment].apisPermission)) {
+                                    if (ACL_ALL_ENV[regEnvironment] && (!Object.hasOwnProperty.call(ACL_ALL_ENV[regEnvironment],'access') && !Object.hasOwnProperty.call(ACL_ALL_ENV[regEnvironment],'apis') && !Object.hasOwnProperty.call(ACL_ALL_ENV[regEnvironment],'apisRegExp') && !Object.hasOwnProperty.call(ACL_ALL_ENV[regEnvironment],'apisPermission'))) {
                                         ACL = ACL_ALL_ENV[regEnvironment];
                                     }
                                 }
@@ -165,7 +165,7 @@ module.exports = {
                                         var ACL_ALL_ENV = tenants[i].applications[j].acl;
                                         var ACL = ACL_ALL_ENV;
                                         if (ACL_ALL_ENV && typeof ACL_ALL_ENV === "object") {
-                                            if (ACL_ALL_ENV[regEnvironment] && (!ACL_ALL_ENV[regEnvironment].access && !ACL_ALL_ENV[regEnvironment].apis && !ACL_ALL_ENV[regEnvironment].apisRegExp && !ACL_ALL_ENV[regEnvironment].apisPermission))
+                                            if (ACL_ALL_ENV[regEnvironment] && (!Object.hasOwnProperty.call(ACL_ALL_ENV[regEnvironment],'access') && !Object.hasOwnProperty.call(ACL_ALL_ENV[regEnvironment],'apis') && !Object.hasOwnProperty.call(ACL_ALL_ENV[regEnvironment],'apisRegExp') && !Object.hasOwnProperty.call(ACL_ALL_ENV[regEnvironment],'apisPermission')))
                                                 ACL = ACL_ALL_ENV[regEnvironment];
                                         }
                                         else {

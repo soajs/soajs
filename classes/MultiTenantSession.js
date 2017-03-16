@@ -238,7 +238,7 @@ MultiTenantSession.prototype.setURAC = function (urac, cb) {
 		else
 			return;
 	}
-
+	
 	//NOTE: we need to assure config = {packages: {}, keys : {}}
 	if (!urac.config)
 		urac.config = {};
@@ -251,7 +251,7 @@ MultiTenantSession.prototype.setURAC = function (urac, cb) {
 				urac.config.packages[packageCode].acl_all_env = urac.config.packages[packageCode].acl;
 				if (ACL && typeof ACL === "object") {
 					if (ACL[regEnvironment]) {
-						if (!ACL[regEnvironment].access && !ACL[regEnvironment].apis && !ACL[regEnvironment].apisRegExp && !ACL[regEnvironment].apisPermission) {
+						if (!Object.hasOwnProperty.call(ACL[regEnvironment], 'access') && !Object.hasOwnProperty.call(ACL[regEnvironment],'apis') && !Object.hasOwnProperty.call(ACL[regEnvironment],'apisRegExp') && !Object.hasOwnProperty.call(ACL[regEnvironment],'apisPermission')) {
 							urac.config.packages[packageCode].acl = ACL[regEnvironment];
 						}
 					}
@@ -269,7 +269,7 @@ MultiTenantSession.prototype.setURAC = function (urac, cb) {
 				urac.config.keys[key].acl_all_env = urac.config.keys[key].acl;
 				if (ACL && typeof ACL === "object") {
 					if (ACL[regEnvironment]) {
-						if (!ACL[regEnvironment].access && !ACL[regEnvironment].apis && !ACL[regEnvironment].apisRegExp && !ACL[regEnvironment].apisPermission) {
+						if (!Object.hasOwnProperty.call(ACL[regEnvironment], 'access') && !Object.hasOwnProperty.call(ACL[regEnvironment],'apis') && !Object.hasOwnProperty.call(ACL[regEnvironment],'apisRegExp') && !Object.hasOwnProperty.call(ACL[regEnvironment],'apisPermission')) {
 							urac.config.keys[key].acl = ACL[regEnvironment];
 						}
 					}
