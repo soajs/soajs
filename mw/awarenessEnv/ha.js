@@ -37,7 +37,7 @@ var ha = {
 	    if(process.env.SOAJS_DEPLOY_HA === 'kubernetes'){
 	    	serviceName += "-v1-service";
 	    }
-	    
+
         var info = core.registry.get().deployer.selected.split('.');
         var deployerConfig = core.registry.get().deployer.container[info[1]][info[2]];
         var namespace = '';
