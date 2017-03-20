@@ -377,7 +377,8 @@ service.prototype.init = function (callback) {
 	        _self.provision = {
 		        "init": provision.init,
 		        "generateInternalKey": provision.generateInternalKey,
-		        "generateExtKey": provision.generateExtKey
+		        "generateExtKey": provision.generateExtKey,
+		        "loadProvision": provision.loadProvision
 	        };
 
 	        _self.registry = {
