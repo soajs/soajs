@@ -73,7 +73,7 @@ var ha = {
 			if (deployerConfig && deployerConfig.namespace && deployerConfig.namespace.default) {
 				namespace = '.' + deployerConfig.namespace.default;
 				if (deployerConfig.namespace.perService) {
-					namespace += '-' + env + '-controller';
+					namespace += '-' + env + '-controller-v1';
 				}
 			}
 
