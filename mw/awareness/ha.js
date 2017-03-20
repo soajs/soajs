@@ -67,13 +67,14 @@ var ha = {
 	        if(process.env.SOAJS_DEPLOY_HA === 'kubernetes'){
 		        serviceName += "-v1-service";
 	        }
+	        
 			var info = core.registry.get().deployer.selected.split('.');
 			var deployerConfig = core.registry.get().deployer.container[info[1]][info[2]];
 			var namespace = '';
 			if (deployerConfig && deployerConfig.namespace && deployerConfig.namespace.default) {
 				namespace = '.' + deployerConfig.namespace.default;
 				if (deployerConfig.namespace.perService) {
-					namespace += '-' + env + '-controller';
+					namespace += '-' + env + '-controller-v1';
 				}
 			}
 
