@@ -82,12 +82,26 @@ var lib = {
 				return cb(response);
 			});
 		}
+	},
+
+	"flushAwarenessCache": function () {
+		var cacheTTL = core.registry.get().serviceConfig.awareness.cacheTTL;
+
+		param.log.debug("Flushing awareness cache");
+		awarenessCache = {};
+
+		setTimeout(lib.flushAwarenessCache, cacheTTL);
 	}
 };
 
 var ha = {
     "init": function (_param) {
     	param = _param;
+
+		var cacheTTL = core.registry.get().serviceConfig.awareness.cacheTTL;
+		if (cacheTTL) {
+			setTimeout(lib.flushAwarenessCache, cacheTTL);
+		}
     },
 
     "getServiceHost": function () {
