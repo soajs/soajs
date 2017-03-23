@@ -22,6 +22,7 @@ describe("importing sample data", function () {
 			require("./controllerServer.unit.test.js");
 			require("./mw-cors.test.js");
 			require("./mw-urac.test.js");
+			require("./mw-imfv.test.js");
 			done();
 		}, 1000);
 	});
