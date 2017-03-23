@@ -60,7 +60,7 @@ urac.prototype.getProfile = function (_ALL) {
             "profile": _self.userRecord.profile,
             "tenant": _self.userRecord.tenant
         };
-
+	    
         if (_self.userRecord.socialLogin) {
             urac.socialLogin = {
                 "strategy": _self.userRecord.socialLogin.strategy,
@@ -100,7 +100,7 @@ urac.prototype.getAcl = function () {
     if (!_self.userRecord) {
         return acl;
     }
-
+	
     if (_self.userRecord.config) {
         if (_self.userRecord.config.keys && _self.userRecord.config.keys[key] && _self.userRecord.config.keys[key].acl) {
             acl = _self.userRecord.config.keys[key].acl;
@@ -163,11 +163,12 @@ urac.prototype.getAclAllEnv = function(){
  */
 urac.prototype.getConfig = function () {
     var _self = this;
-    var key = _self.soajs.tenant.iKey;
+    var key = _self.soajs.tenant.key.iKey;
     if (!_self.userRecord) {
         return null;
     }
     var config = null;
+    
     if (_self.userRecord.config && _self.userRecord.config.keys) {
         if (_self.userRecord.config.keys[key] && _self.userRecord.config.keys[key].config) {
             config = _self.userRecord.config.keys[key].config;
