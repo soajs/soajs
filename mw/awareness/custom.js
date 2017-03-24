@@ -112,7 +112,7 @@ var awareness_healthCheck = function () {
             request({
                 'uri': 'http://' + sObj.host + ':' + (sObj.port + registry.serviceConfig.ports.maintenanceInc) + '/heartbeat'
             }, function (error, response, body) {
-                if (!registry[sObj.what][sObj.name].awarenessStats)
+                if (registry[sObj.what][sObj.name] && !registry[sObj.what][sObj.name].awarenessStats)
                     registry[sObj.what][sObj.name].awarenessStats = {};
                 var statusObj = {"lastCheck": new Date().getTime(), "healthy": false, "version": sObj.version};
                 if (!error && response.statusCode === 200) {
@@ -121,7 +121,7 @@ var awareness_healthCheck = function () {
                         serviceAwarenessObj[sObj.name].healthy[sObj.version].push(sObj.host);
                 }
                 else {
-                    if (registry[sObj.what][sObj.name].awarenessStats[sObj.host] && registry[sObj.what][sObj.name].awarenessStats[sObj.host].healthy === false) {
+                    if (registry[sObj.what][sObj.name] && registry[sObj.what][sObj.name].awarenessStats[sObj.host] && registry[sObj.what][sObj.name].awarenessStats[sObj.host].healthy === false) {
                         statusObj.downCount = registry[sObj.what][sObj.name].awarenessStats[sObj.host].downCount + 1;
                         statusObj.downSince = registry[sObj.what][sObj.name].awarenessStats[sObj.host].downSince;
                     }
@@ -141,7 +141,10 @@ var awareness_healthCheck = function () {
                         }
                     }
                 }
-                registry[sObj.what][sObj.name].awarenessStats[sObj.host] = statusObj;
+                
+                if(registry[sObj.what][sObj.name] && registry[sObj.what][sObj.name].awarenessStats)
+                    registry[sObj.what][sObj.name].awarenessStats[sObj.host] = statusObj;
+                
                 callback();
             });
         }, function (err) {
