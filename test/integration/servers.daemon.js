@@ -67,4 +67,40 @@ describe('Testing helloDaemon', function() {
             done();
         });
     });
+	
+	it('Testing /helloDaemon/reloadDaemonConf', function(done) {
+		requester('get', {
+			uri: 'http://localhost:5200/reloadDaemonConf'
+		}, function(err, body, response) {
+			assert.ifError(err);
+			assert.equal(response.statusCode, 200);
+			assert.ok(body);
+			assert.deepEqual(body.result, true);
+			done();
+		});
+	});
+	
+	it('Testing /helloDaemon/loadProvision', function(done) {
+		requester('get', {
+			uri: 'http://localhost:5200/loadProvision'
+		}, function(err, body, response) {
+			assert.ifError(err);
+			assert.equal(response.statusCode, 200);
+			assert.ok(body);
+			assert.deepEqual(body.result, true);
+			done();
+		});
+	});
+	
+	it('Testing /helloDaemon/heartbeat', function(done) {
+		requester('get', {
+			uri: 'http://localhost:5200/'
+		}, function(err, body, response) {
+			assert.ifError(err);
+			assert.equal(response.statusCode, 200);
+			assert.ok(body);
+			assert.deepEqual(body.result, true);
+			done();
+		});
+	});
 });

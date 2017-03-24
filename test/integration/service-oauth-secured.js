@@ -137,7 +137,7 @@ var lib = {
                             }
                         },
                         "grant_type": {
-                            "source": ['body.username'],
+                            "source": ['body.grant_type'],
                             "required": true,
                             "validation": {
                                 "type": "string"
@@ -299,7 +299,7 @@ describe("testing secured service with oauth", function () {
         });
 
     });
-
+    
     it('login to oauth - then redirect to service - success', function (done) {
         var oauth = {
             url: 'http://127.0.0.1:4000/oauth/token',

@@ -17,7 +17,7 @@ var lib = {
 		var requestOptions = {
 			timeout: 30000,
 			'uri': params.uri,
-			'json': params.body || true
+			'json': params.json || true
 		};
 		if(!params.headers){
 			params.headers = {};
@@ -28,6 +28,7 @@ var lib = {
 		if(params.authorization) requestOptions.headers.authorization = params.authorization;
 		if(params.qs) requestOptions.qs = params.qs;
 		if(params.form !== undefined) requestOptions.form = params.form;
+		if(params.body) requestOptions.body = params.body;
 
 		testConsole.log('===========================================================================');
 		testConsole.log('==== URI     :', params.uri);
