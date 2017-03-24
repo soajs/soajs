@@ -7,8 +7,8 @@ var uracDriver = helper.requireModule('./mw/service/urac');
 var core = require("soajs.core.modules/soajs.core/index.js");
 
 var coreLogger = core.getLogger('testing', {
-	// "src": true,
-	"level": "fatal",
+	"src": true,
+	"level": "error",
 	"formatter": {
 		outputMode: 'short'
 	}

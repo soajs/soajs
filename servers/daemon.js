@@ -285,28 +285,22 @@ daemon.prototype.start = function (cb) {
                 });
                 _self.appMaintenance.get("/reloadDaemonConf", function (req, res) {
                     var response = maintenanceResponse(req);
-                    if (!process.env.SOAJS_DAEMON_GRP_CONF){
-                        _self.soajs.log.error('Environment variable [SOAJS_DAEMON_GRP_CONF] for daemon [' + _self.soajs.param.serviceName + '] is not set.');
-                        response['result'] = false;
+                    provision.loadDaemonGrpConf(process.env.SOAJS_DAEMON_GRP_CONF, _self.soajs.param.serviceName, function (err, daemonConf) {
+                        if (daemonConf) {
+                            _self.daemonConf = daemonConf;
+                            setupDaemon();
+                            response['result'] = true;
+                        }
+                        else {
+                            response['result'] = false;
+                            if (err)
+                                _self.soajs.log.warn("Failed to load daemon config for [" + _self.soajs.param.serviceName + "@" + process.env.SOAJS_DAEMON_GRP_CONF + "]. reusing from previous load. Reason: " + err.message);
+                        }
+                        response['data'] = _self.daemonConf;
                         res.jsonp(response);
-                    }
-                    else {
-                        provision.loadDaemonGrpConf(process.env.SOAJS_DAEMON_GRP_CONF, _self.soajs.param.serviceName, function (err, daemonConf) {
-                            if (daemonConf) {
-                                _self.daemonConf = daemonConf;
-                                setupDaemon();
-                                response['result'] = true;
-                            }
-                            else {
-                                response['result'] = false;
-                                if (err)
-                                    _self.soajs.log.warn("Failed to load daemon config for [" + _self.soajs.param.serviceName + "@" + process.env.SOAJS_DAEMON_GRP_CONF + "]. reusing from previous load. Reason: " + err.message);
-                            }
-                            response['data'] = _self.daemonConf;
-                            res.jsonp(response);
-                        });
-                    }
+                    });
                 });
+                
                 _self.appMaintenance.all('*', function (req, res) {
                     var response = maintenanceResponse(req, "heartbeat");
                     response['result'] = true;
