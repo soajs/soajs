@@ -99,11 +99,9 @@ describe("testing maintenance", function(){
 	
 	before(function(done){
 		lib.startTestService(function(){
-			lib.startDaemon(function(){
-				setTimeout(function(){
-					done();
-				}, 2000);
-			});
+			setTimeout(function(){
+				done();
+			}, 2000);
 		});
 	});
 	
@@ -162,8 +160,39 @@ describe("testing maintenance", function(){
 		});
 		
 		it('Testing /helloDaemon/reloadRegistry', function(done) {
+			process.env.SOAJS_TEST = true;
+			lib.startDaemon(function(){
+				setTimeout(function(){
+					requester('get', {
+						uri: 'http://localhost:5200/reloadRegistry'
+					}, function(err, body, response) {
+						assert.ifError(err);
+						assert.equal(response.statusCode, 200);
+						assert.ok(body);
+						assert.deepEqual(body.result, true);
+						done();
+					});
+				}, 1000);
+			});
+		});
+		
+		it('Testing /helloDaemon/heartbeat', function(done) {
 			requester('get', {
-				uri: 'http://localhost:5200/reloadRegistry'
+				uri: 'http://localhost:5200/heartbeat'
+			}, function(err, body, response) {
+				assert.ifError(err);
+				assert.equal(response.statusCode, 200);
+				delete body.ts;
+				assert.deepEqual(body, {
+					"result": true,
+					"service": {"service": "HELLODAEMON", "type": "daemon", "route": "/heartbeat"}
+				});
+				done();
+			});
+		});
+		it('Testing /helloDaemon/daemonStats', function(done) {
+			requester('get', {
+				uri: 'http://localhost:5200/daemonStats'
 			}, function(err, body, response) {
 				assert.ifError(err);
 				assert.equal(response.statusCode, 200);

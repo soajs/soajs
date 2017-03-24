@@ -42,29 +42,4 @@ describe('Testing hellodaemoncron', function() {
             done();
         });
     });
-    it('Testing /helloDaemon/heartbeat', function(done) {
-        requester('get', {
-            uri: 'http://localhost:5201/heartbeat'
-        }, function(err, body, response) {
-            assert.ifError(err);
-            assert.equal(response.statusCode, 200);
-            delete body.ts;
-            assert.deepEqual(body, {
-                "result": true,
-                "service": {"service": "HELLODAEMONCRON", "type": "daemon", "route": "/heartbeat"}
-            });
-            done();
-        });
-    });
-    it('Testing /helloDaemon/daemonStats', function(done) {
-        requester('get', {
-            uri: 'http://localhost:5201/daemonStats'
-        }, function(err, body, response) {
-            assert.ifError(err);
-            assert.equal(response.statusCode, 200);
-            assert.ok(body);
-            assert.deepEqual(body.result, true);
-            done();
-        });
-    });
 });

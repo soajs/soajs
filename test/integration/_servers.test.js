@@ -6,6 +6,7 @@ describe("starting integration tests", function () {
 		require("./inputMask-spec.js");
 		require("./service-oauth-secured.js");
 		require("./service-multitenant.js");
+		require("./x-service-acl.js");
 		require("./servers.daemon.cron.js");
 		require("./servers.daemon.js");
 		require("./maintenance-operations.test.js");

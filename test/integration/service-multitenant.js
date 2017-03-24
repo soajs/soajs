@@ -269,6 +269,10 @@ var lib = {
 			});
 			
 			holder.service.post("/testRoute2", function (req, res) {
+					res.json(req.soajs.buildResponse(null, req.soajs.inputmaskData));
+			});
+			
+			holder.service.post("/testRoute3", function (req, res) {
 				console.log("waiting 15000 milliseconds before returning a response .... do not stop the test execution");
 				setTimeout(function () {
 					res.json(req.soajs.buildResponse(null, req.soajs.inputmaskData));
@@ -667,6 +671,32 @@ describe("testing multi tenancy", function () {
 				assert.ok(body);
 				assert.ok(body.result);
 				assert.ok(body.data);
+				done();
+			});
+		});
+		
+		it("calling example03 using with a timeout value", function (done) {
+			requester('post', {
+				uri: 'http://localhost:4000/example03/testRoute3',
+				headers: {
+					key: testTenant.applications[1].keys[1].extKeys[1].extKey
+				},
+				qs: {
+					access_token: auth
+				},
+				body: {
+					'user': {
+						'name': 'User One',
+						'genre': 'male'
+					},
+					'name': 'user one',
+					'info': /^\/testRoute\/$/
+				}
+			}, function (err, body) {
+				assert.ifError(err);
+				assert.ok(body);
+				assert.ok(!body.result);
+				assert.ok(body.errors);
 				done();
 			});
 		});
