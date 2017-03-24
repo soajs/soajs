@@ -518,7 +518,7 @@ describe("testing multi tenancy", function() {
 			], function(){
 				setTimeout(function(){
 					done();
-				}, 4000);
+				}, 500);
 			});
 		});
 	});
