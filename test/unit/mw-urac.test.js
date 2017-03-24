@@ -7,10 +7,10 @@ var uracDriver = helper.requireModule('./mw/service/urac');
 var core = require("soajs.core.modules/soajs.core/index.js");
 
 var coreLogger = core.getLogger('testing', {
-	"src": true,
-	"level": "debug",
+	// "src": true,
+	"level": "fatal",
 	"formatter": {
-		outputMode: 'long'
+		outputMode: 'short'
 	}
 });
 
@@ -103,11 +103,9 @@ var registry = {
 			"password": "soajs key lal massa"
 		},
 		"logger": {
-			"src": true,
-			"level": "debug",
+			"level": "fatal",
 			"formatter": {
-				"outputMode": "long",
-				"objectMode": true
+				"outputMode": "short"
 			}
 		},
 		"cors": {
