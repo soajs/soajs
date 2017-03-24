@@ -87,14 +87,17 @@ var lib = {
 
             service = new soajs.server.service({
                 "oauth": true,
-                "session": false,
+                "session": true,
                 "config": config
             });
 
             service.init(function () {
                 service.get("/testRoute", function (req, res) {
                     var fullName = req.soajs.inputmaskData.firstName + ' ' + req.soajs.inputmaskData.lastName;
-                    res.json(req.soajs.buildResponse(null, {fullName: fullName}));
+                    
+                    req.soajs.session.setSERVICE({"fullname": fullName}, function(){
+                        res.json(req.soajs.buildResponse(null, {fullName: fullName}));
+                    });
                 });
 
                 service.start(function () {
