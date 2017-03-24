@@ -226,7 +226,7 @@ describe("testing urac", function () {
 					"dashboard": {}
 				},
 				acl_all_env: {
-					"dev": {
+					"dashboard": {
 						"urac": {},
 						"oauth": {},
 						"dashboard": {}
@@ -236,7 +236,7 @@ describe("testing urac", function () {
 					"urac": {}
 				},
 				package_acl_all_env: {
-					"dev": {
+					"dashboard": {
 						"urac": {}
 					}
 				}

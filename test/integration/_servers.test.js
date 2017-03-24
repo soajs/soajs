@@ -7,6 +7,7 @@ describe("starting integration tests", function () {
 		require("./service-oauth-secured.js");
 		require("./service-multitenant.js");
 		require("./x-service-acl.js");
+		require("./x-service-acl2.js");
 		require("./servers.daemon.cron.js");
 		require("./servers.daemon.js");
 		require("./maintenance-operations.test.js");

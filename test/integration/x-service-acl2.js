@@ -4,14 +4,12 @@ var helper = require("../helper.js");
 var async = require("async");
 
 var soajs = helper.requireModule('index.js');
-var utils = require('soajs.core.libs').utils;
 
 var Mongo = soajs.mongo;
-var Hasher = helper.hasher;
 var requester = helper.requester;
 
-var tenantConfig = {
-	"name": 'test_urac',
+var coreDBConfig = {
+	"name": 'core_provision',
 	"prefix": "",
 	"servers": [
 		{
@@ -41,15 +39,14 @@ var tenantConfig = {
 	'stringify': false,
 	'expireAfter': 1000 * 60 * 60 * 24 * 14 // 2 weeks
 };
-var tenantMongo = new Mongo(tenantConfig);
+var coreMongo = new Mongo(coreDBConfig);
 
 var testTenant = require("soajs.mongodb.data/modules/soajs/data/tenant.js");
 
 var holder = {
 	controller: null,
 	oauth: null,
-	service: null,
-	service2: null
+	service: null
 };
 
 var lib = {
@@ -130,16 +127,10 @@ var lib = {
 		});
 		
 		holder.oauth.init(function () {
-			var userCollectionName = "users";
 			var Hasher = helper.hasher;
-			var Mongo = require("soajs.core.modules").mongo;
-			var mongo = null;
 			
 			function login(req, cb) {
-				if (!mongo) {
-					mongo = new Mongo(tenantConfig);
-				}
-				mongo.findOne(userCollectionName, {'username': req.soajs.inputmaskData['username']}, function (err, record) {
+				coreMongo.findOne("oauth_users", {'userId': req.soajs.inputmaskData['username']}, function (err, record) {
 					if (record) {
 						var hashConfig = {
 							"hashIterations": req.soajs.registry.serviceConfig.oauth.hashIterations || config.hashIterations,
@@ -235,16 +226,7 @@ var lib = {
 		holder.service.init(function() {
 
 			holder.service.get("/info", function(req, res) {
-				holder.service.registry.loadByEnv({
-					"envCode": process.env.SOAJS_ENV
-				}, function (err, reg) {
-					return res.json(req.soajs.buildResponse(null, {"reg": reg}));
-				});
-			});
-
-			holder.service.get("/info2", function(req, res) {
-				var user = req.soajs.uracDriver.getProfile();
-				return res.json(req.soajs.buildResponse(null, user));
+				return res.json(req.soajs.buildResponse(null, true));
 			});
 
 			holder.service.start(cb);
@@ -255,208 +237,45 @@ var lib = {
 	}
 };
 
-describe("testing multi tenancy", function() {
+describe("testing multi tenancy - oauth", function() {
 	var auth;
 
 	before(function (done) {
 		lib.startOauth(function () {
 			lib.startTestService(function () {
-				// lib.startTestService2(function () {
-					lib.startController(function () {
-						tenantMongo.remove('users', {}, function (error) {
-							assert.ifError(error);
-							tenantMongo.remove('groups', {}, function (error) {
-								assert.ifError(error);
-								done();
-							});
-						});
-					});
-				// });
-			});
-		});
-	});
-
-	it('will add user to db', function (done) {
-		var userRecord = {
-			"username": "user10001",
-			"password": "$2a$04$yn9yaxQysIeH2VCixdovJ.TLuOEjFjS5D2Otd7sO7uMkzi9bXX1tq",
-			"firstName": "User",
-			"lastName": "One",
-			"email": "user.one@mydomain.com",
-			"status": "active",
-			"profile": {},
-			"tenant": {
-				"id": testTenant._id.toString(),
-				"code": testTenant.code
-			},
-			"groups": ['admin'],
-			"config": {
-				"packages": {
-					"TPROD_BASIC": {
-						"acl": {
-							"dashboard":{
-								"urac": {
-									"apisPermission": "restricted",
-									"access": false,
-									"apis":{
-										"/logout": {
-											"access": true
-										}
-									},
-									"apisRegExp": [
-										{
-											"regExp": /^\/info/ ,
-											"access": true
-										}
-									]
-								},
-								"example03": {
-									"access": ['owner']
-								}
-							}
-						}
-					}
-				}
-			}
-		};
-		tenantMongo.insert('users', userRecord, function (error, response) {
-			assert.ifError(error);
-			assert.ok(response);
-			tenantMongo.remove("groups",{}, function(error){
-				assert.ifError(error);
-				done();
-			});
-		});
-	});
-
-	it("reload Provisioning", function(done){
-		requester('get', {
-			uri: 'http://localhost:5002/loadProvision',
-			headers: {
-
-			}
-		}, function(err, body) {
-			assert.ifError(err);
-			assert.ok(body);
-			done();
-		});
-	});
-
-	it("login user", function (done) {
-		requester('post', {
-			uri: 'http://localhost:4000/oauth/token',
-			headers: {
-				'accept': '*/*',
-				'content-type': 'application/x-www-form-urlencoded',
-				"Authorization": 'Basic MTBkMmNiNWZjMDRjZTUxZTA2MDAwMDAxOnNoaGggdGhpcyBpcyBhIHNlY3JldA==',
-				key: testTenant.applications[0].keys[0].extKeys[0].extKey
-			},
-			body: 'username=user10001&password=123456&grant_type=password',
-			json: true
-		}, function (err, body) {
-			assert.ifError(err);
-			assert.ok(body);
-			auth = body.access_token;
-			done();
-		});
-	});
-
-	it("call info2 api another user", function(done){
-		requester('get', {
-			uri: 'http://localhost:4000/example03/info2',
-			headers: {
-				key: testTenant.applications[0].keys[0].extKeys[0].extKey
-			},
-			qs:{
-				access_token: auth
-			}
-		}, function(err, body) {
-			assert.ifError(err);
-			assert.ok(body);
-			assert.ok(body.errors);
-			done();
-		});
-	});
-	
-	it('will add another user to db', function (done) {
-		var userRecord = {
-			"username": "user10002",
-			"password": "$2a$04$yn9yaxQysIeH2VCixdovJ.TLuOEjFjS5D2Otd7sO7uMkzi9bXX1tq",
-			"firstName": "User",
-			"lastName": "One",
-			"email": "user.two@mydomain.com",
-			"status": "active",
-			"profile": {},
-			"tenant": {
-				"id": testTenant._id.toString(),
-				"code": testTenant.code
-			},
-			"groups": ['admin'],
-			"config": {}
-		};
-		tenantMongo.insert('users', userRecord, function (error, response) {
-			assert.ifError(error);
-			assert.ok(response);
-			var groupRecord = {
-				"code": "admin",
-				"name": "administrator",
-				"description": "admin test group",
-				"tenant":{
-					"id": testTenant._id.toString(),
-					"code": testTenant.code
-				},
-				"config": {
-					"packages": {
-						"TPROD_BASI2": {
-							"acl": {
-								"dashboard":{
-									"example03": {
-										"access": ['admin'],
-										"apis":{
-											"/info2":{
-												"access":["owner"]
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			};
-			tenantMongo.remove("groups", {"name":"administrator"}, function(error) {
-				assert.ifError(error);
-				tenantMongo.insert('groups', groupRecord, function (error, response) {
-					assert.ifError(error);
+				lib.startController(function () {
 					done();
 				});
 			});
 		});
 	});
-
-	it("reload Provisioning", function(done){
+	
+	after(function(done) {
+		async.parallel([
+			lib.stopController,
+			lib.stopTestService,
+			lib.stopOauth
+		], function(){
+			setTimeout(function(){
+				done();
+			}, 500);
+		});
+	});
+	
+	beforeEach(function(done){
 		requester('get', {
-			uri: 'http://localhost:5002/loadProvision',
+			uri: 'http://localhost:5012/loadProvision',
 			headers: {
-
+				
 			}
 		}, function(err, body) {
 			assert.ifError(err);
 			assert.ok(body);
-			requester('get', {
-				uri: 'http://localhost:5012/loadProvision',
-				headers: {
-
-				}
-			}, function(err, body) {
-				assert.ifError(err);
-				assert.ok(body);
-				done();
-			});
+			done();
 		});
 	});
-
-	it("login another user", function (done) {
+	
+	it("login user", function (done) {
 		requester('post', {
 			uri: 'http://localhost:4000/oauth/token',
 			headers: {
@@ -465,7 +284,7 @@ describe("testing multi tenancy", function() {
 				"Authorization": 'Basic MTBkMmNiNWZjMDRjZTUxZTA2MDAwMDAxOnNoaGggdGhpcyBpcyBhIHNlY3JldA==',
 				key: testTenant.applications[3].keys[0].extKeys[0].extKey
 			},
-			body: 'username=user10002&password=123456&grant_type=password',
+			body: 'username=oauthuser&password=oauthpassword&grant_type=password',
 			json: true
 		}, function (err, body) {
 			assert.ifError(err);
@@ -474,8 +293,34 @@ describe("testing multi tenancy", function() {
 			done();
 		});
 	});
+	
+	it("change tenant ACL configuration", function(done){
+		coreMongo.findOne("tenants", {}, function(error, tenant){
+			assert.ifError(error);
+			assert.ok(tenant);
+			
+			tenant.applications[3].acl ={
+				"urac": {},
+				"example03":{
+					"access": true,
+					"get":{
+						"apis":{
+							"/info":{
+								"access":["owner"]
+							}
+						}
+					}
+				}
+			};
+			
+			coreMongo.save('tenants', tenant, function(error){
+				assert.ifError(error);
+				done();
+			});
+		});
+	});
 
-	it("call info api another user", function(done){
+	it("call api", function(done){
 		requester('get', {
 			uri: 'http://localhost:4000/example03/info',
 			headers: {
@@ -487,14 +332,40 @@ describe("testing multi tenancy", function() {
 		}, function(err, body) {
 			assert.ifError(err);
 			assert.ok(body);
-			assert.ok(body.data);
+			console.log(JSON.stringify(body, null, 2));
 			done();
 		});
 	});
-
-	it("call info2 api another user", function(done){
+	
+	it("change tenant ACL configuration", function(done){
+		coreMongo.findOne("tenants", {}, function(error, tenant){
+			assert.ifError(error);
+			assert.ok(tenant);
+			
+			tenant.applications[3].acl ={
+				"urac": {},
+				"example03":{
+					"access": true,
+					"get":{
+						"apis":{
+							"/info":{
+								"access":false
+							}
+						}
+					}
+				}
+			};
+			
+			coreMongo.save('tenants', tenant, function(error){
+				assert.ifError(error);
+				done();
+			});
+		});
+	});
+	
+	it("call api", function(done){
 		requester('get', {
-			uri: 'http://localhost:4000/example03/info2',
+			uri: 'http://localhost:4000/example03/info',
 			headers: {
 				key: testTenant.applications[3].keys[0].extKeys[0].extKey
 			},
@@ -504,22 +375,183 @@ describe("testing multi tenancy", function() {
 		}, function(err, body) {
 			assert.ifError(err);
 			assert.ok(body);
-			assert.ok(body.errors);
+			console.log(JSON.stringify(body, null, 2));
 			done();
 		});
 	});
-
-	describe("stopping services", function(){
-		it("do stop", function(done) {
-			async.parallel([
-				lib.stopController,
-				lib.stopTestService,
-				lib.stopOauth
-			], function(){
-				setTimeout(function(){
-					done();
-				}, 500);
+	
+	it("change tenant ACL configuration", function(done){
+		coreMongo.findOne("tenants", {}, function(error, tenant){
+			assert.ifError(error);
+			assert.ok(tenant);
+			
+			tenant.applications[3].acl ={
+				"urac": {},
+				"example03":{
+					"access": false,
+					"get":{
+						"apis":{
+							"/info":{
+								"access":false
+							}
+						}
+					}
+				}
+			};
+			
+			coreMongo.save('tenants', tenant, function(error){
+				assert.ifError(error);
+				done();
 			});
+		});
+	});
+	
+	it("call api", function(done){
+		requester('get', {
+			uri: 'http://localhost:4000/example03/info',
+			headers: {
+				key: testTenant.applications[3].keys[0].extKeys[0].extKey
+			},
+			qs:{
+				access_token: auth
+			}
+		}, function(err, body) {
+			assert.ifError(err);
+			assert.ok(body);
+			console.log(JSON.stringify(body, null, 2));
+			done();
+		});
+	});
+	
+	it("change tenant ACL configuration", function(done){
+		coreMongo.findOne("tenants", {}, function(error, tenant){
+			assert.ifError(error);
+			assert.ok(tenant);
+			
+			tenant.applications[3].acl ={
+				"urac": {},
+				"example03":{
+					"apisPermission": "restricted",
+					"access": false,
+					"get":{
+						"apis":{
+							"/info":{
+								"access":false
+							}
+						}
+					}
+				}
+			};
+			
+			coreMongo.save('tenants', tenant, function(error){
+				assert.ifError(error);
+				done();
+			});
+		});
+	});
+	
+	it("call api", function(done){
+		requester('get', {
+			uri: 'http://localhost:4000/example03/info',
+			headers: {
+				key: testTenant.applications[3].keys[0].extKeys[0].extKey
+			},
+			qs:{
+				access_token: auth
+			}
+		}, function(err, body) {
+			assert.ifError(err);
+			assert.ok(body);
+			console.log(JSON.stringify(body, null, 2));
+			done();
+		});
+	});
+	
+	it("change tenant ACL configuration", function(done){
+		coreMongo.findOne("tenants", {}, function(error, tenant){
+			assert.ifError(error);
+			assert.ok(tenant);
+			
+			tenant.applications[3].acl ={
+				"urac": {},
+				"example03":{
+					"access": false,
+					"get":{
+						"apisPermission": "restricted",
+						"apis":{
+							"/info":{
+								"access":false
+							}
+						}
+					}
+				}
+			};
+			
+			coreMongo.save('tenants', tenant, function(error){
+				assert.ifError(error);
+				done();
+			});
+		});
+	});
+	
+	it("call api", function(done){
+		requester('get', {
+			uri: 'http://localhost:4000/example03/info',
+			headers: {
+				key: testTenant.applications[3].keys[0].extKeys[0].extKey
+			},
+			qs:{
+				access_token: auth
+			}
+		}, function(err, body) {
+			assert.ifError(err);
+			assert.ok(body);
+			console.log(JSON.stringify(body, null, 2));
+			done();
+		});
+	});
+	
+	it("change tenant ACL configuration", function(done){
+		coreMongo.findOne("tenants", {}, function(error, tenant){
+			assert.ifError(error);
+			assert.ok(tenant);
+			
+			tenant.applications[3].acl ={
+				"urac": {},
+				"example03":{
+					"access": false,
+					"get":{
+						"apisPermission": "restricted",
+						"apisRegExp":{
+							"/info*":{
+								"access":false
+							}
+						}
+					}
+				}
+			};
+			
+			coreMongo.save('tenants', tenant, function(error){
+				assert.ifError(error);
+				done();
+			});
+		});
+	});
+	
+	it("call api", function(done){
+		requester('get', {
+			uri: 'http://localhost:4000/example03/info',
+			headers: {
+				key: testTenant.applications[3].keys[0].extKeys[0].extKey
+			},
+			qs:{
+				access_token: auth
+			}
+		}, function(err, body) {
+			assert.ifError(err);
+			assert.ok(body);
+			console.log(JSON.stringify(body, null, 2));
+			done();
 		});
 	});
 });
