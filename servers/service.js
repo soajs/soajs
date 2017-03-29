@@ -5,7 +5,7 @@ var os = require('os');
 
 var coreModules = require ("soajs.core.modules");
 var core = coreModules.core;
-var provision = coreModules.provision;
+//var provision = coreModules.provision;
 var lib = require ("soajs.core.libs");
 
 var express = require("./../classes/express");
@@ -159,6 +159,8 @@ service.prototype.init = function (callback) {
     function resume () {
         soajs.apiList = extractAPIsList(soajs.param.schema);
 
+        //TODO: remove registry to be retrieved from body injection
+        //NOTE: we need to resolve register service for both type of deployment (HA, manual) and register host for manual deployment
         core.registry.load({
             "serviceName": soajs.param.serviceName,
             "serviceGroup": soajs.param.serviceGroup,
@@ -296,6 +298,7 @@ service.prototype.init = function (callback) {
                 _self.log.info("IMFV middleware initialization skipped.");
             }
 
+            /*
             if (soajs.param.bodyParser && soajs.param.oauth) {
                 var oauthserver = require('oauth2-server');
                 _self.oauth = oauthserver({
@@ -323,6 +326,7 @@ service.prototype.init = function (callback) {
             else {
                 _self.log.info("oAuth middleware initialization skipped.");
             }
+            */
 
             if (soajs.param.awareness) {
                 var awareness_mw = require("./../mw/awareness/index");
@@ -359,20 +363,14 @@ service.prototype.init = function (callback) {
 
             var service_mw = require("./../mw/service/index");
             soajs.serviceMW = service_mw({"soajs": soajs, "app": _self.app, "param": soajs.param});
-            //_self.app.use(service_mw({"soajs": soajs, "app": _self.app, "param": soajs.param}));
             _self.log.info("SOAJS Service middleware initialization done.");
-
-            //if (soajs.param.roaming) {
-            //    var roaming_mw = require("./../mw/roaming/index");
-            //    _self.app.use(roaming_mw({"app": _self.app}));
-            //    _self.log.info("SOAJS Roaming middleware initialization done.");
-            //}
 
             //Expose some core function after init
             _self.getCustomRegistry = function () {
                 return core.registry.getCustom();
             };
-	
+
+            /*
 	        //exposing provision functionality to generate keys
 	        _self.provision = {
 		        "init": provision.init,
@@ -380,6 +378,7 @@ service.prototype.init = function (callback) {
 		        "generateExtKey": provision.generateExtKey,
 		        "loadProvision": provision.loadProvision
 	        };
+	        */
 
 	        _self.registry = {
 		        "loadByEnv": core.registry.loadByEnv
@@ -407,11 +406,11 @@ service.prototype.start = function (cb) {
         _self.app.use(clientErrorHandler);
         _self.app.use(errorHandler);
 
-        _self.log.info("Loading Service Provision ...");
-        provision.init(registry.coreDB.provision, _self.log);
-        provision.loadProvision(function (loaded) {
-            if (loaded) {
-                _self.log.info("Service provision loaded.");
+        //_self.log.info("Loading Service Provision ...");
+        //provision.init(registry.coreDB.provision, _self.log);
+        //provision.loadProvision(function (loaded) {
+            //if (loaded) {
+                //_self.log.info("Service provision loaded.");
                 _self.log.info("Starting Service ...");
                 _self.app.httpServer = _self.app.listen(_self.app.soajs.serviceConf.info.port, function (err) {
                     if (err) {
@@ -500,6 +499,7 @@ service.prototype.start = function (cb) {
 
                     });
                 });
+                /*
                 _self.appMaintenance.get("/loadProvision", function (req, res) {
                     provision.loadProvision(function (loaded) {
                         var response = maintenanceResponse(req);
@@ -507,6 +507,7 @@ service.prototype.start = function (cb) {
                         res.jsonp(response);
                     });
                 });
+                */
                 _self.appMaintenance.get("/resourceInfo", function (req, res) {
                     var response = maintenanceResponse(req);
                     var data = {};
@@ -528,8 +529,8 @@ service.prototype.start = function (cb) {
                 _self.appMaintenance.httpServer = _self.appMaintenance.listen(maintenancePort, function (err) {
                     _self.log.info(_self.app.soajs.param.serviceName + " service maintenance is listening on port: " + maintenancePort);
                 });
-            }
-        });
+           // }
+        //});
     } else {
         if (cb && typeof cb === "function") {
             cb(new Error('Failed starting service'));

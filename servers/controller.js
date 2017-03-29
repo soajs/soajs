@@ -8,6 +8,7 @@ var url = require('url');
 
 var coreModules = require ("soajs.core.modules");
 var core = coreModules.core;
+var provision = coreModules.provision;
 
 var favicon_mw = require('./../mw/favicon/index');
 var cors_mw = require('./../mw/cors/index');
@@ -31,6 +32,7 @@ function controller(param) {
     _self.serviceVersion = 1;
     _self.serviceIp = process.env.SOAJS_SRVIP || null;
     _self.serviceHATask = null;
+    _self.soajs = {"param" : param};
 }
 
 controller.prototype.init = function (callback) {
@@ -89,15 +91,51 @@ controller.prototype.init = function (callback) {
             }));
             app.use(cors_mw());
             app.use(response_mw({"controllerResponse": true}));
+
+            if (_self.soajs.param.bodyParser) {
+                var bodyParser = require('body-parser');
+                var options = (_self.soajs.param.bodyParser.limit) ? {limit: _self.soajs.param.bodyParser.limit} : null;
+                _self.app.use(bodyParser.json(options));
+                _self.app.use(bodyParser.urlencoded({extended: true}));
+                _self.log.info("Body-Parse middleware initialization done.");
+            }
+            else {
+                _self.log.info("Body-Parser middleware initialization skipped.");
+            }
+
+            app.use(controller_mw());
             app.use(awareness_mw({
                 "awareness": _self.awareness,
                 "serviceName": _self.serviceName,
                 "log": _self.log,
                 "serviceIp": _self.serviceIp
             }));
-            app.use(controller_mw());
-            app.use(function (req, res, next) {
 
+            var oauthserver = require('oauth2-server');
+            _self.oauth = oauthserver({
+                model: provision.oauthModel,
+                grants: _self.registry.serviceConfig.oauth.grants,
+                debug: _self.registry.serviceConfig.oauth.debug,
+                accessTokenLifetime: _self.registry.serviceConfig.oauth.accessTokenLifetime,
+                refreshTokenLifetime: _self.registry.serviceConfig.oauth.refreshTokenLifetime
+            });
+            _self.soajs.oauthService = _self.soajs.param.oauthService || {
+                    "name": "oauth",
+                    "tokenApi": "/token",
+                    "authorizationApi": "/authorization"
+                };
+            _self.soajs.oauthService.name = _self.soajs.oauthService.name || "oauth";
+            _self.soajs.oauthService.tokenApi = _self.soajs.oauthService.tokenApi || "/token";
+            _self.soajs.oauthService.authorizationApi = _self.soajs.oauthService.authorizationApi || "/authorization";
+            _self.soajs.oauth = _self.oauth.authorise();
+            _self.log.info("oAuth middleware initialization done.");
+
+
+            var mt_mw = require("./../mw/mt/index");
+            _self.soajs.mtMW = mt_mw({"soajs": _self.soajs, "app": app, "param": _self.soajs.param});
+            _self.log.info("SOAJS MT middleware initialization done.");
+
+            app.use(function (req, res, next) {
                 setImmediate(function () {
                     req.soajs.controller.gotoservice(req, res, null);
                 });
@@ -117,132 +155,149 @@ controller.prototype.init = function (callback) {
                 });
             });
 
-            _self.server = http.createServer(app);
-            _self.serverMaintenance = http.createServer(function (req, res) {
-                if (req.url === '/favicon.ico') {
-                    res.writeHead(200, {'Content-Type': 'image/x-icon'});
-                    return res.end();
-                }
-                var parsedUrl = url.parse(req.url, true);
-                var response;
-                var maintenanceResponse = function (req, route) {
-                    var response = {
-                        'result': false,
-                        'ts': Date.now(),
-                        'service': {
-                            'service': _self.serviceName.toUpperCase(),
-                            'type': 'rest',
-                            'route': route || parsedUrl.pathname
+
+            _self.log.info("Loading Provision ...");
+            provision.init(_self.registry.coreDB.provision, _self.log);
+            provision.loadProvision(function (loaded) {
+                if (loaded) {
+                    _self.log.info("Service provision loaded.");
+                    _self.server = http.createServer(app);
+                    _self.serverMaintenance = http.createServer(function (req, res) {
+                        if (req.url === '/favicon.ico') {
+                            res.writeHead(200, {'Content-Type': 'image/x-icon'});
+                            return res.end();
                         }
-                    };
-                    return response;
-                };
-                var reloadRegistry = function () {
-                    core.registry.reload({
-                        "serviceName": _self.serviceName,
-                        "serviceVersion": null,
-                        "apiList": null,
-                        "awareness": _self.awareness,
-                        "serviceIp": _self.serviceIp
-                    }, function (err, reg) {
-                        res.writeHead(200, {'Content-Type': 'application/json'});
-                        response = maintenanceResponse(req);
-                        if (err) {
-                            _self.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
-                        } else {
-                            response['result'] = true;
-                            response['data'] = reg;
-                        }
-                        return res.end(JSON.stringify(response));
-                    });
-                };
-
-                var proxy = httpProxy.createProxyServer({});
-                proxy.on('error', function (error, req, res) {
-                    _self.log.error('Failed to proxy ' + req.url);
-                    _self.log.error('Internal proxy error: ' + error);
-
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    response = maintenanceResponse(req, '/proxySocket');
-                    return res.end(JSON.stringify(response));
-                });
-
-                if (parsedUrl.pathname === '/reloadRegistry') {
-                    reloadRegistry();
-                }
-                else if (parsedUrl.pathname === '/awarenessStat') {
-                    res.writeHead(200, {'Content-Type': 'application/json'});
-                    var tmp = core.registry.get();
-                    response = maintenanceResponse(req);
-                    if (tmp && (tmp.services || tmp.daemons)) {
-                        response['result'] = true;
-                        response['data'] = {"services": tmp.services, "daemons": tmp.daemons};
-                    }
-                    return res.end(JSON.stringify(response));
-                }
-                else if (parsedUrl.pathname === '/register') {
-                    if (parsedUrl.query.serviceHATask) {
-                        reloadRegistry();
-                    }
-                    else {
-                        res.writeHead(200, {'Content-Type': 'application/json'});
-                        response = maintenanceResponse(req);
-                        var regOptions = {
-                            "name": parsedUrl.query.name,
-                            "group": parsedUrl.query.group,
-                            "port": parseInt(parsedUrl.query.port),
-                            "ip": parsedUrl.query.ip,
-                            "type": parsedUrl.query.type,
-                            "version": parseInt(parsedUrl.query.version)
-                        };
-                        if (regOptions.type === "service") {
-                            regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
-                            regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
-                            regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);
-                        }
-
-                        core.registry.register(
-                            regOptions,
-                            function (err, data) {
-                                if (!err) {
-                                    response['result'] = true;
-                                    response['data'] = data;
+                        var parsedUrl = url.parse(req.url, true);
+                        var response;
+                        var maintenanceResponse = function (req, route) {
+                            var response = {
+                                'result': false,
+                                'ts': Date.now(),
+                                'service': {
+                                    'service': _self.serviceName.toUpperCase(),
+                                    'type': 'rest',
+                                    'route': route || parsedUrl.pathname
                                 }
-                                else {
-                                    _self.log.warn("Failed to register service for [" + parsedUrl.query.name + "] " + err.message);
+                            };
+                            return response;
+                        };
+                        var reloadRegistry = function () {
+                            core.registry.reload({
+                                "serviceName": _self.serviceName,
+                                "serviceVersion": null,
+                                "apiList": null,
+                                "awareness": _self.awareness,
+                                "serviceIp": _self.serviceIp
+                            }, function (err, reg) {
+                                res.writeHead(200, {'Content-Type': 'application/json'});
+                                response = maintenanceResponse(req);
+                                if (err) {
+                                    _self.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
+                                } else {
+                                    response['result'] = true;
+                                    response['data'] = reg;
                                 }
                                 return res.end(JSON.stringify(response));
                             });
-                    }
+                        };
+
+                        var proxy = httpProxy.createProxyServer({});
+                        proxy.on('error', function (error, req, res) {
+                            _self.log.error('Failed to proxy ' + req.url);
+                            _self.log.error('Internal proxy error: ' + error);
+
+                            res.writeHead(200, {'Content-Type': 'application/json'});
+                            response = maintenanceResponse(req, '/proxySocket');
+                            return res.end(JSON.stringify(response));
+                        });
+
+                        if (parsedUrl.pathname === '/reloadRegistry') {
+                            reloadRegistry();
+                        }
+                        else if (parsedUrl.pathname === '/awarenessStat') {
+                            res.writeHead(200, {'Content-Type': 'application/json'});
+                            var tmp = core.registry.get();
+                            response = maintenanceResponse(req);
+                            if (tmp && (tmp.services || tmp.daemons)) {
+                                response['result'] = true;
+                                response['data'] = {"services": tmp.services, "daemons": tmp.daemons};
+                            }
+                            return res.end(JSON.stringify(response));
+                        }
+                        else if (parsedUrl.pathname === '/register') {
+                            if (parsedUrl.query.serviceHATask) {
+                                reloadRegistry();
+                            }
+                            else {
+                                res.writeHead(200, {'Content-Type': 'application/json'});
+                                response = maintenanceResponse(req);
+                                var regOptions = {
+                                    "name": parsedUrl.query.name,
+                                    "group": parsedUrl.query.group,
+                                    "port": parseInt(parsedUrl.query.port),
+                                    "ip": parsedUrl.query.ip,
+                                    "type": parsedUrl.query.type,
+                                    "version": parseInt(parsedUrl.query.version)
+                                };
+                                if (regOptions.type === "service") {
+                                    regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
+                                    regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
+                                    regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);
+                                }
+
+                                core.registry.register(
+                                    regOptions,
+                                    function (err, data) {
+                                        if (!err) {
+                                            response['result'] = true;
+                                            response['data'] = data;
+                                        }
+                                        else {
+                                            _self.log.warn("Failed to register service for [" + parsedUrl.query.name + "] " + err.message);
+                                        }
+                                        return res.end(JSON.stringify(response));
+                                    });
+                            }
+                        }
+                        else if (parsedUrl.pathname.match('/proxySocket/.*')) {
+
+                            req.url = req.url.split('/proxySocket')[1];
+                            req.headers.host = '127.0.0.1';
+
+                            _self.log.info('Incoming proxy request for ' + req.url);
+
+                            var haTarget;
+
+                            haTarget = {
+                                socketPath: process.env.SOAJS_SWARM_UNIX_PORT || '/var/run/docker.sock'
+                            };
+                            proxy.web(req, res, {target: haTarget});
+                        }
+                        else if (parsedUrl.pathname === '/loadProvision') {
+                            provision.loadProvision(function (loaded) {
+                                var response = maintenanceResponse(req);
+                                response['result'] = loaded;
+                                return res.end(JSON.stringify(response));
+                            });
+                        }
+                        else {
+                            var heartbeat = function (res) {
+                                res.writeHead(200, {'Content-Type': 'application/json'});
+                                response = maintenanceResponse(req);
+                                response['result'] = true;
+                                res.end(JSON.stringify(response));
+                            };
+                            if (req.url === '/heartbeat') {
+                                return heartbeat(res);
+                            }
+                            return heartbeat(res);
+                        }
+                    });
+                    callback();
                 }
-                else if(parsedUrl.pathname.match('/proxySocket/.*')){
-
-                    req.url = req.url.split('/proxySocket')[1];
-                    req.headers.host = '127.0.0.1';
-
-                    _self.log.info('Incoming proxy request for ' + req.url);
-
-                    var haTarget;
-
-                    haTarget = {
-                        socketPath: process.env.SOAJS_SWARM_UNIX_PORT || '/var/run/docker.sock'
-                    };
-                    proxy.web(req, res, { target: haTarget });
-                }
-                else {
-                    var heartbeat = function (res) {
-                        res.writeHead(200, {'Content-Type': 'application/json'});
-                        response = maintenanceResponse(req);
-                        response['result'] = true;
-                        res.end(JSON.stringify(response));
-                    };
-                    if (req.url === '/heartbeat') {
-                        return heartbeat(res);
-                    }
-                    return heartbeat(res);
-                }
+                else
+                    _self.log.error('Unable to load provision. controller will not start :(');
             });
-            callback();
         });
     }
 };
