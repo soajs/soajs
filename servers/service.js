@@ -36,21 +36,10 @@ function service(param) {
     }
     if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true") {
         param.extKeyRequired = false;
-        //param.roaming = false;
         param.session = false;
         param.oauth = false;
         param.awareness = false;
         param.awarenessEnv = false;
-    }
-    if (param.extKeyRequired === true) {
-        param.multitenant = true;
-        param.security = true;
-        param.acl = true;
-    }
-    else {
-        param.multitenant = false;
-        param.security = false;
-        param.acl = false;
     }
 
     var defaultParam = ["bodyParser", "methodOverride", "cookieParser", "logger", "inputmask", "awareness"];

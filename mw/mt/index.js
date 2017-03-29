@@ -1,6 +1,6 @@
 'use strict';
 
-var coreModules = require ("soajs.core.modules");
+var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
 var provision = coreModules.provision;
 var uracDriver = require("./urac.js");
@@ -235,7 +235,7 @@ module.exports = function (configuration) {
                         serviceApiPublic = true; //case 5
                 }
             }
-            if (serviceApiPublic){
+            if (serviceApiPublic) {
                 if (obj.req && obj.req.query && obj.req.query.access_token)
                     serviceApiPublic = false;
             }
@@ -271,76 +271,76 @@ module.exports = function (configuration) {
                 return cb(null, obj);
             });
         };
-	
-	    /**
-	     * returns code for the requested tenant.
-	     * if tenant is the same in the request, returns tenant from request
-	     * @param {Function} cb
-	     * @returns {*}
-	     */
-	    var getTenantInfo = function(cb){
-	        //if tenant id === client id, don't get tenant data
-	        if(obj.req.soajs.tenant.id === obj.req.oauth.bearerToken.clientId){
-	        	obj.req.soajs.log.debug("loading tenant data from req.soajs.tenant.id");
-	        	return cb(null, obj.req.soajs.tenant);
-	        }
-		
-		    obj.req.soajs.log.debug("loading tenant data from req.oauth.bearerToken.clientId");
-	        provision.getTenantData(obj.req.oauth.bearerToken.clientId, function (error, tenant) {
-		        if (error || !tenant) {
-			        if(!tenant){
-			        	error = new Error("Tenant not found for:" + obj.req.oauth.bearerToken.clientId);
-			        }
-			        obj.req.soajs.log.error(error);
-			        return cb(error);
-		        }
-		        
-		        return cb(null, tenant);
-	        });
+
+        /**
+         * returns code for the requested tenant.
+         * if tenant is the same in the request, returns tenant from request
+         * @param {Function} cb
+         * @returns {*}
+         */
+        var getTenantInfo = function (cb) {
+            //if tenant id === client id, don't get tenant data
+            if (obj.req.soajs.tenant.id === obj.req.oauth.bearerToken.clientId) {
+                obj.req.soajs.log.debug("loading tenant data from req.soajs.tenant.id");
+                return cb(null, obj.req.soajs.tenant);
+            }
+
+            obj.req.soajs.log.debug("loading tenant data from req.oauth.bearerToken.clientId");
+            provision.getTenantData(obj.req.oauth.bearerToken.clientId, function (error, tenant) {
+                if (error || !tenant) {
+                    if (!tenant) {
+                        error = new Error("Tenant not found for:" + obj.req.oauth.bearerToken.clientId);
+                    }
+                    obj.req.soajs.log.error(error);
+                    return cb(error);
+                }
+
+                return cb(null, tenant);
+            });
         };
-	
-	    /**
-	     * load the registry of the requested environment.
-	     * if environment is the same in the request, return registry from request
-	     * @param {Function} cb
-	     * @returns {*}
-	     */
-        var getEnvRegistry = function(cb){
-	        //if environment is the same as regEnvironment, use it
-	        if(obj.req.oauth.bearerToken.env === regEnvironment){
-		        obj.req.soajs.log.debug("loading env registry from req.soajs.registry");
-	        	return cb(null, obj.req.soajs.registry);
-	        }
-		
-		    obj.req.soajs.log.debug("loading env registry from req.oauth.bearerToken.env");
-	        core.registry.loadByEnv({"envCode": obj.req.oauth.bearerToken.env}, function (error, registry) {
-		        if (error || !registry) {
-			        if(!registry){
-				        error = new Error("Registry not found for:" + obj.req.oauth.bearerToken.env);
-			        }
-			        obj.req.soajs.log.error(error);
-			        return cb(error);
-		        }
-		        return cb(null, registry);
-	        });
-	    };
-        
+
+        /**
+         * load the registry of the requested environment.
+         * if environment is the same in the request, return registry from request
+         * @param {Function} cb
+         * @returns {*}
+         */
+        var getEnvRegistry = function (cb) {
+            //if environment is the same as regEnvironment, use it
+            if (obj.req.oauth.bearerToken.env === regEnvironment) {
+                obj.req.soajs.log.debug("loading env registry from req.soajs.registry");
+                return cb(null, obj.req.soajs.registry);
+            }
+
+            obj.req.soajs.log.debug("loading env registry from req.oauth.bearerToken.env");
+            core.registry.loadByEnv({"envCode": obj.req.oauth.bearerToken.env}, function (error, registry) {
+                if (error || !registry) {
+                    if (!registry) {
+                        error = new Error("Registry not found for:" + obj.req.oauth.bearerToken.env);
+                    }
+                    obj.req.soajs.log.error(error);
+                    return cb(error);
+                }
+                return cb(null, registry);
+            });
+        };
+
         if (obj.req && obj.req.oauth && obj.req.oauth.bearerToken && obj.req.oauth.bearerToken.env === "dashboard") {
             obj.req.soajs.tenant.roaming = {
                 "tId": obj.req.oauth.bearerToken.clientId,
                 "user": obj.req.oauth.bearerToken.user
             };
-	        
-	        async.parallel({ "tenant": getTenantInfo, "registry": getEnvRegistry }, function(error, response){
-		        if(error){
-			        return cb(170);
-		        }
-		        
-	            if (response.registry && response.registry.tenantMetaDB)
-		            obj.req.soajs.tenant.roaming.tenantMetaDB = response.registry.tenantMetaDB;
-	            obj.req.soajs.tenant.roaming.code = response.tenant.code;
-	
-	            return callURACDriver();
+
+            async.parallel({"tenant": getTenantInfo, "registry": getEnvRegistry}, function (error, response) {
+                if (error) {
+                    return cb(170);
+                }
+
+                if (response.registry && response.registry.tenantMetaDB)
+                    obj.req.soajs.tenant.roaming.tenantMetaDB = response.registry.tenantMetaDB;
+                obj.req.soajs.tenant.roaming.code = response.tenant.code;
+
+                return callURACDriver();
             });
         }
         else {
@@ -534,21 +534,13 @@ module.exports = function (configuration) {
                                     });
                                 }];
 
-                                if (param.security) {
-                                    serviceCheckArray.push(securityGeoCheck);
-                                    serviceCheckArray.push(securityDeviceCheck);
-                                }
-                                if (param.oauth){
+                                serviceCheckArray.push(securityGeoCheck);
+                                serviceCheckArray.push(securityDeviceCheck);
+                                if (param.oauth)
                                     serviceCheckArray.push(oauthCheck);
-                                }
-
-                                if (param.multitenant) {
-                                    serviceCheckArray.push(uracCheck);
-                                    serviceCheckArray.push(serviceCheck);
-                                }
-
-                                if (param.multitenant && param.acl)
-                                    serviceCheckArray.push(apiCheck);
+                                serviceCheckArray.push(uracCheck);
+                                serviceCheckArray.push(serviceCheck);
+                                serviceCheckArray.push(apiCheck);
 
                                 async.waterfall(serviceCheckArray, function (err, data) {
                                     if (err)

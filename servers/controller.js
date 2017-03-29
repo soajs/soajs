@@ -32,6 +32,10 @@ function controller(param) {
     _self.serviceVersion = 1;
     _self.serviceIp = process.env.SOAJS_SRVIP || null;
     _self.serviceHATask = null;
+
+    //TODO: we might not need bodyParser
+    param.bodyParser = false;
+
     _self.soajs = {"param" : param};
 }
 
