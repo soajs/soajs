@@ -536,8 +536,7 @@ module.exports = function (configuration) {
 
                                 serviceCheckArray.push(securityGeoCheck);
                                 serviceCheckArray.push(securityDeviceCheck);
-                                if (param.oauth)
-                                    serviceCheckArray.push(oauthCheck);
+                                serviceCheckArray.push(oauthCheck);
                                 serviceCheckArray.push(uracCheck);
                                 serviceCheckArray.push(serviceCheck);
                                 serviceCheckArray.push(apiCheck);
@@ -565,10 +564,7 @@ module.exports = function (configuration) {
             var oauthExec = function () {
                 app.soajs.oauth(req, res, next);
             };
-            if (param.oauth)
-                return oauthExec();
-            else
-                return next();
+            return oauthExec();
         }
     };
 };
