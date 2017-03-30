@@ -85,11 +85,14 @@ var lib = {
 	},
 
 	"flushAwarenessCache": function () {
+		var myCache = {};
+		//call drivers, get list of services
+		//fillmyCache
+		//if all ok --> awarenessCache = myCache
+		
 		var cacheTTL = core.registry.get().serviceConfig.awareness.cacheTTL;
-
 		param.log.debug("Flushing awareness cache");
 		awarenessCache = {};
-
 		setTimeout(lib.flushAwarenessCache, cacheTTL);
 	}
 };
