@@ -111,17 +111,19 @@ var lib = {
 				}
 
 				//if no version is found, lib.getHostFromAPI() will get it from cluster api
-				lib.getHostFromAPI(oneService.id, version, function (hostname) {
+				lib.getHostFromAPI(serviceName, version, function (hostname) {
 					myCache[serviceName] = {};
 					myCache[serviceName][version] = { host: hostname };
 					return callback();
 				});
 			}, function () {
 				awarenessCache = myCache;
-				var cacheTTL = core.registry.get().serviceConfig.awareness.cacheTTL;
 				param.log.debug("Awareness cache rebuilt successfully");
 
-				setTimeout(lib.rebuildAwarenessCache, cacheTTL);
+				var cacheTTL = core.registry.get().serviceConfig.awareness.cacheTTL;
+				if (cacheTTL) {
+					setTimeout(lib.rebuildAwarenessCache, cacheTTL);
+				}
 			});
 		});
 	}
@@ -131,10 +133,7 @@ var ha = {
     "init": function (_param) {
     	param = _param;
 
-		var cacheTTL = core.registry.get().serviceConfig.awareness.cacheTTL;
-		if (cacheTTL) {
-			setTimeout(lib.rebuildAwarenessCache, cacheTTL);
-		}
+		lib.rebuildAwarenessCache();
     },
 
     "getServiceHost": function () {
