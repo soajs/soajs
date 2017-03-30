@@ -1,4 +1,6 @@
 'use strict';
+var async = require('async');
+
 var drivers = require('soajs.core.drivers');
 var core = require('../../modules/soajs.core');
 var param = null;
@@ -13,7 +15,7 @@ var lib = {
 		var info = core.registry.get().deployer.selected.split('.');
 		var deployerConfig = core.registry.get().deployer.container[info[1]][info[2]];
 
-		return {
+		var options = {
 			"strategy": process.env.SOAJS_DEPLOY_HA,
 			"driver": info[1] + "." + info[2],
 			"deployerConfig": deployerConfig,
@@ -22,10 +24,15 @@ var lib = {
 			},
 			"model": {},
 			"params": {
-				"serviceName": serviceName,
 				"env": regEnvironment
 			}
 		};
+
+		if (serviceName) {
+			options.params.serviceName = serviceName;
+		}
+
+		return options;
 	},
 
 	"getLatestVersion" : function (serviceName, cb){
@@ -84,16 +91,39 @@ var lib = {
 		}
 	},
 
-	"flushAwarenessCache": function () {
+	"rebuildAwarenessCache": function () {
 		var myCache = {};
-		//call drivers, get list of services
-		//fillmyCache
-		//if all ok --> awarenessCache = myCache
-		
-		var cacheTTL = core.registry.get().serviceConfig.awareness.cacheTTL;
-		param.log.debug("Flushing awareness cache");
-		awarenessCache = {};
-		setTimeout(lib.flushAwarenessCache, cacheTTL);
+		var options = lib.constructDriverParam();
+		drivers.listServices(options, function (error, services) {
+			if (error) {
+				param.log.error(error);
+				return;
+			}
+
+			async.each(services, function (oneService, callback) {
+				var version, serviceName;
+				if (oneService.labels && oneService.labels['soajs.service.version']) {
+					version = oneService.labels['soajs.service.version'];
+				}
+
+				if (oneService.labels && oneService.labels['soajs.service.name']) {
+					serviceName = oneService.labels['soajs.service.name'];
+				}
+
+				//if no version is found, lib.getHostFromAPI() will get it from cluster api
+				lib.getHostFromAPI(oneService.id, version, function (hostname) {
+					myCache[serviceName] = {};
+					myCache[serviceName][version] = { host: hostname };
+					return callback();
+				});
+			}, function () {
+				awarenessCache = myCache;
+				var cacheTTL = core.registry.get().serviceConfig.awareness.cacheTTL;
+				param.log.debug("Awareness cache rebuilt successfully");
+
+				setTimeout(lib.rebuildAwarenessCache, cacheTTL);
+			});
+		});
 	}
 };
 
@@ -103,7 +133,7 @@ var ha = {
 
 		var cacheTTL = core.registry.get().serviceConfig.awareness.cacheTTL;
 		if (cacheTTL) {
-			setTimeout(lib.flushAwarenessCache, cacheTTL);
+			setTimeout(lib.rebuildAwarenessCache, cacheTTL);
 		}
     },
 
