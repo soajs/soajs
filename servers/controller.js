@@ -178,6 +178,16 @@ controller.prototype.init = function (callback) {
                         response['result'] = true;
                         response['data'] = {"services": tmp.services, "daemons": tmp.daemons};
                     }
+	
+	                if (process.env.SOAJS_DEPLOY_HA) {
+		                awareness_mw({
+			                "awareness": _self.awareness,
+			                "serviceName": _self.serviceName,
+			                "log": _self.log,
+			                "serviceIp": _self.serviceIp
+		                });
+	                }
+                    
                     return res.end(JSON.stringify(response));
                 }
                 else if (parsedUrl.pathname === '/register') {
