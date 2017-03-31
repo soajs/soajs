@@ -188,7 +188,24 @@ var ha = {
 				lib.getHostFromAPI(serviceName, version, cb);
 			}
         }
-    }
+    },
+
+	"getLatestVersionFromCache": function (serviceName) {
+		if (!awarenessCache[serviceName]) return null;
+
+		var serviceVersions = Object.keys(awarenessCache[serviceName]), latestVersion = 0;
+		if (serviceVersions.length === 0) return null;
+
+		for (var i = 0; i < serviceVersions.length; i++) {
+			if (serviceVersions[i] > latestVersion) {
+				latestVersion = serviceVersions[i];
+			}
+		}
+
+		if (latestVersion === 0) return null;
+
+		return latestVersion;
+	}
 };
 
 module.exports = ha;

@@ -145,32 +145,39 @@ function extractBuildParameters(req, service, service_nv, version, url, callback
         };
 
         if (!version){
-        	if(process.env.SOAJS_DEPLOY_HA){
-        		var info = req.soajs.registry.deployer.selected.split('.');
-        		var deployerConfig = req.soajs.registry.deployer.container[info[1]][info[2]];
-
-		        var options = {
-			        "strategy": process.env.SOAJS_DEPLOY_HA,
-			        "driver": info[1] + "." + info[2],
-			        "deployerConfig": deployerConfig,
-			        "soajs": {
-				        "registry": req.soajs.registry
-			        },
-			        "model": {},
-			        "params": {
-				        "serviceName": service,
-				        "env": process.env.SOAJS_ENV
-			        }
-		        };
-                console.time("drivers.getLatestVersion");
-		        drivers.getLatestVersion(options, function(error, latestVersion){
-                    console.timeEnd("drivers.getLatestVersion");
-		        	if(error){
-				        return callback(error);
-			        }
-			        version = latestVersion;
+            if(process.env.SOAJS_DEPLOY_HA){
+		        var latestCachedVersion = req.soajs.awareness.getLatestVersionFromCache(service);
+		        if(latestCachedVersion){
+			        version = latestCachedVersion;
 			        nextStep(version);
-		        });
+		        }
+        		else{
+			        var info = req.soajs.registry.deployer.selected.split('.');
+			        var deployerConfig = req.soajs.registry.deployer.container[info[1]][info[2]];
+
+			        var options = {
+				        "strategy": process.env.SOAJS_DEPLOY_HA,
+				        "driver": info[1] + "." + info[2],
+				        "deployerConfig": deployerConfig,
+				        "soajs": {
+					        "registry": req.soajs.registry
+				        },
+				        "model": {},
+				        "params": {
+					        "serviceName": service,
+					        "env": process.env.SOAJS_ENV
+				        }
+			        };
+			        console.time("drivers.getLatestVersion");
+			        drivers.getLatestVersion(options, function(error, latestVersion){
+				        console.timeEnd("drivers.getLatestVersion");
+				        if(error){
+					        return callback(error);
+				        }
+				        version = latestVersion;
+				        nextStep(version);
+			        });
+		        }
 	        }
 	        else if(req.soajs.registry.services[service].hosts){
 		        version = req.soajs.registry.services[service].hosts.latest;
