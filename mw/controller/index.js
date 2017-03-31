@@ -37,9 +37,7 @@ module.exports = function () {
             }
             service_n = service_nv.substr(0, index);
         }
-        console.time("extractBuildParameters");
         extractBuildParameters(req, service_n, service_nv, service_v, parsedUrl.path, function(error, parameters){
-            console.timeEnd("extractBuildParameters");
         	if(error){
 		        req.soajs.log.fatal(error);
 		        return req.soajs.controllerResponse(core.error.getError(130));
@@ -78,9 +76,7 @@ module.exports = function () {
 			        return req.soajs.controllerResponse(core.error.getError(132));
 		        }
 
-                console.time("core.key.getInfo");
 		        core.key.getInfo(key, req.soajs.registry.serviceConfig.key, function (err, keyObj) {
-                    console.timeEnd("core.key.getInfo");
 			        if (err) {
 				        req.soajs.log.warn(err.message);
 				        return req.soajs.controllerResponse(core.error.getError(132));
@@ -168,9 +164,7 @@ function extractBuildParameters(req, service, service_nv, version, url, callback
 					        "env": process.env.SOAJS_ENV
 				        }
 			        };
-			        console.time("drivers.getLatestVersion");
 			        drivers.getLatestVersion(options, function(error, latestVersion){
-				        console.timeEnd("drivers.getLatestVersion");
 				        if(error){
 					        return callback(error);
 				        }
@@ -241,9 +235,7 @@ function simpleRTS(req, res) {
  * @returns {*}
  */
 function redirectToService(req, res) {
-    console.time("preRedirect");
     preRedirect(req, res, function (obj) {
-        console.timeEnd("preRedirect");
         var requestOptions = {
             'method': req.method,
             'uri': obj.uri,
@@ -265,16 +257,11 @@ function redirectToService(req, res) {
             }
         });
 
-        console.time("redirect");
         if (req.method === 'POST' || req.method === 'PUT') {
             req.pipe(req.soajs.controller.redirectedRequest).pipe(res);
         } else {
             req.soajs.controller.redirectedRequest.pipe(res);
         }
-
-        req.soajs.controller.redirectedRequest.on("end", function(){
-            console.timeEnd("redirect");
-        });
     });
 }
 
@@ -293,9 +280,7 @@ function preRedirect(req, res, cb) {
     var requestTOR = restServiceParams.registry.requestTimeoutRenewal || config.requestTimeoutRenewal;
     var requestTO = restServiceParams.registry.requestTimeout || config.requestTimeout;
 
-    console.time("awareness.getHost");
     req.soajs.awareness.getHost(restServiceParams.name, restServiceParams.version, function (host) {
-        console.timeEnd("awareness.getHost");
         if (!host) {
             req.soajs.log.error('Unable to find any healthy host for service [' + restServiceParams.name + (restServiceParams.version ? ('@' + restServiceParams.version) : '') + ']');
             return req.soajs.controllerResponse(core.error.getError(133));
