@@ -20,6 +20,10 @@ module.exports = function (param) {
             req.soajs.awareness = {
                 "getHost": driver.getServiceHost
             };
+
+            if(process.env.SOAJS_DEPLOY_HA){
+                req.soajs.awareness["getLatestVersionFromCache"] = driver.getLatestVersionFromCache;
+            }
         }
         next();
     };
