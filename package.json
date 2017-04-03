@@ -47,10 +47,10 @@
     "netmask": "1.0.6",
     "oauth2-server": "2.4.1",
     "request": "2.79.0",
-    "soajs.core.drivers": "0.0.*",
-    "soajs.core.libs": "1.*",
-    "soajs.core.modules": "1.*",
-    "soajs.urac.driver": "1.*",
+    "soajs.core.drivers": "soajs/soajs.core.drivers.git#develop",
+    "soajs.core.libs": "soajs/soajs.core.libs.git#develop",
+    "soajs.core.modules": "soajs/soajs.core.modules.git#develop",
+    "soajs.urac.driver": "soajs/soajs.urac.driver.git#develop",
     "useragent": "2.1.10",
     "validator": "6.2.0"
   }
