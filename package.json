@@ -30,7 +30,7 @@
     "grunt-coveralls": "1.0.1",
     "lodash": "4.17.4",
     "shelljs": "0.7.5",
-    "soajs.mongodb.data": "soajs/soajs.mongodb.data.git#develop"
+    "soajs.mongodb.data": "1.*"
   },
   "dependencies": {
     "async": "2.1.4",
@@ -47,10 +47,10 @@
     "netmask": "1.0.6",
     "oauth2-server": "2.4.1",
     "request": "2.79.0",
-    "soajs.core.drivers": "soajs/soajs.core.drivers.git#develop",
-    "soajs.core.libs": "soajs/soajs.core.libs.git#develop",
-    "soajs.core.modules": "soajs/soajs.core.modules.git#develop",
-    "soajs.urac.driver": "soajs/soajs.urac.driver.git#develop",
+    "soajs.core.drivers": "1.*",
+    "soajs.core.libs": "1.*",
+    "soajs.core.modules": "1.*",
+    "soajs.urac.driver": "1.*",
     "useragent": "2.1.10",
     "validator": "6.2.0"
   }
