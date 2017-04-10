@@ -43,14 +43,14 @@ module.exports = function () {
 		        req.soajs.log.fatal(error);
 		        return req.soajs.controllerResponse(core.error.getError(130));
 	        }
-	
+
 	        if (!parameters) {
 		        req.soajs.log.fatal("url[", req.url, "] couldn't be matched to a service or the service entry in registry is missing [port || hosts]");
 		        return req.soajs.controllerResponse(core.error.getError(130));
 	        }
-	
+
 	        req.soajs.controller.serviceParams = parameters;
-	
+
 	        var d = domain.create();
 	        d.add(req);
 	        d.add(res);
@@ -76,6 +76,7 @@ module.exports = function () {
 		        if (!key) {
 			        return req.soajs.controllerResponse(core.error.getError(132));
 		        }
+
 		        core.key.getInfo(key, req.soajs.registry.serviceConfig.key, function (err, keyObj) {
 			        if (err) {
 				        req.soajs.log.warn(err.message);
@@ -88,7 +89,7 @@ module.exports = function () {
 				        req.soajs.controller.gotoservice = simpleRTS;
 			        else
 				        req.soajs.controller.gotoservice = redirectToService;
-			
+
 			        next();
 		        });
 	        }
@@ -141,31 +142,37 @@ function extractBuildParameters(req, service, service_nv, version, url, callback
         };
 
         if (!version){
-        	if(process.env.SOAJS_DEPLOY_HA){
-        		var info = req.soajs.registry.deployer.selected.split('.');
-        		var deployerConfig = req.soajs.registry.deployer.container[info[1]][info[2]];
-        		
-		        var options = {
-			        "strategy": process.env.SOAJS_DEPLOY_HA,
-			        "driver": info[1] + "." + info[2],
-			        "deployerConfig": deployerConfig,
-			        "soajs": {
-				        "registry": req.soajs.registry
-			        },
-			        "model": {},
-			        "params": {
-				        "serviceName": service,
-				        "env": process.env.SOAJS_ENV
-			        }
-		        };
-		
-		        drivers.getLatestVersion(options, function(error, latestVersion){
-		        	if(error){
-				        return callback(error);
-			        }
-			        version = latestVersion;
+            if(process.env.SOAJS_DEPLOY_HA){
+		        var latestCachedVersion = req.soajs.awareness.getLatestVersionFromCache(service);
+		        if(latestCachedVersion){
+			        version = latestCachedVersion;
 			        nextStep(version);
-		        });
+		        }
+        		else{
+			        var info = req.soajs.registry.deployer.selected.split('.');
+			        var deployerConfig = req.soajs.registry.deployer.container[info[1]][info[2]];
+
+			        var options = {
+				        "strategy": process.env.SOAJS_DEPLOY_HA,
+				        "driver": info[1] + "." + info[2],
+				        "deployerConfig": deployerConfig,
+				        "soajs": {
+					        "registry": req.soajs.registry
+				        },
+				        "model": {},
+				        "params": {
+					        "serviceName": service,
+					        "env": process.env.SOAJS_ENV
+				        }
+			        };
+			        drivers.getLatestVersion(options, function(error, latestVersion){
+				        if(error){
+					        return callback(error);
+				        }
+				        version = latestVersion;
+				        nextStep(version);
+			        });
+		        }
 	        }
 	        else if(req.soajs.registry.services[service].hosts){
 		        version = req.soajs.registry.services[service].hosts.latest;

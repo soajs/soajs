@@ -215,39 +215,49 @@ controller.prototype.init = function (callback) {
                             return res.end(JSON.stringify(response));
                         });
 
-                        if (parsedUrl.pathname === '/reloadRegistry') {
-                            reloadRegistry();
+                if (parsedUrl.pathname === '/reloadRegistry') {
+                    reloadRegistry();
+                }
+                else if (parsedUrl.pathname === '/awarenessStat') {
+                    res.writeHead(200, {'Content-Type': 'application/json'});
+                    var tmp = core.registry.get();
+                    response = maintenanceResponse(req);
+                    if (tmp && (tmp.services || tmp.daemons)) {
+                        response['result'] = true;
+                        response['data'] = {"services": tmp.services, "daemons": tmp.daemons};
+                    }
+
+	                if (process.env.SOAJS_DEPLOY_HA) {
+		                awareness_mw({
+			                "awareness": _self.awareness,
+			                "serviceName": _self.serviceName,
+			                "log": _self.log,
+			                "serviceIp": _self.serviceIp
+		                });
+	                }
+
+                    return res.end(JSON.stringify(response));
+                }
+                else if (parsedUrl.pathname === '/register') {
+                    if (parsedUrl.query.serviceHATask) {
+                        reloadRegistry();
+                    }
+                    else {
+                        res.writeHead(200, {'Content-Type': 'application/json'});
+                        response = maintenanceResponse(req);
+                        var regOptions = {
+                            "name": parsedUrl.query.name,
+                            "group": parsedUrl.query.group,
+                            "port": parseInt(parsedUrl.query.port),
+                            "ip": parsedUrl.query.ip,
+                            "type": parsedUrl.query.type,
+                            "version": parseInt(parsedUrl.query.version)
+                        };
+                        if (regOptions.type === "service") {
+                            regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
+                            regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
+                            regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);
                         }
-                        else if (parsedUrl.pathname === '/awarenessStat') {
-                            res.writeHead(200, {'Content-Type': 'application/json'});
-                            var tmp = core.registry.get();
-                            response = maintenanceResponse(req);
-                            if (tmp && (tmp.services || tmp.daemons)) {
-                                response['result'] = true;
-                                response['data'] = {"services": tmp.services, "daemons": tmp.daemons};
-                            }
-                            return res.end(JSON.stringify(response));
-                        }
-                        else if (parsedUrl.pathname === '/register') {
-                            if (parsedUrl.query.serviceHATask) {
-                                reloadRegistry();
-                            }
-                            else {
-                                res.writeHead(200, {'Content-Type': 'application/json'});
-                                response = maintenanceResponse(req);
-                                var regOptions = {
-                                    "name": parsedUrl.query.name,
-                                    "group": parsedUrl.query.group,
-                                    "port": parseInt(parsedUrl.query.port),
-                                    "ip": parsedUrl.query.ip,
-                                    "type": parsedUrl.query.type,
-                                    "version": parseInt(parsedUrl.query.version)
-                                };
-                                if (regOptions.type === "service") {
-                                    regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
-                                    regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
-                                    regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);
-                                }
 
                                 core.registry.register(
                                     regOptions,

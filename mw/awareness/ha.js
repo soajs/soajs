@@ -1,4 +1,6 @@
 'use strict';
+var async = require('async');
+
 var drivers = require('soajs.core.drivers');
 var coreModules = require ("soajs.core.modules");
 var core = coreModules.core;
@@ -7,12 +9,14 @@ var param = null;
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
 
+var awarenessCache = {};
+
 var lib = {
 	"constructDriverParam": function(serviceName){
 		var info = core.registry.get().deployer.selected.split('.');
 		var deployerConfig = core.registry.get().deployer.container[info[1]][info[2]];
 
-		return {
+		var options = {
 			"strategy": process.env.SOAJS_DEPLOY_HA,
 			"driver": info[1] + "." + info[2],
 			"deployerConfig": deployerConfig,
@@ -21,21 +25,116 @@ var lib = {
 			},
 			"model": {},
 			"params": {
-				"serviceName": serviceName,
-				"env": process.env.SOAJS_ENV
+				"env": regEnvironment
 			}
 		};
+
+		if (serviceName) {
+			options.params.serviceName = serviceName;
+		}
+
+		return options;
 	},
 
 	"getLatestVersion" : function (serviceName, cb){
 		var options = lib.constructDriverParam(serviceName);
 		drivers.getLatestVersion(options, cb);
+	},
+
+	"getHostFromCache": function (serviceName, version) {
+		if (awarenessCache[serviceName] &&
+			awarenessCache[serviceName][version] &&
+			awarenessCache[serviceName][version].host) {
+				param.log.info('Got ' + awarenessCache[serviceName][version].host + ' from awareness cache');
+				return awarenessCache[serviceName][version].host;
+			}
+
+		return null;
+	},
+
+	"setHostInCache": function (serviceName, version, hostname) {
+		if (!awarenessCache[serviceName]) awarenessCache[serviceName] = {};
+		if (!awarenessCache[serviceName][version]) awarenessCache[serviceName][version] = {};
+
+		awarenessCache[serviceName][version].host = hostname;
+	},
+
+	"getHostFromAPI": function (serviceName, version, cb) {
+		var options = lib.constructDriverParam(serviceName);
+		if (!version) {
+			//if no version was supplied, find the latest version of the service
+			lib.getLatestVersion(serviceName, function (err, obtainedVersion) {
+				if (err) {
+					//todo: need to find a better way to do this log
+					param.log.error(err);
+					return cb(null);
+				}
+
+				getHost(obtainedVersion);
+			});
+		}
+		else {
+			getHost(version);
+		}
+
+		function getHost(version) {
+			options.params.version = version;
+			drivers.getServiceHost(options, function(error, response){
+				if(error){
+					param.log.error(error);
+					return cb(null);
+				}
+
+				lib.setHostInCache(serviceName, version, response);
+				param.log.info('Got ' + response + ' from cluster API');
+				return cb(response);
+			});
+		}
+	},
+
+	"rebuildAwarenessCache": function () {
+		var myCache = {};
+		var options = lib.constructDriverParam();
+		drivers.listServices(options, function (error, services) {
+			if (error) {
+				param.log.error(error);
+				return;
+			}
+
+			async.each(services, function (oneService, callback) {
+				var version, serviceName;
+				if (oneService.labels && oneService.labels['soajs.service.version']) {
+					version = oneService.labels['soajs.service.version'];
+				}
+
+				if (oneService.labels && oneService.labels['soajs.service.name']) {
+					serviceName = oneService.labels['soajs.service.name'];
+				}
+
+				//if no version is found, lib.getHostFromAPI() will get it from cluster api
+				lib.getHostFromAPI(serviceName, version, function (hostname) {
+					myCache[serviceName] = {};
+					myCache[serviceName][version] = { host: hostname };
+					return callback();
+				});
+			}, function () {
+				awarenessCache = myCache;
+				param.log.debug("Awareness cache rebuilt successfully");
+
+				var cacheTTL = core.registry.get().serviceConfig.awareness.cacheTTL;
+				if (cacheTTL) {
+					setTimeout(lib.rebuildAwarenessCache, cacheTTL);
+				}
+			});
+		});
 	}
 };
 
 var ha = {
     "init": function (_param) {
     	param = _param;
+
+		lib.rebuildAwarenessCache();
     },
 
     "getServiceHost": function () {
@@ -62,12 +161,13 @@ var ha = {
 	    }
 
 	    env = regEnvironment;
+		param.log.debug(JSON.stringify (awarenessCache, null, 2));
 
-        if(serviceName === 'controller'){
-	        if(process.env.SOAJS_DEPLOY_HA === 'kubernetes'){
+        if(serviceName === 'controller') {
+	        if(process.env.SOAJS_DEPLOY_HA === 'kubernetes') {
 		        serviceName += "-v1-service";
 	        }
-	        
+
 			var info = core.registry.get().deployer.selected.split('.');
 			var deployerConfig = core.registry.get().deployer.container[info[1]][info[2]];
 			var namespace = '';
@@ -80,38 +180,33 @@ var ha = {
 
         	return cb(env + "-" + serviceName + namespace);
         }
-        else{
-	        var options = lib.constructDriverParam(serviceName);
-	        //if no version was supplied, find the latest version of the service
-	        if (!version) {
-		        lib.getLatestVersion(serviceName, function (err, obtainedVersion) {
-			        if (err) {
-				        //todo: need to find a better way to do this log
-				        param.log.error(err);
-				        return cb(null);
-			        }
-			        options.params.version = obtainedVersion;
-			        drivers.getServiceHost(options, function(error, response){
-				        if(error){
-					        param.log.error(error);
-					        return cb(null);
-				        }
-				        return cb(response);
-			        });
-		        });
-	        }
-	        else {
-		        options.params.version = version;
-		        drivers.getServiceHost(options, function(error, response){
-			        if(error){
-				        param.log.error(error);
-				        return cb(null);
-			        }
-			        return cb(response);
-		        });
-	        }
+        else {
+			var hostname = lib.getHostFromCache(serviceName, version);
+			if (hostname) {
+				return cb(hostname);
+			}
+			else {
+				lib.getHostFromAPI(serviceName, version, cb);
+			}
         }
-    }
+    },
+
+	"getLatestVersionFromCache": function (serviceName) {
+		if (!awarenessCache[serviceName]) return null;
+
+		var serviceVersions = Object.keys(awarenessCache[serviceName]), latestVersion = 0;
+		if (serviceVersions.length === 0) return null;
+
+		for (var i = 0; i < serviceVersions.length; i++) {
+			if (serviceVersions[i] > latestVersion) {
+				latestVersion = serviceVersions[i];
+			}
+		}
+
+		if (latestVersion === 0) return null;
+
+		return latestVersion;
+	}
 };
 
 module.exports = ha;
