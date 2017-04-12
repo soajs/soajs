@@ -266,8 +266,8 @@ module.exports = function (configuration) {
                 userServiceConf = userServiceConf || {};
 
                 var tenantServiceConf = obj.keyObj.config;
-                obj.req.soajs.servicesConfig = merge.recursive(true, tenantServiceConf, userServiceConf);
-
+                //obj.req.soajs.servicesConfig = merge.recursive(true, tenantServiceConf, userServiceConf);
+                obj.servicesConfig = merge.recursive(true, tenantServiceConf, userServiceConf);
                 return cb(null, obj);
             });
         };
@@ -544,8 +544,31 @@ module.exports = function (configuration) {
                                 async.waterfall(serviceCheckArray, function (err, data) {
                                     if (err)
                                         return next(err);
-                                    else
+                                    else {
+                                        var injectObj = {
+                                            "tenant": {
+
+                                                "id": keyObj.tenant.id,
+                                                "code": keyObj.tenant.code,
+                                                "roaming": data.req.soajs.tenant.roaming
+                                            },
+                                            "key": {
+                                                "config": data.servicesConfig || keyObj.config,
+                                                "iKey": keyObj.key,
+                                                "eKey": keyObj.extKey
+                                            },
+                                            "application": keyObj.application,
+                                            "package": {
+                                                "acl": packObj.acl,
+                                                "acl_all_env": packObj.acl_all_env
+                                            },
+                                            "device": data.device,
+                                            "geo": data.geo
+                                        };
+                                        //TODO inject here
+                                        console.log (injectObj);
                                         return next();
+                                    }
                                 });
                             }
                             else

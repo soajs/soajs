@@ -27,6 +27,7 @@ if (autoRegHost && typeof(autoRegHost) !== 'boolean') {
  */
 function controller(param) {
     var _self = this;
+    param = param || {};
     _self.awareness = true;
     _self.serviceName = "controller";
     _self.serviceVersion = 1;
