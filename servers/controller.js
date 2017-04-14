@@ -14,6 +14,7 @@ var favicon_mw = require('./../mw/favicon/index');
 var cors_mw = require('./../mw/cors/index');
 var soajs_mw = require('./../mw/soajs/index');
 var response_mw = require('./../mw/response/index');
+var enhancer_mw = require('./../mw/enhancer/index');
 var awareness_mw = require('./../mw/awareness/index');
 var controller_mw = require('./../mw/controller/index');
 
@@ -96,6 +97,7 @@ controller.prototype.init = function (callback) {
             }));
             app.use(cors_mw());
             app.use(response_mw({"controllerResponse": true}));
+            app.use(enhancer_mw({}));
 
             if (_self.soajs.param.bodyParser) {
                 var bodyParser = require('body-parser');
@@ -137,7 +139,9 @@ controller.prototype.init = function (callback) {
 
 
             var mt_mw = require("./../mw/mt/index");
-            _self.soajs.mtMW = mt_mw({"soajs": _self.soajs, "app": app, "param": _self.soajs.param});
+            //_self.soajs.mtMW =
+            // req.route.path will not work for now
+            app.use (mt_mw({"soajs": _self.soajs, "app": app, "param": _self.soajs.param}));
             _self.log.info("SOAJS MT middleware initialization done.");
 
             app.use(function (req, res, next) {

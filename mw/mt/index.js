@@ -175,16 +175,16 @@ module.exports = function (configuration) {
 
     function oauthCheck(obj, cb) {
         var oAuthTurnedOn = true;
-        if (obj.app.soajs.oauth)
+        if (obj.soajs.oauth)
             oAuthTurnedOn = true;
-        if (obj.app.soajs.oauthService && obj.req.soajs.controller.serviceParams.name === obj.app.soajs.oauthService.name && (obj.req.soajs.controller.serviceParams.url === obj.app.soajs.oauthService.tokenApi || obj.req.soajs.controller.serviceParams.url === obj.app.soajs.oauthService.authorizationApi))
+        if (obj.soajs.oauthService && obj.req.soajs.controller.serviceParams.name === obj.soajs.oauthService.name && (obj.req.soajs.controller.serviceParams.url === obj.soajs.oauthService.tokenApi || obj.req.soajs.controller.serviceParams.url === obj.soajs.oauthService.authorizationApi))
             oAuthTurnedOn = false;
 
         if (oAuthTurnedOn) {
             var oauthExec = function () {
-                if (obj.req.soajs.servicesConfig && obj.req.soajs.servicesConfig[obj.app.soajs.oauthService] && obj.req.soajs.servicesConfig[obj.app.soajs.oauthService].disabled)
+                if (obj.req.soajs.servicesConfig && obj.req.soajs.servicesConfig[obj.soajs.oauthService] && obj.req.soajs.servicesConfig[obj.soajs.oauthService].disabled)
                     return cb(null, obj);
-                return obj.app.soajs.oauth(obj.req, obj.res, function (error) {
+                return obj.soajs.oauth(obj.req, obj.res, function (error) {
                     return cb(error, obj);
                 });
             };
@@ -504,7 +504,8 @@ module.exports = function (configuration) {
     };
 
     return function (req, res, next) {
-        if (req.soajs.registry.services[obj.req.soajs.controller.serviceParams.name].extKeyRequired) {
+        console.log ("MT")
+        if (req.soajs.registry.services[req.soajs.controller.serviceParams.name].extKeyRequired) {
             try {
                 provision.getExternalKeyData(req.get("key"), req.soajs.registry.serviceConfig.key, function (err, keyObj) {
                     if (err)
@@ -527,6 +528,7 @@ module.exports = function (configuration) {
                                 var serviceCheckArray = [function (cb) {
                                     cb(null, {
                                         "app": app,
+                                        "soajs": soajs,
                                         "res": res,
                                         "req": req,
                                         "keyObj": keyObj,
@@ -580,7 +582,8 @@ module.exports = function (configuration) {
                 });
             } catch (err) {
                 req.soajs.log.error(150, err.stack);
-                res.jsonp(req.soajs.buildResponse(core.error.getError(150)));
+                req.soajs.controllerResponse(core.error.getError(150));
+                //res.jsonp(req.soajs.buildResponse(core.error.getError(150)));
             }
         }
         else {
