@@ -410,6 +410,7 @@ module.exports = function (configuration) {
      */
     var _system = {
         "getAcl": function (obj) {
+            //TODO: transform :pathparam into apisRegExp
             var aclObj = null;
             if (obj.req.soajs.uracDriver) {
                 var uracACL = obj.req.soajs.uracDriver.getAcl();
@@ -504,7 +505,6 @@ module.exports = function (configuration) {
     };
 
     return function (req, res, next) {
-        console.log ("MT")
         if (req.soajs.registry.services[req.soajs.controller.serviceParams.name].extKeyRequired) {
             try {
                 provision.getExternalKeyData(req.get("key"), req.soajs.registry.serviceConfig.key, function (err, keyObj) {
