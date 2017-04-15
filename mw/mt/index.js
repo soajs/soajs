@@ -177,7 +177,7 @@ module.exports = function (configuration) {
         var oAuthTurnedOn = true;
         if (obj.soajs.oauth)
             oAuthTurnedOn = true;
-        if (obj.soajs.oauthService && obj.req.soajs.controller.serviceParams.name === obj.soajs.oauthService.name && (obj.req.soajs.controller.serviceParams.url === obj.soajs.oauthService.tokenApi || obj.req.soajs.controller.serviceParams.url === obj.soajs.oauthService.authorizationApi))
+        if (obj.soajs.oauthService && obj.req.soajs.controller.serviceParams.name === obj.soajs.oauthService.name && (obj.req.soajs.controller.serviceParams.path === obj.soajs.oauthService.tokenApi || obj.req.soajs.controller.serviceParams.path === obj.soajs.oauthService.authorizationApi))
             oAuthTurnedOn = false;
 
         if (oAuthTurnedOn) {
@@ -190,10 +190,10 @@ module.exports = function (configuration) {
             };
 
             var system = _system.getAcl(obj);
-            var api = (system && system.apis ? system.apis[obj.req.route.path] : null);
+            var api = (system && system.apis ? system.apis[obj.req.soajs.controller.serviceParams.path] : null);
             if (!api && system && system.apisRegExp && Object.keys(system.apisRegExp).length) {
                 for (var jj = 0; jj < system.apisRegExp.length; jj++) {
-                    if (system.apisRegExp[jj].regExp && obj.req.route.path.match(system.apisRegExp[jj].regExp)) {
+                    if (system.apisRegExp[jj].regExp && obj.req.soajs.controller.serviceParams.path.match(system.apisRegExp[jj].regExp)) {
                         api = system.apisRegExp[jj];
                     }
                 }
@@ -359,10 +359,10 @@ module.exports = function (configuration) {
      */
     function apiCheck(obj, cb) {
         var system = _system.getAcl(obj);
-        var api = (system && system.apis ? system.apis[obj.req.route.path] : null);
+        var api = (system && system.apis ? system.apis[obj.req.soajs.controller.serviceParams.path] : null);
         if (!api && system && system.apisRegExp && Object.keys(system.apisRegExp).length) {
             for (var jj = 0; jj < system.apisRegExp.length; jj++) {
-                if (system.apisRegExp[jj].regExp && obj.req.route.path.match(system.apisRegExp[jj].regExp)) {
+                if (system.apisRegExp[jj].regExp && obj.req.soajs.controller.serviceParams.path.match(system.apisRegExp[jj].regExp)) {
                     api = system.apisRegExp[jj];
                 }
             }

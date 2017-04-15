@@ -137,7 +137,15 @@ function extractBuildParameters(req, service, service_nv, version, url, callback
                 "version": version,
                 "extKeyRequired": extKeyRequired
             };
-
+            var path = serviceInfo.url;
+            var pathIndex = path.indexOf("?");
+            if (pathIndex !== -1){
+                path = path.substring (0, pathIndex);
+                pathIndex = path.lastIndexOf("/");
+                if (pathIndex === (path.length-1))
+                    path = path.substring (0, pathIndex);
+            }
+            serviceInfo.path = path;
             return callback(null, serviceInfo);
         };
 

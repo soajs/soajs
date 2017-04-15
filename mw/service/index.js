@@ -42,7 +42,7 @@ module.exports = function (configuration) {
     }
 
     return function (req, res, next) {
-
+console.log (req.route.path);
         //TODO: read the injected body as below
         var injectObj = {
             "tenant": {
