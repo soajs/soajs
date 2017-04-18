@@ -12,110 +12,151 @@ regEnvironment = regEnvironment.toLowerCase();
  * @returns {Function}
  */
 module.exports = function (configuration) {
-    var soajs = configuration.soajs;
-    var param = configuration.param;
-    var app = configuration.app;
+	var soajs = configuration.soajs;
+	var param = configuration.param;
+	var app = configuration.app;
+	
+	function mapInjectedObject(req) {
+		
+		var input = req.body.soajsInjectObj;
+		var output = {};
 
-    /**
-     *
-     * @param obj
-     * @param cb
-     * @returns {*}
-     */
-    function sessionCheck(obj, cb) {
-        var mtSessionParam = {
-            'session': obj.req.session,
-            'tenant': {'id': obj.req.soajs.tenant.id, 'key': obj.req.soajs.tenant.key.iKey, 'extKey': obj.req.soajs.tenant.key.extKey},
-            'product': {
-                'product': obj.req.soajs.tenant.application.product,
-                'package': obj.req.soajs.tenant.application.package,
-                'appId': obj.req.soajs.tenant.application.appId
-            },
-            'request': {'service': obj.app.soajs.param.serviceName, 'api': obj.req.route.path},
-            'device': obj.req.soajs.device,
-            'geo': obj.req.soajs.geo,
-            'req': obj.req
-        };
-        var mtSession = new MultiTenantSession(mtSessionParam);
-        obj.req.soajs.session = mtSession;
-        return cb(null, obj);
-    }
+		if (!input) {
+			return output;
+		}
+		
+		if (input.tenant) {
+			output.tenant = {
+				id: input.tenant.id,
+				code: input.tenant.code
+			};
+		}
 
-    return function (req, res, next) {
-        //TODO: read the injected body as below
-        var injectObj = {
-            "tenant": {
-                "id": "10d2cb5fc04ce51e06000001",
-                "code": "test"
-            },
-            "key": {
-                "config": {},
-                "iKey": "d1eaaf5fdc35c11119330a8a0273fee9",
-                "eKey": "aa39b5490c4a4ed0e56d7ec1232a428f771e8bb83cfcee16de14f735d0f5da587d5968ec4f785e38570902fd24e0b522b46cb171872d1ea038e88328e7d973ff47d9392f72b2d49566209eb88eb60aed8534a965cf30072c39565bd8d72f68ac"
-            },
-            "application": {
-                "product": "TPROD",
-                "package": "TPROD_BASIC",
-                "appId": "30d2cb5fc04ce51e06000001",
-                "acl": {
-                    "urac": {},
-                    "oauth": {},
-                    "dashboard": {}
-                },
-                "acl_all_env": {
-                    "dev": {
-                        "urac": {},
-                        "oauth": {},
-                        "dashboard": {}
-                    }
-                }
-            },
-            "package": {
-                "acl": {},
-                "acl_all_env": {}
-            },
-            "device" : {},
-            "geo" : {}
-        };
+		if (input.key) {
+			output.key = {
+				config: input.key.config,
+				iKey: input.key.iKey,
+				eKey: input.key.eKey
+			};
+		}
+		
+		if (input.application) {
+			output.application = {
+				product: input.application.product,
+				package: input.application.package,
+				appId: input.application.appId,
+				acl: input.application.acl,
+				acl_all_env: input.application.acl_all_env
+			};
+		}
 
-        if (injectObj && injectObj.application && injectObj.application.package && injectObj.key && injectObj.tenant) {
-            req.soajs.tenant = injectObj.tenant;
-            req.soajs.tenant.key = {
-                "iKey": injectObj.key.iKey,
-                "eKey": injectObj.key.extKey
-            };
-            req.soajs.tenant.application = injectObj.application;
+		if (input.package) {
+			output.package = {
+				acl: input.package.acl,
+				acl_all_env: input.package.acl_all_env
+			};
+		}
 
-            if (injectObj.package) {
-                req.soajs.tenant.application.package_acl = injectObj.package.acl;
-                req.soajs.tenant.application.package_acl_all_env = injectObj.package.acl_all_env;
-                req.soajs.servicesConfig = injectObj.key.config;
-                req.soajs.device = injectObj.device;
-                req.soajs.geo = injectObj.geo;
-
-                var serviceCheckArray = [function (cb) {
-                    cb(null, {
-                        "app": app,
-                        "res": res,
-                        "req": req
-                    });
-                }];
-
-                if (param.session)
-                    serviceCheckArray.push(sessionCheck);
-
-                async.waterfall(serviceCheckArray, function (err, data) {
-                    if (err)
-                        return next(err);
-                    else
-                        return next();
-                });
-            }
-            else
-                return next(152);
-        }
-        else
-            return next(153);
-    };
+		output.device = input.device || {};
+		output.geo = input.geo || {};
+		
+		return output;
+	}
+	
+	/**
+	 *
+	 * @param obj
+	 * @param cb
+	 * @returns {*}
+	 */
+	function sessionCheck(obj, cb) {
+		var mtSessionParam = {
+			'session': obj.req.session,
+			'tenant': {
+				'id': obj.req.soajs.tenant.id,
+				'key': obj.req.soajs.tenant.key.iKey,
+				'extKey': obj.req.soajs.tenant.key.extKey
+			},
+			'product': {
+				'product': obj.req.soajs.tenant.application.product,
+				'package': obj.req.soajs.tenant.application.package,
+				'appId': obj.req.soajs.tenant.application.appId
+			},
+			'request': {'service': obj.app.soajs.param.serviceName, 'api': obj.req.route.path},
+			'device': obj.req.soajs.device,
+			'geo': obj.req.soajs.geo,
+			'req': obj.req
+		};
+		var mtSession = new MultiTenantSession(mtSessionParam);
+		obj.req.soajs.session = mtSession;
+		return cb(null, obj);
+	}
+	
+	return function (req, res, next) {
+		
+		// -=-=-=-=-=-=-
+		console.log(";;;;;;");
+		// var body = JSON.parse(req.body);
+		// console.log(JSON.stringify(req.body,null,2));
+		console.log(req.headers);
+		console.log(req.body);
+		console.log(";;;;;;");
+		// var cache = [];
+		// console.log(JSON.stringify(req, function(key, value) {
+		//    if (typeof value === 'object' && value !== null) {
+		//     if (cache.indexOf(value) !== -1) {
+		// 	    // Circular reference found, discard key
+		// 	    return;
+		//     }
+		//     // Store value in our collection
+		//     cache.push(value);
+		//    }
+		//    return value;
+		// }));
+		console.log(";;;;;;");
+		console.log(";;;;;;");
+		
+		
+		var injectObj = mapInjectedObject(req);
+		
+		if (injectObj && injectObj.application && injectObj.application.package && injectObj.key && injectObj.tenant) {
+			req.soajs.tenant = injectObj.tenant;
+			req.soajs.tenant.key = {
+				"iKey": injectObj.key.iKey,
+				"eKey": injectObj.key.extKey
+			};
+			req.soajs.tenant.application = injectObj.application;
+			
+			if (injectObj.package) {
+				req.soajs.tenant.application.package_acl = injectObj.package.acl;
+				req.soajs.tenant.application.package_acl_all_env = injectObj.package.acl_all_env;
+				req.soajs.servicesConfig = injectObj.key.config;
+				req.soajs.device = injectObj.device;
+				req.soajs.geo = injectObj.geo;
+				
+				var serviceCheckArray = [function (cb) {
+					cb(null, {
+						"app": app,
+						"res": res,
+						"req": req
+					});
+				}];
+				
+				if (param.session)
+					serviceCheckArray.push(sessionCheck);
+				
+				async.waterfall(serviceCheckArray, function (err, data) {
+					if (err)
+						return next(err);
+					else
+						return next();
+				});
+			}
+			else
+				return next(152);
+		}
+		else
+			return next(153);
+	};
 }
 ;

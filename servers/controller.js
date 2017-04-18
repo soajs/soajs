@@ -36,7 +36,7 @@ function controller(param) {
     _self.serviceHATask = null;
 
     //TODO: we might not need bodyParser
-    param.bodyParser = false;
+    param.bodyParser = true;
 
     _self.soajs = {"param" : param};
 }
@@ -102,8 +102,8 @@ controller.prototype.init = function (callback) {
             if (_self.soajs.param.bodyParser) {
                 var bodyParser = require('body-parser');
                 var options = (_self.soajs.param.bodyParser.limit) ? {limit: _self.soajs.param.bodyParser.limit} : null;
-                _self.app.use(bodyParser.json(options));
-                _self.app.use(bodyParser.urlencoded({extended: true}));
+                app.use(bodyParser.json(options));
+                app.use(bodyParser.urlencoded({extended: true}));
                 _self.log.info("Body-Parse middleware initialization done.");
             }
             else {
@@ -117,7 +117,7 @@ controller.prototype.init = function (callback) {
                 "log": _self.log,
                 "serviceIp": _self.serviceIp
             }));
-
+	        
             var oauthserver = require('oauth2-server');
             _self.oauth = oauthserver({
                 model: provision.oauthModel,

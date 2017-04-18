@@ -549,7 +549,6 @@ module.exports = function (configuration) {
                                     else {
                                         var injectObj = {
                                             "tenant": {
-
                                                 "id": keyObj.tenant.id,
                                                 "code": keyObj.tenant.code,
                                                 "roaming": data.req.soajs.tenant.roaming
@@ -567,9 +566,13 @@ module.exports = function (configuration) {
                                             "device": data.device,
                                             "geo": data.geo
                                         };
-                                        //TODO inject here
-                                        console.log (injectObj);
-                                        return next();
+                                        
+                                        if(!req.body){
+	                                        req.body = {};
+                                        }
+	                                    req.body.soajsInjectObj = injectObj;
+	                                    
+	                                    return next();
                                     }
                                 });
                             }
