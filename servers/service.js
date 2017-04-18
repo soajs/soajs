@@ -370,7 +370,8 @@ service.prototype.init = function (callback) {
 	        */
 
 	        _self.registry = {
-		        "loadByEnv": core.registry.loadByEnv
+		        "loadByEnv": core.registry.loadByEnv,
+                "get": core.registry.get
 	        };
 	        
             callback();
