@@ -16,6 +16,12 @@ module.exports = function (configuration) {
 	var param = configuration.param;
 	var app = configuration.app;
 	
+	/**
+	 * Map injected object from request and return it
+	 *
+	 * @param {Object} req
+	 * @returns {Object} injected Object
+	 */
 	function mapInjectedObject(req) {
 		
 		var input = req.body.soajsInjectObj;
@@ -95,12 +101,12 @@ module.exports = function (configuration) {
 	return function (req, res, next) {
 		
 		// -=-=-=-=-=-=-
-		console.log(";;;;;;");
+		// console.log(";;;;;;");
 		// var body = JSON.parse(req.body);
 		// console.log(JSON.stringify(req.body,null,2));
-		console.log(req.headers);
-		console.log(req.body);
-		console.log(";;;;;;");
+		// console.log(req.headers);
+		// console.log(req.body);
+		// console.log(";;;;;;");
 		// var cache = [];
 		// console.log(JSON.stringify(req, function(key, value) {
 		//    if (typeof value === 'object' && value !== null) {
@@ -113,9 +119,8 @@ module.exports = function (configuration) {
 		//    }
 		//    return value;
 		// }));
-		console.log(";;;;;;");
-		console.log(";;;;;;");
-		
+		// console.log(";;;;;;");
+		// console.log(";;;;;;");
 		
 		var injectObj = mapInjectedObject(req);
 		
