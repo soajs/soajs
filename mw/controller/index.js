@@ -249,19 +249,12 @@ function redirectToService(req, res) {
             'method': req.method,
             'uri': obj.uri,
             'timeout': 1000 * 3600,
-            'headers': req.headers
+            'headers': req.headers,
+            'jar': false
         };
-        // -=-=-=-=-=
-        delete req.headers['content-length'];
-        delete requestOptions['content-length'];
 
         if (obj.config.authorization)
             isRequestAuthorized(req, requestOptions);
-	    
-        if(req.body){
-	        requestOptions.form = req.body || {};
-	        requestOptions.json = true;
-        }
 
         req.soajs.controller.redirectedRequest = request(requestOptions);
         req.soajs.controller.redirectedRequest.on('error', function (err) {
@@ -272,13 +265,12 @@ function redirectToService(req, res) {
                 req.soajs.log.error(e);
             }
         });
-	
-        // -=-=-=-=-=
-        // if(req.method === 'POST' || req.method === 'PUT') {
-        //    req.pipe(req.soajs.controller.redirectedRequest).pipe(res);
-        // } else {
-           req.soajs.controller.redirectedRequest.pipe(res);
-        // }
+
+        if (req.method === 'POST' || req.method === 'PUT') {
+            req.pipe(req.soajs.controller.redirectedRequest).pipe(res);
+        } else {
+            req.soajs.controller.redirectedRequest.pipe(res);
+        }
     });
 }
 

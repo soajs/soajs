@@ -36,7 +36,7 @@ function controller(param) {
     _self.serviceHATask = null;
 
     //TODO: we might not need bodyParser
-    param.bodyParser = true;
+    param.bodyParser = false;
 
     _self.soajs = {"param" : param};
 }

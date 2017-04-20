@@ -184,6 +184,8 @@ module.exports = function (configuration) {
             var oauthExec = function () {
                 if (obj.req.soajs.servicesConfig && obj.req.soajs.servicesConfig[obj.soajs.oauthService] && obj.req.soajs.servicesConfig[obj.soajs.oauthService].disabled)
                     return cb(null, obj);
+                
+                console.log(obj.req);
                 return obj.soajs.oauth(obj.req, obj.res, function (error) {
                     return cb(error, obj);
                 });
@@ -510,6 +512,7 @@ module.exports = function (configuration) {
                 provision.getExternalKeyData(req.get("key"), req.soajs.registry.serviceConfig.key, function (err, keyObj) {
                     if (err)
                         req.soajs.log.warn(err);
+                    
                     if (keyObj && keyObj.application && keyObj.application.package) {
                         req.soajs.tenant = keyObj.tenant;
                         req.soajs.tenant.key = {
@@ -567,11 +570,12 @@ module.exports = function (configuration) {
                                             "geo": data.geo
                                         };
                                         
-                                        if(!req.body){
-	                                        req.body = {};
-                                        }
-	                                    req.body.soajsInjectObj = injectObj;
+                                        delete injectObj.application.package_acl;
+                                        delete injectObj.application.package_acl_all_env;
+                                        delete injectObj.application.acl;
+                                        delete injectObj.application.acl_all_env;
 	                                    
+	                                    req.headers['soajsinjectobj'] = JSON.stringify(injectObj);
 	                                    return next();
                                     }
                                 });

@@ -18,7 +18,11 @@ module.exports = function (configuration) {
 	
 	function mapInjectedObject(req) {
 		
-		var input = req.body.soajsInjectObj;
+		var input = req.headers['soajsinjectobj'];
+		if(typeof input === 'string'){
+			input = JSON.parse(input);
+		}
+		
 		var output = {};
 
 		if (!input) {
@@ -57,8 +61,13 @@ module.exports = function (configuration) {
 			};
 		}
 
-		output.device = input.device || {};
-		output.geo = input.geo || {};
+		if(input.device){
+			output.device = input.device || {};
+		}
+		
+		if(input.geo){
+			output.geo = input.geo || {};
+		}
 		
 		return output;
 	}
@@ -94,36 +103,12 @@ module.exports = function (configuration) {
 	
 	return function (req, res, next) {
 		
-		// -=-=-=-=-=-=-
-		console.log(";;;;;;");
-		// var body = JSON.parse(req.body);
-		// console.log(JSON.stringify(req.body,null,2));
-		console.log(req.headers);
-		console.log(req.body);
-		console.log(";;;;;;");
-		// var cache = [];
-		// console.log(JSON.stringify(req, function(key, value) {
-		//    if (typeof value === 'object' && value !== null) {
-		//     if (cache.indexOf(value) !== -1) {
-		// 	    // Circular reference found, discard key
-		// 	    return;
-		//     }
-		//     // Store value in our collection
-		//     cache.push(value);
-		//    }
-		//    return value;
-		// }));
-		console.log(";;;;;;");
-		console.log(";;;;;;");
-		
-		
 		var injectObj = mapInjectedObject(req);
-		
 		if (injectObj && injectObj.application && injectObj.application.package && injectObj.key && injectObj.tenant) {
 			req.soajs.tenant = injectObj.tenant;
 			req.soajs.tenant.key = {
 				"iKey": injectObj.key.iKey,
-				"eKey": injectObj.key.extKey
+				"eKey": injectObj.key.eKey
 			};
 			req.soajs.tenant.application = injectObj.application;
 			
