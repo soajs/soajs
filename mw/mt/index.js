@@ -659,10 +659,12 @@ module.exports = function (configuration) {
 											"geo": data.geo
 										};
 										
-										if (!req.body) {
-											req.body = {};
-										}
-										req.body.soajsInjectObj = JSON.stringify(injectObj);
+										delete injectObj.application.package_acl;
+										delete injectObj.application.package_acl_all_env;
+										delete injectObj.application.acl;
+										delete injectObj.application.acl_all_env;
+										
+										req.headers['soajsinjectobj'] = JSON.stringify(injectObj);
 										
 										return next();
 									}
