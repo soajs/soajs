@@ -672,6 +672,8 @@ module.exports = function (configuration) {
 										delete injectObj.application.package_acl_all_env;
 										delete injectObj.application.acl;
 										delete injectObj.application.acl_all_env;
+										delete injectObj.package.acl_all_env;
+										delete injectObj.package.acl;
 										
 										req.headers['soajsinjectobj'] = JSON.stringify(injectObj);
 										
