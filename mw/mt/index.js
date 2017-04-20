@@ -488,9 +488,9 @@ module.exports = function (configuration) {
 	}
 	
 	function filterOutRegExpObj(aclObj) {
-		if (typeof aclObj === 'object' && Object.keys(aclObj).length !== 0) {
-			aclObj = fetchSubObjectsAndReplace(aclObj);
-		}
+		// if (typeof aclObj === 'object' && Object.keys(aclObj).length !== 0) {
+		// 	aclObj = fetchSubObjectsAndReplace(aclObj);
+		// }
 		
 		return aclObj;
 	}
