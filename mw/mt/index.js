@@ -405,48 +405,93 @@ module.exports = function (configuration) {
 	
 	/**
 	 * UNDER CONSTRUCTION
-	 * recursively, fetch object and his subobjects and replace attribute routes by reg expression
+	 * check if the route is an attribute route /:
+	 * will be updated to behave as express
 	 *
-	 * @param {string} fullPath
-	 * @param object
-	 * @param currentSub
+	 * @param route
+	 * @returns {boolean}
 	 */
-	function fetchSubObjectsAndReplace(fullPath, object, currentSub) {
-		// console.log("working on : " + fullPath);
+	function isAttributeRoute(route) {
+		if (route.includes("/:")) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	/**
+	 * UNDER CONSTRUCTION
+	 * fetch the attribute route and update with regular expression
+	 *
+	 * @param route
+	 * @returns {string|*}
+	 */
+	function updateAttributeRoute(route) {
+		var start, end;
+		
+		for (var i = 0; i < route.length; i++) {
+			if (!start && i < route.length + 1 && route.charAt(i) === '/' && route.charAt(i + 1) === ':') {
+				start = i + 2;
+				i++;
+			}
+			if (start && !end && route.charAt(i) === '/') {
+				end = i;
+				break;
+			}
+		}
+		
+		if (!end) {
+			end = route.length;
+		}
+		
+		route = route.substr(0, start) + "NEW_REG_EXP_STR" + route.substr(end, route.length);
+		
+		return route;
+	};
+	
+	/**
+	 * UNDER CONSTRUCTION
+	 * recursively, fetch object and his sub objects and replace attribute routes by reg expression
+	 *
+	 * @param {object} object
+	 * @param {string} currentSub
+	 */
+	function fetchSubObjectsAndReplace(object, currentSub) {
 		var current = object;
 		if (currentSub) {
 			current = object[currentSub];
 		}
 		
-		// siblings, check on parent  :)
+		// siblings, check on parent
 		var siblings = Object.keys(object);
 		if (currentSub && siblings.indexOf(currentSub) !== (siblings.length - 1)) {
-			var splits = fullPath.split('---');
-			var pathWithoutCurrent = fullPath.substring(0, fullPath.indexOf('---' + splits[splits.length - 1]));
-			fetchSubObjectsAndReplace(pathWithoutCurrent + '---' + siblings[siblings.indexOf(currentSub) + 1], object, siblings[siblings.indexOf(currentSub) + 1]); // go to the next bro
+			fetchSubObjectsAndReplace(object, siblings[siblings.indexOf(currentSub) + 1]); // go to the next bro
 		}
 		
-		if (typeof current !== 'object') {
-			// console.log('---------------- value of [' + currentSub + '] = ' + current);
-		} else {
+		// fetch sub objects
+		if (typeof current === 'object') {
 			var subObjects = Object.keys(current);
 			if (subObjects.length !== 0) {
-				fetchSubObjectsAndReplace(fullPath + '---' + subObjects[0], current, subObjects[0]);
-			} else {
-				// console.log('---------------- value of [' + currentSub + '] = {} (empty object) ');
+				fetchSubObjectsAndReplace(current, subObjects[0]);
 			}
 		}
 		
-		if (currentSub && checkIfAttributeRoute(currentSub)) {
-			// replace object[currentSub] by regexpression
+		// if the the route has an attribute, copy the old, update with the new key, and delete the old
+		if (currentSub && isAttributeRoute(currentSub)) {
+			var oldCurrentSub = currentSub;
+			currentSub = updateAttributeRoute(currentSub);
+			object[currentSub] = object[oldCurrentSub];
+			delete object[oldCurrentSub];
 		}
+		
 		return;
-	};
+	}
 	
 	function filterOutRegExpObj(aclObj) {
-		// console.log("xxxxxx");
-		console.log(aclObj);
-		// console.log("xxxxxx---");
+		if (typeof aclObj === 'object' && Object.keys(aclObj).length !== 0) {
+			aclObj = fetchSubObjectsAndReplace(aclObj);
+		}
+		
 		return aclObj;
 	}
 	
@@ -617,7 +662,7 @@ module.exports = function (configuration) {
 										if (!req.body) {
 											req.body = {};
 										}
-										req.body.soajsInjectObj = injectObj;
+										req.body.soajsInjectObj = JSON.stringify(injectObj);
 										
 										return next();
 									}

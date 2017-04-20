@@ -272,8 +272,8 @@ function redirectToService(req, res) {
                 req.soajs.log.error(e);
             }
         });
-	
-        // -=-=-=-=-=
+        
+	    // -=-=-=-=-=
         // if(req.method === 'POST' || req.method === 'PUT') {
         //    req.pipe(req.soajs.controller.redirectedRequest).pipe(res);
         // } else {

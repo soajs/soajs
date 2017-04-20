@@ -25,6 +25,8 @@ module.exports = function (configuration) {
 	function mapInjectedObject(req) {
 		
 		var input = req.body.soajsInjectObj;
+		input = JSON.parse(input);
+		
 		var output = {};
 
 		if (!input) {

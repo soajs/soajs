@@ -102,6 +102,16 @@ controller.prototype.init = function (callback) {
             if (_self.soajs.param.bodyParser) {
                 var bodyParser = require('body-parser');
                 var options = (_self.soajs.param.bodyParser.limit) ? {limit: _self.soajs.param.bodyParser.limit} : null;
+                // -=-=-=-=-=-=-=
+                // console.log("xxxxxx++++++++++++++++");
+                // options = {
+	             //    inflate : true,
+	             //    type: 'application/*+json',
+	             //    limit : '1000kb'
+                // };
+                // console.log(options);
+                // console.log("xxxxxx++++++++++++++++");
+                // app.use(bodyParser.raw(options));
                 app.use(bodyParser.json(options));
                 app.use(bodyParser.urlencoded({extended: true}));
                 _self.log.info("Body-Parse middleware initialization done.");
