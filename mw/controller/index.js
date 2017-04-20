@@ -24,7 +24,12 @@ module.exports = function () {
         }
 
         var parsedUrl = url.parse(req.url, true);
-
+	    if(!req.query && parsedUrl.query && parsedUrl.query.access_token){
+		    req.query = {
+		    	access_token: parsedUrl.query.access_token
+		    };
+	    }
+	    
         var serviceInfo = parsedUrl.pathname.split('/');
         var service_nv = serviceInfo[1];
         var service_n = service_nv;

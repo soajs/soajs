@@ -186,7 +186,6 @@ module.exports = function (configuration) {
 				if (obj.req.soajs.servicesConfig && obj.req.soajs.servicesConfig[obj.soajs.oauthService] && obj.req.soajs.servicesConfig[obj.soajs.oauthService].disabled)
 					return cb(null, obj);
 				
-				console.log(obj.req.query);
 				return obj.soajs.oauth(obj.req, obj.res, function (error) {
 					return cb(error, obj);
 				});
@@ -600,12 +599,6 @@ module.exports = function (configuration) {
 	};
 	
 	return function (req, res, next) {
-		//todo: temp fix because req.query is undefined in controller
-		var parsedUrl = url.parse(req.url, true);
-		if(parsedUrl.query && !req.query){
-			req.query = parsedUrl.query;
-		}
-		
 		if (req.soajs.registry.services[req.soajs.controller.serviceParams.name].extKeyRequired) {
 			try {
 				provision.getExternalKeyData(req.get("key"), req.soajs.registry.serviceConfig.key, function (err, keyObj) {
