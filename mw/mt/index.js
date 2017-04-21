@@ -660,7 +660,10 @@ module.exports = function (configuration) {
 											"device": data.device,
 											"geo": data.geo
 										};
-										
+
+										if (req.soajs.uracDriver)
+                                            injectObj.urac = req.soajs.uracDriver.getProfile();
+
 										delete injectObj.application.package_acl;
 										delete injectObj.application.package_acl_all_env;
 										delete injectObj.application.acl;
