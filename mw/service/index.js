@@ -113,8 +113,9 @@ module.exports = function (configuration) {
 			req.soajs.tenant.application = injectObj.application;
 			
 			if (injectObj.package) {
-				req.soajs.tenant.application.package_acl = injectObj.package.acl;
-				req.soajs.tenant.application.package_acl_all_env = injectObj.package.acl_all_env;
+				//req.soajs.tenant.application.package_acl = injectObj.package.acl;
+				//req.soajs.tenant.application.package_acl_all_env = injectObj.package.acl_all_env;
+				req.soajs.urac = injectObj.urac;
 				req.soajs.servicesConfig = injectObj.key.config;
 				req.soajs.device = injectObj.device;
 				req.soajs.geo = injectObj.geo;
