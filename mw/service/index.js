@@ -2,6 +2,7 @@
 
 var MultiTenantSession = require("../../classes/MultiTenantSession");
 var async = require("async");
+var uracDriver = require("../mt/urac.js");
 
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
@@ -100,6 +101,24 @@ module.exports = function (configuration) {
 		obj.req.soajs.session = mtSession;
 		return cb(null, obj);
 	}
+
+    /**
+	 *
+     * @param obj
+     * @param cb
+     */
+	function uracCheck(obj, cb){
+		var urac_id = null;
+		if (obj.req.urac && obj.req.urac._id)
+            urac_id = obj.req.urac._id;
+        obj.req.soajs.uracDriver = new uracDriver({"soajs": obj.req.soajs, "_id": urac_id});
+        obj.req.soajs.uracDriver.init(function (error, uracProfile) {
+            if (error)
+                obj.req.soajs.log.error(error);
+
+            return cb(null, obj);
+        });
+	}
 	
 	return function (req, res, next) {
 		
@@ -130,6 +149,8 @@ module.exports = function (configuration) {
 				
 				if (param.session)
 					serviceCheckArray.push(sessionCheck);
+				if(param.urac)
+					serviceCheckArray.push(uracCheck);
 				
 				async.waterfall(serviceCheckArray, function (err, data) {
 					if (err)

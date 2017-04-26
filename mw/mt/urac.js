@@ -13,6 +13,9 @@ function urac(param) {
         if (param.oauth.bearerToken.user.loginMode === "oauth")
             _self.userRecord = param.oauth.bearerToken.user;
     }
+    else if (param._id) {
+        _self.id = param._id;
+    }
 }
 
 /**
