@@ -149,7 +149,7 @@ module.exports = function (configuration) {
 				
 				if (param.session)
 					serviceCheckArray.push(sessionCheck);
-				if(param.urac)
+				if(param.uracDriver)
 					serviceCheckArray.push(uracCheck);
 				
 				async.waterfall(serviceCheckArray, function (err, data) {
