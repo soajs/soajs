@@ -102,16 +102,6 @@ controller.prototype.init = function (callback) {
             if (_self.soajs.param.bodyParser) {
                 var bodyParser = require('body-parser');
                 var options = (_self.soajs.param.bodyParser.limit) ? {limit: _self.soajs.param.bodyParser.limit} : null;
-                // -=-=-=-=-=-=-=
-                // console.log("xxxxxx++++++++++++++++");
-                // options = {
-	             //    inflate : true,
-	             //    type: 'application/*+json',
-	             //    limit : '1000kb'
-                // };
-                // console.log(options);
-                // console.log("xxxxxx++++++++++++++++");
-                // app.use(bodyParser.raw(options));
                 app.use(bodyParser.json(options));
                 app.use(bodyParser.urlencoded({extended: true}));
                 _self.log.info("Body-Parse middleware initialization done.");
@@ -174,6 +164,9 @@ controller.prototype.init = function (callback) {
                 });
             });
 
+            app.use(logErrors);
+            app.use(clientErrorHandler);
+            app.use(errorHandler);
 
             _self.log.info("Loading Provision ...");
             provision.init(_self.registry.coreDB.provision, _self.log);
@@ -399,5 +392,70 @@ controller.prototype.stop = function (cb) {
         });
     });
 };
+
+//-------------------------- ERROR Handling MW
+/**
+ *
+ * @param err
+ * @param req
+ * @param res
+ * @param next
+ */
+function logErrors(err, req, res, next) {
+    if (typeof err === "number") {
+        req.soajs.log.error(core.error.generate(err));
+        return next(err);
+    }
+    if (typeof err === "object") {
+        if (err.code && err.message) {
+            req.soajs.log.error(err);
+            return next({"code": err.code, "msg": err.message});
+        }
+        else {
+            req.soajs.log.error(err);
+            req.soajs.log.error(core.error.generate(164));
+        }
+    }
+    else {
+        req.soajs.log.error(err);
+        req.soajs.log.error(core.error.generate(164));
+    }
+
+    return next(core.error.getError(164));
+}
+/**
+ *
+ * @param err
+ * @param req
+ * @param res
+ * @param next
+ */
+function clientErrorHandler(err, req, res, next) {
+    if (req.xhr) {
+        req.soajs.log.error(core.error.generate(150));
+        var errObj = core.error.getError(150);
+        errObj.status = 500;
+        req.soajs.controllerResponse(errObj);
+    } else {
+        return next(err);
+    }
+}
+/**
+ *
+ * @param err
+ * @param req
+ * @param res
+ * @param next
+ */
+function errorHandler(err, req, res, next) {
+    if (err.code && err.msg) {
+        err.status = 500;
+        req.soajs.controllerResponse(err);
+    } else {
+        var errObj = core.error.getError(err);
+        errObj.status = 500;
+        req.soajs.controllerResponse(errObj);
+    }
+}
 
 module.exports = controller;

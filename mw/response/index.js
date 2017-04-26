@@ -34,10 +34,13 @@ module.exports = function (configuration) {
         };
         if (configuration.controllerResponse) {
             req.soajs.controllerResponse = function (jsonObj) {
-                res.setHeader('Content-Type', 'application/json');
-                if (req.soajs.buildResponse && jsonObj.code && jsonObj.msg) {
+                if (req.soajs.buildResponse && jsonObj.code && jsonObj.msg)
                     jsonObj = req.soajs.buildResponse(jsonObj);
-                }
+
+                if (jsonObj.status)
+                    res.writeHead(jsonObj.status, {'Content-Type': 'application/json'});
+                else
+                    res.writeHead(200, {'Content-Type': 'application/json'});
 
                 res.end(JSON.stringify(jsonObj));
             };
