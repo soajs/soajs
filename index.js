@@ -2,6 +2,8 @@
 
 require("./classes/http");
 var coreModules = require ("soajs.core.modules");
+var coreLibs = require ("soajs.core.libs");
+var coreDrivers = require ("soajs.core.drivers");
 
 process.on('uncaughtException', function (e) {
     console.log(new Date().toISOString(), e.stack || e);
@@ -23,6 +25,10 @@ module.exports = {
     "mail": coreModules.mail,
     "mongo": coreModules.mongo,
     "hasher": coreModules.hasher,
-    "authorization": coreModules.authorization
+    "core": coreModules.core,
+    "authorization": coreModules.authorization,
+    "provision": coreModules.provision,
+    "utils": coreLibs.utils,
+    "drivers": coreDrivers
 };
 
