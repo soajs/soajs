@@ -113,8 +113,8 @@ module.exports = function (configuration) {
      */
 	function uracCheck(obj, cb){
 		var urac_id = null;
-		if (obj.req.urac && obj.req.urac._id)
-            urac_id = obj.req.urac._id;
+		if (obj.req.soajs.urac && obj.req.soajs.urac._id)
+            urac_id = obj.req.soajs.urac._id;
         obj.req.soajs.uracDriver = new uracDriver({"soajs": obj.req.soajs, "_id": urac_id});
         obj.req.soajs.uracDriver.init(function (error, uracProfile) {
             if (error)
