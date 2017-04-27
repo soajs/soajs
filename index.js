@@ -27,6 +27,7 @@ module.exports = {
     "hasher": coreModules.hasher,
     "core": coreModules.core,
     "authorization": coreModules.authorization,
+    "provision": coreModules.provision,
     "utils": coreLibs.utils,
     "drivers": coreDrivers
 };
