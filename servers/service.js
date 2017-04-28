@@ -2,6 +2,7 @@
 
 var path = require('path');
 var os = require('os');
+var fs = require('fs');
 
 var coreModules = require ("soajs.core.modules");
 var core = coreModules.core;
@@ -177,6 +178,12 @@ service.prototype.init = function (callback) {
             soajs.serviceConf = lib.registry.getServiceConf(soajs.param.serviceName, registry);
 
             _self.log = core.getLogger(soajs.param.serviceName, registry.serviceConfig.logger);
+
+            //turn on swagger path
+            if (fs.existsSync('./swagger.yml')) {
+                _self.app.use('/swagger.yml', express.static('./swagger.yml'));
+                _self.log.info("Swagger route [/swagger.yml] is ON.");
+            }
 
             if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true")
                 _self.log.info("SOAJS is in SOLO mode, the following got turned OFF [extKeyRequired, session, oauth, awareness, awarenessEnv].");
