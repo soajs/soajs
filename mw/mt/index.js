@@ -663,13 +663,15 @@ module.exports = function (configuration) {
 
 										if (req.soajs.uracDriver)
                                             injectObj.urac = req.soajs.uracDriver.getProfile();
-
-										delete injectObj.application.package_acl;
-										delete injectObj.application.package_acl_all_env;
-										delete injectObj.application.acl;
-										delete injectObj.application.acl_all_env;
-										delete injectObj.package.acl_all_env;
-										delete injectObj.package.acl;
+										
+										if(data.req.soajs.controller.serviceParams.name!=='dashboard'){
+											delete injectObj.application.package_acl;
+											delete injectObj.application.package_acl_all_env;
+											delete injectObj.application.acl;
+											delete injectObj.application.acl_all_env;
+											delete injectObj.package.acl_all_env;
+											delete injectObj.package.acl;
+										}
 										
 										req.headers['soajsinjectobj'] = JSON.stringify(injectObj);
 										

@@ -46,13 +46,14 @@ module.exports = function (configuration) {
 		}
 		
 		if (input.application) {
-			output.application = {
-				product: input.application.product,
-				package: input.application.package,
-				appId: input.application.appId,
-				acl: input.application.acl,
-				acl_all_env: input.application.acl_all_env
-			};
+			output.application = input.application;
+			// output.application = {
+			// 	product: input.application.product,
+			// 	package: input.application.package,
+			// 	appId: input.application.appId,
+			// 	acl: input.application.acl,
+			// 	acl_all_env: input.application.acl_all_env
+			// };
 		}
 
 		if (input.package) {
