@@ -167,8 +167,11 @@ module.exports = function (configuration) {
 			else
 				return next(152);
 		}
-		else
-			return next(153);
+		else {
+            if (req.soajs.registry.services[soajs.param.serviceName].extKeyRequired)
+            	return next(153);
+            else
+            	return next ();
+        }
 	};
-}
-;
+};
