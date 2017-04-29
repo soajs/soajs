@@ -652,7 +652,13 @@ module.exports = function (configuration) {
 												"iKey": keyObj.key,
 												"eKey": keyObj.extKey
 											},
-											"application": keyObj.application,
+											"application": {
+                                                "product": keyObj.application.product,
+                                                "package": keyObj.application.package,
+                                                "appId": keyObj.application.appId,
+                                                "acl": keyObj.application.acl,
+                                                "acl_all_env": keyObj.application.acl_all_env
+											},
 											"package": {
 												"acl": packObj.acl,
 												"acl_all_env": packObj.acl_all_env

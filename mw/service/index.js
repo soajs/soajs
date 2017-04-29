@@ -23,12 +23,12 @@ module.exports = function (configuration) {
 		if(typeof input === 'string'){
 			input = JSON.parse(input);
 		}
-		
-		var output = {};
 
-		if (!input) {
-			return output;
-		}
+        if (!input) {
+            return null;
+        }
+
+		var output = {};
 		
 		if (input.tenant) {
 			output.tenant = {
@@ -46,20 +46,19 @@ module.exports = function (configuration) {
 		}
 		
 		if (input.application) {
-			output.application = input.application;
-			// output.application = {
-			// 	product: input.application.product,
-			// 	package: input.application.package,
-			// 	appId: input.application.appId,
-			// 	acl: input.application.acl,
-			// 	acl_all_env: input.application.acl_all_env
-			// };
+			output.application = {
+			 	product: input.application.product,
+			 	package: input.application.package,
+			 	appId: input.application.appId,
+			 	acl: input.application.acl || null,
+			 	acl_all_env: input.application.acl_all_env || null
+			 };
 		}
 
 		if (input.package) {
 			output.package = {
-				acl: input.package.acl,
-				acl_all_env: input.package.acl_all_env
+				acl: input.package.acl || null,
+				acl_all_env: input.package.acl_all_env || null
 			};
 		}
 
@@ -135,41 +134,38 @@ module.exports = function (configuration) {
 				"eKey": injectObj.key.eKey
 			};
 			req.soajs.tenant.application = injectObj.application;
-			
 			if (injectObj.package) {
-				//req.soajs.tenant.application.package_acl = injectObj.package.acl;
-				//req.soajs.tenant.application.package_acl_all_env = injectObj.package.acl_all_env;
-				req.soajs.urac = injectObj.urac;
-				req.soajs.servicesConfig = injectObj.key.config;
-				req.soajs.device = injectObj.device;
-				req.soajs.geo = injectObj.geo;
-				
-				var serviceCheckArray = [function (cb) {
-					cb(null, {
-						"app": app,
-						"res": res,
-						"req": req
-					});
-				}];
-				
-				if (param.session)
-					serviceCheckArray.push(sessionCheck);
-				if(param.uracDriver && req.soajs.urac)
-					serviceCheckArray.push(uracCheck);
-				
-				async.waterfall(serviceCheckArray, function (err, data) {
-					if (err)
-						return next(err);
-					else
-						return next();
-				});
-			}
-			else
-				return next(152);
+                req.soajs.tenant.application.package_acl = injectObj.package.acl;
+                req.soajs.tenant.application.package_acl_all_env = injectObj.package.acl_all_env;
+            }
+            req.soajs.urac = injectObj.urac;
+            req.soajs.servicesConfig = injectObj.key.config;
+            req.soajs.device = injectObj.device;
+            req.soajs.geo = injectObj.geo;
+
+            var serviceCheckArray = [function (cb) {
+                cb(null, {
+                    "app": app,
+                    "res": res,
+                    "req": req
+                });
+            }];
+
+            if (param.session)
+                serviceCheckArray.push(sessionCheck);
+            if(param.uracDriver && req.soajs.urac)
+                serviceCheckArray.push(uracCheck);
+
+            async.waterfall(serviceCheckArray, function (err, data) {
+                if (err)
+                    return next(err);
+                else
+                    return next();
+            });
 		}
 		else {
             if (req.soajs.registry.services[soajs.param.serviceName].extKeyRequired)
-            	return next(153);
+            	return next(142);
             else
             	return next ();
         }
