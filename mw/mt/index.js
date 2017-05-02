@@ -670,7 +670,7 @@ module.exports = function (configuration) {
 										if (req.soajs.uracDriver)
                                             injectObj.urac = req.soajs.uracDriver.getProfile();
 										
-										if(data.req.soajs.controller.serviceParams.name!=='dashboard'){
+										if(data.req.soajs.controller.serviceParams.name.toLowerCase() !== 'dashboard'){
 											delete injectObj.application.package_acl;
 											delete injectObj.application.package_acl_all_env;
 											delete injectObj.application.acl;
