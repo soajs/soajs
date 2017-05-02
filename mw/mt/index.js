@@ -641,6 +641,18 @@ module.exports = function (configuration) {
 									if (err)
 										return next(err);
 									else {
+                                        /**
+										 *	TODO: the below are the params that we should turn on per service per env to populate injectObj upon
+                                         * 		urac
+                                         * 		urac_Profile
+                                         * 		urac_ACL
+                                         * 		urac_AllEnvACL
+                                         * 		package_ACL
+                                         * 		package_AllEnvACL
+                                         * 		application_ACL
+                                         * 		application_AllEnvACL
+										 */
+
 										var injectObj = {
 											"tenant": {
 												"id": keyObj.tenant.id,
@@ -678,10 +690,8 @@ module.exports = function (configuration) {
 
 										if (req.soajs.uracDriver)
                                             injectObj.urac = req.soajs.uracDriver.getProfile();
-										
+
 										if(data.req.soajs.controller.serviceParams.name.toLowerCase() !== 'dashboard'){
-											delete injectObj.application.package_acl;
-											delete injectObj.application.package_acl_all_env;
 											delete injectObj.application.acl;
 											delete injectObj.application.acl_all_env;
 											delete injectObj.package.acl_all_env;
