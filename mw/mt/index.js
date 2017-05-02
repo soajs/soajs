@@ -428,8 +428,8 @@ module.exports = function (configuration) {
 	 * @param route
 	 * @returns {string|*}
 	 */
-	function updateAttributeRoute(route) {
-		var start, end;
+	function constructRegExp(route) {
+		var start, end; // indices of the variable
 		
 		for (var i = 0; i < route.length; i++) {
 			if (!start && i < route.length + 1 && route.charAt(i) === '/' && route.charAt(i + 1) === ':') {
@@ -446,9 +446,19 @@ module.exports = function (configuration) {
 			end = route.length;
 		}
 		
-		route = route.substr(0, start) + "NEW_REG_EXP_STR" + route.substr(end, route.length);
+		var part1 = route.substr(0, start).replace('/:', '').replace('/', '');
+		// var part2 = route.substr(start,end); // unused
+		var part3 = route.substr(end, route.length).replace('/:', '').replace('/', '');
 		
-		return route;
+		if (part3.length === 0) {
+			route = `^\\/${part1}\\/.+$`;
+		} else {
+			route = `^\\/${part1}\\/.+\\/${part3}$`;
+		}
+		
+		var rexRegExp = new RegExp(route, 'g');
+		
+		return rexRegExp;
 	}
 	
 	/**
@@ -458,7 +468,8 @@ module.exports = function (configuration) {
 	 * @param {object} object
 	 * @param {string} currentSub
 	 */
-	function fetchSubObjectsAndReplace(object, currentSub) {
+	function fetchSubObjectsAndReplace(grandpa, object, currentSub) {
+		
 		var current = object;
 		if (currentSub) {
 			current = object[currentSub];
@@ -467,22 +478,33 @@ module.exports = function (configuration) {
 		// siblings, check on parent
 		var siblings = Object.keys(object);
 		if (currentSub && siblings.indexOf(currentSub) !== (siblings.length - 1)) {
-			fetchSubObjectsAndReplace(object, siblings[siblings.indexOf(currentSub) + 1]); // go to the next bro
+			fetchSubObjectsAndReplace(grandpa, object, siblings[siblings.indexOf(currentSub) + 1]); // go to the next bro
 		}
 		
 		// fetch sub objects
 		if (typeof current === 'object') {
 			var subObjects = Object.keys(current);
 			if (subObjects.length !== 0) {
-				fetchSubObjectsAndReplace(current, subObjects[0]);
+				fetchSubObjectsAndReplace(object, current, subObjects[0]);
 			}
 		}
 		
 		// if the the route has an attribute, copy the old, update with the new key, and delete the old
 		if (currentSub && isAttributeRoute(currentSub)) {
+			
 			var oldCurrentSub = currentSub;
-			currentSub = updateAttributeRoute(currentSub);
-			object[currentSub] = object[oldCurrentSub];
+			
+			if (!grandpa.apisRegExp) {
+				grandpa.apisRegExp = [];
+			}
+			
+			var regExp = constructRegExp(currentSub);
+			var obj = object[oldCurrentSub];
+			obj.regExp = regExp.toString();
+			
+			grandpa.apisRegExp.push(obj);
+			
+			// object[currentSub] = object[oldCurrentSub];
 			delete object[oldCurrentSub];
 		}
 		
@@ -490,9 +512,9 @@ module.exports = function (configuration) {
 	}
 	
 	function filterOutRegExpObj(aclObj) {
-		// if (typeof aclObj === 'object' && Object.keys(aclObj).length !== 0) {
-		// 	aclObj = fetchSubObjectsAndReplace(aclObj);
-		// }
+		if (typeof aclObj === 'object' && Object.keys(aclObj).length !== 0) {
+			fetchSubObjectsAndReplace(null,aclObj);
+		}
 		
 		return aclObj;
 	}
