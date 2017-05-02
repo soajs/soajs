@@ -180,10 +180,9 @@ module.exports = function (configuration) {
 			oAuthTurnedOn = true;
 		if (obj.soajs.oauthService && obj.req.soajs.controller.serviceParams.name === obj.soajs.oauthService.name && (obj.req.soajs.controller.serviceParams.path === obj.soajs.oauthService.tokenApi || obj.req.soajs.controller.serviceParams.path === obj.soajs.oauthService.authorizationApi))
 			oAuthTurnedOn = false;
-		
 		if (oAuthTurnedOn) {
 			var oauthExec = function () {
-				if (obj.req.soajs.servicesConfig && obj.req.soajs.servicesConfig[obj.soajs.oauthService] && obj.req.soajs.servicesConfig[obj.soajs.oauthService].disabled)
+				if (obj.req.soajs.servicesConfig && obj.req.soajs.servicesConfig[obj.soajs.oauthService.name] && obj.req.soajs.servicesConfig[obj.soajs.oauthService.name].disabled)
 					return cb(null, obj);
 				
 				return obj.soajs.oauth(obj.req, obj.res, function (error) {
@@ -621,6 +620,18 @@ module.exports = function (configuration) {
 	};
 	
 	return function (req, res, next) {
+        /**
+         *	TODO: the below are the params that we should turn on per service per env to populate injectObj upon
+         * 		urac
+         * 		urac_Profile
+         * 		urac_ACL
+         * 		urac_AllEnvACL
+         * 		package_ACL
+         * 		package_AllEnvACL
+         * 		application_ACL
+         * 		application_AllEnvACL
+		 * 		extKeyRequired ? maybe
+         */
 		if (req.soajs.registry.services[req.soajs.controller.serviceParams.name].extKeyRequired) {
 			try {
 				provision.getExternalKeyData(req.get("key"), req.soajs.registry.serviceConfig.key, function (err, keyObj) {
@@ -663,18 +674,6 @@ module.exports = function (configuration) {
 									if (err)
 										return next(err);
 									else {
-                                        /**
-										 *	TODO: the below are the params that we should turn on per service per env to populate injectObj upon
-                                         * 		urac
-                                         * 		urac_Profile
-                                         * 		urac_ACL
-                                         * 		urac_AllEnvACL
-                                         * 		package_ACL
-                                         * 		package_AllEnvACL
-                                         * 		application_ACL
-                                         * 		application_AllEnvACL
-										 */
-
 										var injectObj = {
 											"tenant": {
 												"id": keyObj.tenant.id,
@@ -736,7 +735,6 @@ module.exports = function (configuration) {
 			} catch (err) {
 				req.soajs.log.error(150, err.stack);
 				req.soajs.controllerResponse(core.error.getError(150));
-				//res.jsonp(req.soajs.buildResponse(core.error.getError(150)));
 			}
 		}
 		else {

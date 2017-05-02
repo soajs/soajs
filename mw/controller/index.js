@@ -29,6 +29,11 @@ module.exports = function () {
 		    	access_token: parsedUrl.query.access_token
 		    };
 	    }
+	    if(!req.query){
+            req.query = {
+                access_token: null
+            };
+        }
 	    
         var serviceInfo = parsedUrl.pathname.split('/');
         var service_nv = serviceInfo[1];
