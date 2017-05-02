@@ -449,7 +449,7 @@ module.exports = function (configuration) {
 		route = route.substr(0, start) + "NEW_REG_EXP_STR" + route.substr(end, route.length);
 		
 		return route;
-	};
+	}
 	
 	/**
 	 * UNDER CONSTRUCTION
