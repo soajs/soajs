@@ -132,6 +132,7 @@ service.prototype.init = function (callback) {
     soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
     soajs.param.serviceHATask = null;
     soajs.param.swagger = soajs.param.swagger || false;
+    soajs.param.swaggerFilename = soajs.param.swaggerFilename || 'swagger.yml';
 
     var fetchedHostIp = null;
     var serviceIpNotDetected = false;
@@ -180,9 +181,9 @@ service.prototype.init = function (callback) {
             _self.log = core.getLogger(soajs.param.serviceName, registry.serviceConfig.logger);
 
             //turn on swagger path
-            if (fs.existsSync('./swagger.yml')) {
-                _self.app.use('/swagger.yml', express.static('./swagger.yml'));
-                _self.log.info("Swagger route [/swagger.yml] is ON.");
+            if (fs.existsSync('./'+swaggerFilename)) {
+                _self.app.use('/'+swaggerFilename, express.static('./'+swaggerFilename));
+                _self.log.info("Swagger route [/"+swaggerFilename+"] is ON.");
             }
 
             if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true")
