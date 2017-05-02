@@ -648,6 +648,15 @@ module.exports = function (configuration) {
 												"roaming": data.req.soajs.tenant.roaming
 											},
 											"key": {
+												//todo: do not send the servicesConfig as it is.
+												//todo: should only send the service and commonFields
+												/*
+													ex:
+														serviceConfig = {
+															commonFields : { .... },
+												            [serviceName] : { .... }
+														}
+												 */
 												"config": data.servicesConfig || keyObj.config,
 												"iKey": keyObj.key,
 												"eKey": keyObj.extKey
