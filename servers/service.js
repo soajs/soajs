@@ -181,9 +181,9 @@ service.prototype.init = function (callback) {
             _self.log = core.getLogger(soajs.param.serviceName, registry.serviceConfig.logger);
 
             //turn on swagger path
-            if (fs.existsSync('./'+swaggerFilename)) {
-                _self.app.use('/'+swaggerFilename, express.static('./'+swaggerFilename));
-                _self.log.info("Swagger route [/"+swaggerFilename+"] is ON.");
+            if (fs.existsSync('./'+soajs.param.swaggerFilename)) {
+                _self.app.use('/'+soajs.param.swaggerFilename, express.static('./'+soajs.param.swaggerFilename));
+                _self.log.info("Swagger route [/"+soajs.param.swaggerFilename+"] is ON.");
             }
 
             if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true")
