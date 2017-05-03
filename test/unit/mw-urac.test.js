@@ -2,15 +2,15 @@
 var assert = require('assert');
 var helper = require("../helper.js");
 
-var uracDriver = helper.requireModule('./mw/service/urac');
+var uracDriver = helper.requireModule('./mw/mt/urac');
 
 var core = require("soajs.core.modules/soajs.core/index.js");
 
 var coreLogger = core.getLogger('testing', {
 	"src": true,
-	"level": "error",
+	"level": "debug",
 	"formatter": {
-		outputMode: 'short'
+		outputMode: 'long'
 	}
 });
 

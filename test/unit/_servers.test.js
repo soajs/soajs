@@ -19,7 +19,7 @@ describe("importing sample data", function () {
 	after(function (done) {
 		setTimeout(function () {
 			console.log('test data imported.');
-			require("./controllerServer.unit.test.js");
+			//require("./controllerServer.unit.test.js");
 			require("./mw-cors.test.js");
 			require("./mw-urac.test.js");
 			require("./mw-imfv.test.js");

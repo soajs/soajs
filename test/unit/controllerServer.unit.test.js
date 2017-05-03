@@ -121,6 +121,7 @@ describe("testing controller", function() {
 			}, function(err, body, response) {
 				assert.ifError(err);
 				assert.equal(response.statusCode, 200);
+				console.log(JSON.stringify(body, null, 2));
 				assert.deepEqual(body, {
 					"result": false,
 					"errors": {
