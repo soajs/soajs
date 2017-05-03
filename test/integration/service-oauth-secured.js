@@ -238,7 +238,7 @@ var lib = {
 				}
 				
 				oauth.post("/token", function (req, res, next) {
-					service.oauth.model["getUser"] = function (username, password, callback) {
+                    oauth.oauth.model["getUser"] = function (username, password, callback) {
 						login(req, function (errCode, record) {
 							if (errCode) {
 								var error = new Error(config.errors[errCode]);

@@ -192,7 +192,7 @@ var lib = {
 			}
 			
 			holder.oauth.post("/token", function (req, res, next) {
-				holder.service.oauth.model["getUser"] = function (username, password, callback) {
+				holder.oauth.oauth.model["getUser"] = function (username, password, callback) {
 					login(req, function (errCode, record) {
 						if (errCode) {
 							var error = new Error(config.errors[errCode]);
