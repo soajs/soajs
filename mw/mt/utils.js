@@ -10,6 +10,195 @@ var merge = require('merge');
 
 var uracDriver = require("./urac.js");
 
+/**
+ *
+ * @type {{getAcl: "getAcl"}}
+ * @private
+ */
+var _system = {
+	"getAcl": function (obj) {
+		var aclObj = null;
+		if (obj.req.soajs.uracDriver) {
+			var uracACL = obj.req.soajs.uracDriver.getAcl();
+			if (uracACL)
+				aclObj = uracACL[obj.req.soajs.controller.serviceParams.name];
+		}
+		if (!aclObj && obj.keyObj.application.acl) {
+			aclObj = obj.keyObj.application.acl[obj.req.soajs.controller.serviceParams.name];
+		}
+		if (!aclObj && obj.packObj.acl)
+			aclObj = obj.packObj.acl[obj.req.soajs.controller.serviceParams.name];
+		
+		if (aclObj && (aclObj.apis || aclObj.apisRegExp))
+			return filterOutRegExpObj(aclObj);
+		else {
+			//ACL with method support restful
+			var method = obj.req.method.toLocaleLowerCase();
+			if (aclObj && aclObj[method] && typeof aclObj[method] === "object") {
+				var newAclObj = {};
+				if (aclObj.hasOwnProperty('access'))
+					newAclObj.access = aclObj.access;
+				if (aclObj[method].hasOwnProperty('apis'))
+					newAclObj.apis = aclObj[method].apis;
+				if (aclObj[method].hasOwnProperty('apisRegExp'))
+					newAclObj.apisRegExp = aclObj[method].apisRegExp;
+				if (aclObj[method].hasOwnProperty('apisPermission'))
+					newAclObj.apisPermission = aclObj[method].apisPermission;
+				else if (aclObj.hasOwnProperty('apisPermission'))
+					newAclObj.apisPermission = aclObj.apisPermission;
+				return filterOutRegExpObj(newAclObj);
+			}
+			else
+				return filterOutRegExpObj(aclObj);
+		}
+	}
+};
+
+/**
+ *
+ * @type {{getUser: "getUser", getGroups: "getGroups"}}
+ * @private
+ */
+var _urac = {
+	"getUser": function (req) {
+		var urac = null;
+		if (req.soajs.uracDriver)
+			urac = req.soajs.uracDriver.getProfile();
+		return urac;
+	},
+	"getGroups": function (req) {
+		var groups = null;
+		if (req.soajs.uracDriver)
+			groups = req.soajs.uracDriver.getGroups();
+		return groups;
+	}
+};
+
+/**
+ *
+ * @type {{checkPermission: "checkPermission", checkAccess: "checkAccess"}}
+ * @private
+ */
+var _api = {
+	"checkPermission": function (system, req, api) {
+		if ('restricted' === system.apisPermission) {
+			if (!api)
+				return {"result": false, "error": 159};
+			return _api.checkAccess(api.access, req);
+		}
+		if (!api)
+			return {"result": true};
+		return _api.checkAccess(api.access, req);
+	},
+	"checkAccess": function (apiAccess, req) {
+		if (!apiAccess)
+			return {"result": true};
+		if (!_urac.getUser(req))
+			return {"result": false, "error": 161};
+		if (apiAccess instanceof Array) {
+			var userGroups = _urac.getGroups(req);
+			if (!userGroups)
+				return {"result": false, "error": 160};
+			for (var ii = 0; ii < userGroups.length; ii++) {
+				if (apiAccess.indexOf(userGroups[ii]) !== -1)
+					return {"result": true};
+			}
+			return {"result": false, "error": 160};
+		}
+		else
+			return {"result": true};
+	}
+};
+
+/**
+ * loops inside ACL object and moves routes that contain path params from api to apiRegExp
+ * @param {Objec} aclObj
+ */
+function filterOutRegExpObj(aclObj) {
+	
+	/**
+	 * changes all tokens found in url with a regular expression
+	 * @param {String} route
+	 * @returns {Regular Expression}
+	 */
+	function constructRegExp(route) {
+		var pathToRegexp = require('path-to-regexp');
+		var keys = [];
+		var out = pathToRegexp(route, keys, {sensitive: true});
+		return out.toString();
+	}
+	
+	/**
+	 * check if the given route contains the path param attribute "/:"
+	 * @param {String} route
+	 * @returns {boolean}
+	 */
+	function isAttributeRoute(route) {
+		return route.includes("/:");
+	}
+	
+	/**
+	 * recursively loop in acl object,
+	 * fetch each entry and its sub entries
+	 * detected matched and replace their apis entreis with regexp entries
+	 *
+	 * @param {object} ancestor
+	 * @param {object} object
+	 * @param {string} currentSub
+	 */
+	function fetchSubObjectsAndReplace(ancestor, object, currentSub) {
+		
+		var current = (currentSub) ? object[currentSub] : object;
+		
+		/**
+		 * if current entry is an object and object has properties and property neither the first nor the last child in object
+		 * recursively loop on this child
+		 */
+		var siblings = Object.keys(object);
+		if (currentSub && siblings.indexOf(currentSub) !== (siblings.length - 1)) {
+			fetchSubObjectsAndReplace(ancestor, object, siblings[siblings.indexOf(currentSub) + 1]);
+		}
+		
+		/**
+		 * if current entry is an object and object has properties
+		 * recursively loop on first child in object
+		 */
+		if (typeof current === 'object') {
+			var subObjects = Object.keys(current);
+			if (subObjects.length > 0) {
+				fetchSubObjectsAndReplace(object, current, subObjects[0]);
+			}
+		}
+		
+		/**
+		 * if the the route has an attribute
+		 * copy all the info of apis[route]
+		 * create a new entry from copied information and push it to apisRegExp
+		 */
+		if (currentSub && isAttributeRoute(currentSub)) {
+			
+			var oldCurrentSub = currentSub;
+			
+			if (!ancestor.apisRegExp) {
+				ancestor.apisRegExp = [];
+			}
+			
+			var regExp = constructRegExp(currentSub);
+			var obj = object[oldCurrentSub];
+			obj.regExp = regExp;
+			ancestor.apisRegExp.push(obj);
+			
+			delete object[oldCurrentSub];
+		}
+	}
+	
+	if (aclObj && typeof aclObj === 'object' && Object.keys(aclObj).length > 0) {
+		fetchSubObjectsAndReplace(null, aclObj);
+	}
+	
+	return aclObj;
+}
+
 var utils = {
 	/**
 	 *
@@ -18,7 +207,7 @@ var utils = {
 	 * @returns {*}
 	 */
 	"serviceCheck": function (obj, cb) {
-		var system = utils._system.getAcl(obj);
+		var system = _system.getAcl(obj);
 		if (system)
 			return cb(null, obj);
 		else
@@ -177,7 +366,7 @@ var utils = {
 				});
 			};
 			
-			var system = utils._system.getAcl(obj);
+			var system = _system.getAcl(obj);
 			var api = (system && system.apis ? system.apis[obj.req.soajs.controller.serviceParams.path] : null);
 			if (!api && system && system.apisRegExp && Object.keys(system.apisRegExp).length) {
 				for (var jj = 0; jj < system.apisRegExp.length; jj++) {
@@ -346,7 +535,7 @@ var utils = {
 	 * @returns {*}
 	 */
 	"apiCheck": function (obj, cb) {
-		var system = utils._system.getAcl(obj);
+		var system = _system.getAcl(obj);
 		var api = (system && system.apis ? system.apis[obj.req.soajs.controller.serviceParams.path] : null);
 		if (!api && system && system.apisRegExp && Object.keys(system.apisRegExp).length) {
 			for (var jj = 0; jj < system.apisRegExp.length; jj++) {
@@ -357,10 +546,10 @@ var utils = {
 		}
 		var apiRes = null;
 		if (system && system.access) {
-			if (utils._urac.getUser(obj.req)) {
+			if (_urac.getUser(obj.req)) {
 				if (system.access instanceof Array) {
 					var checkAPI = false;
-					var userGroups = utils._urac.getGroups(obj.req);
+					var userGroups = _urac.getGroups(obj.req);
 					if (userGroups) {
 						for (var ii = 0; ii < userGroups.length; ii++) {
 							if (system.access.indexOf(userGroups[ii]) !== -1)
@@ -374,14 +563,14 @@ var utils = {
 				if (!api || api.access)
 					return cb(158);
 			}
-			apiRes = utils._api.checkPermission(system, obj.req, api);
+			apiRes = _api.checkPermission(system, obj.req, api);
 			if (apiRes.result)
 				return cb(null, obj);
 			else
 				return cb(apiRes.error);
 		}
 		if (api || (system && ('restricted' === system.apisPermission))) {
-			apiRes = utils._api.checkPermission(system, obj.req, api);
+			apiRes = _api.checkPermission(system, obj.req, api);
 			if (apiRes.result)
 				return cb(null, obj);
 			else
@@ -389,195 +578,6 @@ var utils = {
 		}
 		else
 			return cb(null, obj);
-	},
-	
-	/**
-	 * loops inside ACL object and moves routes that contain path params from api to apiRegExp
-	 * @param {Objec} aclObj
-	 */
-	"filterOutRegExpObj": function (aclObj) {
-		
-		/**
-		 * changes all tokens found in url with a regular expression
-		 * @param {String} route
-		 * @returns {Regular Expression}
-		 */
-		function constructRegExp(route) {
-			var pathToRegexp = require('path-to-regexp');
-			var keys = [];
-			var out = pathToRegexp(route, keys, {sensitive: true});
-			return out.toString();
-		}
-		
-		/**
-		 * check if the given route contains the path param attribute "/:"
-		 * @param {String} route
-		 * @returns {boolean}
-		 */
-		function isAttributeRoute(route) {
-			return route.includes("/:");
-		}
-		
-		/**
-		 * recursively loop in acl object,
-		 * fetch each entry and its sub entries
-		 * detected matched and replace their apis entreis with regexp entries
-		 *
-		 * @param {object} ancestor
-		 * @param {object} object
-		 * @param {string} currentSub
-		 */
-		function fetchSubObjectsAndReplace(ancestor, object, currentSub) {
-			
-			var current = (currentSub) ? object[currentSub] : object;
-			
-			/**
-			 * if current entry is an object and object has properties and property neither the first nor the last child in object
-			 * recursively loop on this child
-			 */
-			var siblings = Object.keys(object);
-			if (currentSub && siblings.indexOf(currentSub) !== (siblings.length - 1)) {
-				fetchSubObjectsAndReplace(ancestor, object, siblings[siblings.indexOf(currentSub) + 1]);
-			}
-			
-			/**
-			 * if current entry is an object and object has properties
-			 * recursively loop on first child in object
-			 */
-			if (typeof current === 'object') {
-				var subObjects = Object.keys(current);
-				if (subObjects.length > 0) {
-					fetchSubObjectsAndReplace(object, current, subObjects[0]);
-				}
-			}
-			
-			/**
-			 * if the the route has an attribute
-			 * copy all the info of apis[route]
-			 * create a new entry from copied information and push it to apisRegExp
-			 */
-			if (currentSub && isAttributeRoute(currentSub)) {
-				
-				var oldCurrentSub = currentSub;
-				
-				if (!ancestor.apisRegExp) {
-					ancestor.apisRegExp = [];
-				}
-				
-				var regExp = constructRegExp(currentSub);
-				var obj = object[oldCurrentSub];
-				obj.regExp = regExp;
-				ancestor.apisRegExp.push(obj);
-				
-				delete object[oldCurrentSub];
-			}
-		}
-		
-		if (aclObj && typeof aclObj === 'object' && Object.keys(aclObj).length > 0) {
-			fetchSubObjectsAndReplace(null, aclObj);
-		}
-		
-		return aclObj;
-	},
-	
-	/**
-	 *
-	 * @type {{getAcl: "getAcl"}}
-	 * @private
-	 */
-	_system: {
-		"getAcl": function (obj) {
-			var aclObj = null;
-			if (obj.req.soajs.uracDriver) {
-				var uracACL = obj.req.soajs.uracDriver.getAcl();
-				if (uracACL)
-					aclObj = uracACL[obj.req.soajs.controller.serviceParams.name];
-			}
-			if (!aclObj && obj.keyObj.application.acl) {
-				aclObj = obj.keyObj.application.acl[obj.req.soajs.controller.serviceParams.name];
-			}
-			if (!aclObj && obj.packObj.acl)
-				aclObj = obj.packObj.acl[obj.req.soajs.controller.serviceParams.name];
-			
-			if (aclObj && (aclObj.apis || aclObj.apisRegExp))
-				return utils.filterOutRegExpObj(aclObj);
-			else {
-				//ACL with method support restful
-				var method = obj.req.method.toLocaleLowerCase();
-				if (aclObj && aclObj[method] && typeof aclObj[method] === "object") {
-					var newAclObj = {};
-					if (aclObj.hasOwnProperty('access'))
-						newAclObj.access = aclObj.access;
-					if (aclObj[method].hasOwnProperty('apis'))
-						newAclObj.apis = aclObj[method].apis;
-					if (aclObj[method].hasOwnProperty('apisRegExp'))
-						newAclObj.apisRegExp = aclObj[method].apisRegExp;
-					if (aclObj[method].hasOwnProperty('apisPermission'))
-						newAclObj.apisPermission = aclObj[method].apisPermission;
-					else if (aclObj.hasOwnProperty('apisPermission'))
-						newAclObj.apisPermission = aclObj.apisPermission;
-					return utils.filterOutRegExpObj(newAclObj);
-				}
-				else
-					return utils.filterOutRegExpObj(aclObj);
-			}
-		}
-	},
-	
-	/**
-	 *
-	 * @type {{getUser: "getUser", getGroups: "getGroups"}}
-	 * @private
-	 */
-	_urac: {
-		"getUser": function (req) {
-			var urac = null;
-			if (req.soajs.uracDriver)
-				urac = req.soajs.uracDriver.getProfile();
-			return urac;
-		},
-		"getGroups": function (req) {
-			var groups = null;
-			if (req.soajs.uracDriver)
-				groups = req.soajs.uracDriver.getGroups();
-			return groups;
-		}
-	},
-	
-	/**
-	 *
-	 * @type {{checkPermission: "checkPermission", checkAccess: "checkAccess"}}
-	 * @private
-	 */
-	_api: {
-		"checkPermission": function (system, req, api) {
-			if ('restricted' === system.apisPermission) {
-				if (!api)
-					return {"result": false, "error": 159};
-				return utils._api.checkAccess(api.access, req);
-			}
-			if (!api)
-				return {"result": true};
-			return utils._api.checkAccess(api.access, req);
-		},
-		"checkAccess": function (apiAccess, req) {
-			if (!apiAccess)
-				return {"result": true};
-			if (!utils._urac.getUser(req))
-				return {"result": false, "error": 161};
-			if (apiAccess instanceof Array) {
-				var userGroups = utils._urac.getGroups(req);
-				if (!userGroups)
-					return {"result": false, "error": 160};
-				for (var ii = 0; ii < userGroups.length; ii++) {
-					if (apiAccess.indexOf(userGroups[ii]) !== -1)
-						return {"result": true};
-				}
-				return {"result": false, "error": 160};
-			}
-			else
-				return {"result": true};
-		}
 	}
 };
 
