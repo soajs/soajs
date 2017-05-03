@@ -48,6 +48,9 @@ module.exports = function (configuration) {
             "extKeyRequired" : serviceInfo.extKeyRequired || false,
             "oauth" : serviceInfo.oauth || true
 		};
+        if (serviceInfo.hasOwnProperty("oauth"))
+            serviceParam.oauth = serviceInfo.oauth;
+
 		if (serviceInfo[regEnvironment]){
 			if (serviceInfo[regEnvironment].hasOwnProperty("urac"))
                 serviceParam.urac = serviceInfo[regEnvironment].urac;
