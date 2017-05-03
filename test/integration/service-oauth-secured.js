@@ -245,7 +245,10 @@ var lib = {
 								return callback(error);
 							}
 							else {
-								return callback(false, {"id": record._id.toString()});
+                                if (record) {
+                                    record.loginMode = "oauth";
+                                }
+								return callback(false, record);
 							}
 						});
 					};
