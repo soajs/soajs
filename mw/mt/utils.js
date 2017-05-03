@@ -11,6 +11,7 @@ var merge = require('merge');
 var uracDriver = require("./urac.js");
 
 /**
+ * Contains functions to calculate and retrieve the ACL based on SOAJS layers
  *
  * @type {{getAcl: "getAcl"}}
  * @private
@@ -55,6 +56,7 @@ var _system = {
 };
 
 /**
+ * Contains functions to load the profile and group information of the logged in user
  *
  * @type {{getUser: "getUser", getGroups: "getGroups"}}
  * @private
@@ -75,6 +77,7 @@ var _urac = {
 };
 
 /**
+ * Contains functions to check the permissions and the access to the requested API
  *
  * @type {{checkPermission: "checkPermission", checkAccess: "checkAccess"}}
  * @private
@@ -201,10 +204,11 @@ function filterOutRegExpObj(aclObj) {
 
 var utils = {
 	/**
+	 * Checks if the requested service is accessible based on the ACL configuration
 	 *
-	 * @param obj
-	 * @param cb
-	 * @returns {*}
+	 * @param {Object} obj
+	 * @param {Function} cb
+	 * @returns {Callback}
 	 */
 	"serviceCheck": function (obj, cb) {
 		var system = _system.getAcl(obj);
@@ -215,10 +219,12 @@ var utils = {
 	},
 	
 	/**
+	 * checks the geo location of the ariving request against the key configuration
+	 * if there is a conflict, the request is not allowed to proceed
 	 *
-	 * @param obj
-	 * @param cb
-	 * @returns {*}
+	 * @param {Object} obj
+	 * @param {Function} cb
+	 * @returns {Callback}
 	 */
 	"securityGeoCheck": function (obj, cb) {
 		var clientIp = obj.req.getClientIP();
@@ -255,10 +261,12 @@ var utils = {
 	},
 	
 	/**
+	 * checks the device from whicht the ariving request was sent against the key configuration
+	 * if there is a conflict, the request is not allowed to proceed
 	 *
-	 * @param obj
-	 * @param cb
-	 * @returns {*}
+	 * @param {Object} obj
+	 * @param {Function} cb
+	 * @returns {Callback}
 	 */
 	"securityDeviceCheck": function (obj, cb) {
 		var clientUA = obj.req.getClientUserAgent();
@@ -350,6 +358,15 @@ var utils = {
 		return cb(null, obj);
 	},
 	
+	/**
+	 * Checks if oauth is turned on and the ACL strategy of the API.
+	 * If the API is public, the request moves forward
+	 * If the API is private, the oauth is then used along with system to determine if the API is accessible or not
+	 *
+	 * @param {Object} obj
+	 * @param {Function} cb
+	 * @returns {Callback}
+	 */
 	"oauthCheck": function (obj, cb) {
 		var oAuthTurnedOn = true;
 		if (obj.soajs.oauth)
@@ -427,10 +444,10 @@ var utils = {
 	},
 	
 	/**
-	 *
-	 * @param obj
-	 * @param cb
-	 * @returns {*}
+	 * Check if the request contains oauth tokens, and calls the urac Driver to retrieve the corresponding user record
+	 * @param {Object} obj
+	 * @param {Function} cb
+	 * @returns {Callback}
 	 */
 	"uracCheck": function (obj, cb) {
 		var callURACDriver = function () {
@@ -529,10 +546,10 @@ var utils = {
 	},
 	
 	/**
-	 *
-	 * @param obj
-	 * @param cb
-	 * @returns {*}
+	 * Checks if the acl permissions allow access to the requested api or not
+	 * @param {Object} obj
+	 * @param {Function} cb
+	 * @returns {Callback}
 	 */
 	"apiCheck": function (obj, cb) {
 		var system = _system.getAcl(obj);
