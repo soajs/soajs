@@ -76,6 +76,18 @@ module.exports = function (configuration) {
 									if (err)
 										return next(err);
 									else {
+										var serviceName = data.req.soajs.controller.serviceParams.name;
+										var dataServiceConfig = data.servicesConfig || keyObj.config;
+										var serviceConfig = {};
+										
+										if(dataServiceConfig.commonFields){
+											serviceConfig.commonFields = dataServiceConfig.commonFields;
+										}
+										
+										if(dataServiceConfig[serviceName]){
+											serviceConfig[serviceName] = dataServiceConfig[serviceName];
+										}
+										
 										var injectObj = {
 											"tenant": {
 												"id": keyObj.tenant.id,
@@ -83,16 +95,15 @@ module.exports = function (configuration) {
 												"roaming": data.req.soajs.tenant.roaming
 											},
 											"key": {
-												//todo: do not send the servicesConfig as it is.
-												//todo: should only send the service and commonFields
 												/*
+												    do not send the servicesConfig as it is, it should only send the service and commonFields
 													ex:
 														serviceConfig = {
 															commonFields : { .... },
 												            [serviceName] : { .... }
 														}
 												 */
-												"config": data.servicesConfig || keyObj.config,
+												"config": serviceConfig,
 												"iKey": keyObj.key,
 												"eKey": keyObj.extKey
 											},
@@ -114,7 +125,7 @@ module.exports = function (configuration) {
 										if (req.soajs.uracDriver)
                                             injectObj.urac = req.soajs.uracDriver.getProfile();
 
-										if(data.req.soajs.controller.serviceParams.name.toLowerCase() !== 'dashboard'){
+										if(serviceName.toLowerCase() !== 'dashboard'){
 											delete injectObj.application.acl;
 											delete injectObj.application.acl_all_env;
 											delete injectObj.package.acl_all_env;
