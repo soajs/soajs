@@ -33,8 +33,44 @@ module.exports = function (configuration) {
          * 		application_ACL
          * 		application_AllEnvACL
 		 * 		extKeyRequired ? maybe
+		 * 		oauth
          */
-		if (req.soajs.registry.services[req.soajs.controller.serviceParams.name].extKeyRequired) {
+        var serviceInfo = req.soajs.controller.serviceParams.registry.versions[req.soajs.controller.serviceParams.version];
+		var serviceParam = {
+			"urac" : serviceInfo.urac || false,
+            "urac_Profile" : serviceInfo.urac_Profile || false,
+            "urac_ACL" : serviceInfo.urac_ACL || false,
+            "urac_AllEnvACL" : serviceInfo.urac_AllEnvACL || false,
+            "package_ACL" : serviceInfo.package_ACL || false,
+            "package_AllEnvACL" : serviceInfo.package_AllEnvACL || false,
+            "application_ACL" : serviceInfo.application_ACL || false,
+            "application_AllEnvACL" : serviceInfo.application_AllEnvACL || false,
+            "extKeyRequired" : serviceInfo.extKeyRequired || false,
+            "oauth" : serviceInfo.oauth || true
+		};
+		if (serviceInfo[regEnvironment]){
+			if (serviceInfo[regEnvironment].hasOwnProperty("urac"))
+                serviceParam.urac = serviceInfo[regEnvironment].urac;
+            if (serviceInfo[regEnvironment].hasOwnProperty("urac_Profile"))
+                serviceParam.urac_Profile = serviceInfo[regEnvironment].urac_Profile;
+            if (serviceInfo[regEnvironment].hasOwnProperty("urac_ACL"))
+                serviceParam.urac_ACL = serviceInfo[regEnvironment].urac_ACL;
+            if (serviceInfo[regEnvironment].hasOwnProperty("urac_AllEnvACL"))
+                serviceParam.urac_AllEnvACL = serviceInfo[regEnvironment].urac_AllEnvACL;
+            if (serviceInfo[regEnvironment].hasOwnProperty("package_ACL"))
+                serviceParam.package_ACL = serviceInfo[regEnvironment].package_ACL;
+            if (serviceInfo[regEnvironment].hasOwnProperty("package_AllEnvACL"))
+                serviceParam.package_AllEnvACL = serviceInfo[regEnvironment].package_AllEnvACL;
+            if (serviceInfo[regEnvironment].hasOwnProperty("application_ACL"))
+                serviceParam.application_ACL = serviceInfo[regEnvironment].application_ACL;
+            if (serviceInfo[regEnvironment].hasOwnProperty("application_AllEnvACL"))
+                serviceParam.application_AllEnvACL = serviceInfo[regEnvironment].application_AllEnvACL;
+            if (serviceInfo[regEnvironment].hasOwnProperty("extKeyRequired"))
+                serviceParam.extKeyRequired = serviceInfo[regEnvironment].extKeyRequired;
+            if (serviceInfo[regEnvironment].hasOwnProperty("oauth"))
+                serviceParam.oauth = serviceInfo[regEnvironment].oauth;
+		}
+		if (serviceParam.extKeyRequired) {
 			try {
 				provision.getExternalKeyData(req.get("key"), req.soajs.registry.serviceConfig.key, function (err, keyObj) {
 					if (err)
@@ -156,10 +192,14 @@ module.exports = function (configuration) {
 			}
 		}
 		else {
-			var oauthExec = function () {
-				soajs.oauth(req, res, next);
-			};
-			return oauthExec();
+			if (serviceParam.oauth) {
+                var oauthExec = function () {
+                    soajs.oauth(req, res, next);
+                };
+                return oauthExec();
+            }
+            else
+            	return next ();
 		}
 	};
 };
