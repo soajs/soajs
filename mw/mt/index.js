@@ -405,114 +405,89 @@ module.exports = function (configuration) {
 	}
 	
 	/**
-	 * UNDER CONSTRUCTION
-	 * check if the route is an attribute route /:
-	 * will be updated to behave as express
-	 *
-	 * @param route
-	 * @returns {boolean}
+	 * loops inside ACL object and moves routes that contain path params from api to apiRegExp
+	 * @param {Objec} aclObj
 	 */
-	function isAttributeRoute(route) {
-		if (route.includes("/:")) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
-	/**
-	 * UNDER CONSTRUCTION
-	 * fetch the attribute route and update with regular expression
-	 *
-	 * @param route
-	 * @returns {string|*}
-	 */
-	function constructRegExp(route) {
-		var start, end; // indices of the variable
-		
-		for (var i = 0; i < route.length; i++) {
-			if (!start && i < route.length + 1 && route.charAt(i) === '/' && route.charAt(i + 1) === ':') {
-				start = i + 2;
-				i++;
-			}
-			if (start && !end && route.charAt(i) === '/') {
-				end = i;
-				break;
-			}
-		}
-		
-		if (!end) {
-			end = route.length;
-		}
-		
-		var part1 = route.substr(0, start).replace('/:', '').replace('/', '');
-		// var part2 = route.substr(start,end); // unused
-		var part3 = route.substr(end, route.length).replace('/:', '').replace('/', '');
-		
-		if (part3.length === 0) {
-			route = `^\\/${part1}\\/.+$`;
-		} else {
-			route = `^\\/${part1}\\/.+\\/${part3}$`;
-		}
-		
-		var rexRegExp = new RegExp(route, 'g');
-		
-		return rexRegExp;
-	}
-	
-	/**
-	 * UNDER CONSTRUCTION
-	 * recursively, fetch object and his sub objects and replace attribute routes by reg expression
-	 *
-	 * @param {object} object
-	 * @param {string} currentSub
-	 */
-	function fetchSubObjectsAndReplace(grandpa, object, currentSub) {
-		
-		var current = object;
-		if (currentSub) {
-			current = object[currentSub];
-		}
-		
-		// siblings, check on parent
-		var siblings = Object.keys(object);
-		if (currentSub && siblings.indexOf(currentSub) !== (siblings.length - 1)) {
-			fetchSubObjectsAndReplace(grandpa, object, siblings[siblings.indexOf(currentSub) + 1]); // go to the next bro
-		}
-		
-		// fetch sub objects
-		if (typeof current === 'object') {
-			var subObjects = Object.keys(current);
-			if (subObjects.length !== 0) {
-				fetchSubObjectsAndReplace(object, current, subObjects[0]);
-			}
-		}
-		
-		// if the the route has an attribute, copy the old, update with the new key, and delete the old
-		if (currentSub && isAttributeRoute(currentSub)) {
-			
-			var oldCurrentSub = currentSub;
-			
-			if (!grandpa.apisRegExp) {
-				grandpa.apisRegExp = [];
-			}
-			
-			var regExp = constructRegExp(currentSub);
-			var obj = object[oldCurrentSub];
-			obj.regExp = regExp.toString();
-			
-			grandpa.apisRegExp.push(obj);
-			
-			// object[currentSub] = object[oldCurrentSub];
-			delete object[oldCurrentSub];
-		}
-		
-		return;
-	}
-	
 	function filterOutRegExpObj(aclObj) {
-		if (typeof aclObj === 'object' && Object.keys(aclObj).length !== 0) {
-			fetchSubObjectsAndReplace(null,aclObj);
+		
+		/**
+		 * changes all tokens found in url with a regular expression
+		 * @param {String} route
+		 * @returns {Regular Expression}
+		 */
+		function constructRegExp(route) {
+			var pathToRegexp = require('path-to-regexp');
+			var keys = [];
+			var out = pathToRegexp(route, keys, {sensitive: true});
+			return out.toString();
+		}
+		
+		/**
+		 * check if the given route contains the path param attribute "/:"
+		 * @param {String} route
+		 * @returns {boolean}
+		 */
+		function isAttributeRoute(route) {
+			return route.includes("/:");
+		}
+		
+		/**
+		 * recursively loop in acl object,
+		 * fetch each entry and its sub entries
+		 * detected matched and replace their apis entreis with regexp entries
+		 *
+		 * @param {object} ancestor
+		 * @param {object} object
+		 * @param {string} currentSub
+		 */
+		function fetchSubObjectsAndReplace(ancestor, object, currentSub) {
+			
+			var current = (currentSub) ? object[currentSub] : object;
+			
+			/**
+			 * if current entry is an object and object has properties and property neither the first nor the last child in object
+			 * recursively loop on this child
+			 */
+			var siblings = Object.keys(object);
+			if (currentSub && siblings.indexOf(currentSub) !== (siblings.length - 1)) {
+				fetchSubObjectsAndReplace(ancestor, object, siblings[siblings.indexOf(currentSub) + 1]);
+			}
+			
+			/**
+			 * if current entry is an object and object has properties
+			 * recursively loop on first child in object
+			 */
+			if (typeof current === 'object') {
+				var subObjects = Object.keys(current);
+				if (subObjects.length > 0) {
+					fetchSubObjectsAndReplace(object, current, subObjects[0]);
+				}
+			}
+			
+			/**
+			 * if the the route has an attribute
+			 * copy all the info of apis[route]
+			 * create a new entry from copied information and push it to apisRegExp
+			 */
+			if (currentSub && isAttributeRoute(currentSub)) {
+				
+				var oldCurrentSub = currentSub;
+				
+				if (!ancestor.apisRegExp) {
+					ancestor.apisRegExp = [];
+				}
+				
+				var regExp = constructRegExp(currentSub);
+				var obj = object[oldCurrentSub];
+				obj.regExp = regExp;
+				ancestor.apisRegExp.push(obj);
+				
+				delete object[oldCurrentSub];
+			}
+		}
+		
+		if (aclObj && typeof aclObj === 'object' && Object.keys(aclObj).length > 0) {
+			fetchSubObjectsAndReplace(null, aclObj);
 		}
 		
 		return aclObj;
