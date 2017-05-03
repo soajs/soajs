@@ -81,7 +81,12 @@ module.exports = function (configuration) {
 										var serviceConfig = {};
 										
 										if(dataServiceConfig.commonFields){
-											serviceConfig.commonFields = dataServiceConfig.commonFields;
+											for (var i in dataServiceConfig.commonFields){
+												//if servicesConfig already has an entry, entry overrides commonFields
+												if(!serviceConfig[i]){
+													serviceConfig[i] = dataServiceConfig.commonFields[i];
+												}
+											}
 										}
 										
 										if(dataServiceConfig[serviceName]){
