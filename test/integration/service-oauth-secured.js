@@ -182,7 +182,25 @@ var lib = {
 				var Hasher = helper.hasher;
 				var Mongo = require("soajs.core.modules").mongo;
 				var mongo = null;
-				
+
+                if (!oauth.oauth) {
+                    var coreModules = require("soajs.core.modules");
+                    var provision = coreModules.provision;
+                    var oauthserver = require('oauth2-server');
+                    var reg = oauth.registry.get();
+                    oauth.oauth = oauthserver({
+                        model: provision.oauthModel,
+                        grants: reg.serviceConfig.oauth.grants,
+                        debug: reg.serviceConfig.oauth.debug,
+                        accessTokenLifetime: reg.serviceConfig.oauth.accessTokenLifetime,
+                        refreshTokenLifetime: reg.serviceConfig.oauth.refreshTokenLifetime
+                    });
+                    provision.init(reg.coreDB.provision, oauth.log);
+                    provision.loadProvision(function (loaded) {
+                        if (loaded)
+                            oauth.log.info("Service provision loaded.");
+                    });
+                }
 				function login(req, cb) {
 					if (!mongo) {
 						mongo = new Mongo(req.soajs.registry.coreDB.provision);

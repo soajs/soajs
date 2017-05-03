@@ -31,7 +31,6 @@ module.exports = function () {
 	    }
 	    if(!req.query){
             req.query = {
-                access_token: null
             };
         }
 	    
