@@ -10,6 +10,9 @@ var merge = require('merge');
 
 var uracDriver = require("./urac.js");
 
+var regEnvironment = (process.env.SOAJS_ENV || "dev");
+regEnvironment = regEnvironment.toLowerCase();
+
 /**
  * Contains functions to calculate and retrieve the ACL based on SOAJS layers
  *
