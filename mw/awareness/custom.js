@@ -3,7 +3,7 @@
 var request = require('request');
 var async = require('async');
 
-var coreModules = require ("soajs.core.modules");
+var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
 
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
@@ -27,7 +27,6 @@ var awareness_reloadRegistry = function () {
         "extKeyRequired": param.extKeyRequired,
         "requestTimeout": param.requestTimeout,
         "requestTimeoutRenewal": param.requestTimeoutRenewal,
-        "awareness": param.awareness,
         "serviceIp": param.serviceIp
     }, function (err, reg) {
         if (err)
@@ -81,7 +80,7 @@ var awareness_healthCheck = function () {
                     serviceAwarenessObj[s] = {"healthy": {}, "indexes": {}};
                 if (!serviceAwarenessObj[s].healthy)
                     serviceAwarenessObj[s].healthy = {};
-                if (registry.daemons[s].hosts){//} && registry.daemons[s].hosts.length > 0) {
+                if (registry.daemons[s].hosts) {//} && registry.daemons[s].hosts.length > 0) {
                     for (var h_ver in registry.daemons[s].hosts) {
                         if (Object.hasOwnProperty.call(registry.daemons[s].hosts, h_ver) && h_ver !== "latest") {
                             if (!serviceAwarenessObj[s].healthy[h_ver])
@@ -141,10 +140,10 @@ var awareness_healthCheck = function () {
                         }
                     }
                 }
-                
-                if(registry[sObj.what][sObj.name] && registry[sObj.what][sObj.name].awarenessStats)
+
+                if (registry[sObj.what][sObj.name] && registry[sObj.what][sObj.name].awarenessStats)
                     registry[sObj.what][sObj.name].awarenessStats[sObj.host] = statusObj;
-                
+
                 callback();
             });
         }, function (err) {
@@ -196,7 +195,7 @@ var roundRobin = function (s, v, env, cb) {
     else
         return cb(null);
 };
-function init (_param) {
+function init(_param) {
     param = _param;
 
     if (registry.serviceConfig.awareness.healthCheckInterval)
@@ -206,6 +205,6 @@ function init (_param) {
 }
 
 module.exports = {
-    "init" : init,
-    "getServiceHost" : roundRobin
+    "init": init,
+    "getServiceHost": roundRobin
 };

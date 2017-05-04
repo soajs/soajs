@@ -3,10 +3,10 @@
 var path = require('path');
 var os = require('os');
 
-var coreModules = require ("soajs.core.modules");
+var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
 //var provision = coreModules.provision;
-var lib = require ("soajs.core.libs");
+var lib = require("soajs.core.libs");
 
 var express = require("./../classes/express");
 
@@ -145,7 +145,7 @@ service.prototype.init = function (callback) {
         resume();
     }
 
-    function resume () {
+    function resume() {
         soajs.apiList = extractAPIsList(soajs.param.schema);
 
         //TODO: remove registry to be retrieved from body injection
@@ -158,9 +158,8 @@ service.prototype.init = function (callback) {
             "extKeyRequired": soajs.param.extKeyRequired,
             "requestTimeout": soajs.param.requestTimeout,
             "requestTimeoutRenewal": soajs.param.requestTimeoutRenewal,
-            "awareness": soajs.param.awareness,
             "serviceIp": soajs.param.serviceIp,
-	        "swagger": soajs.param.swagger,
+            "swagger": soajs.param.swagger,
             "apiList": soajs.apiList
         }, function (reg) {
             registry = reg;
@@ -287,36 +286,6 @@ service.prototype.init = function (callback) {
                 _self.log.info("IMFV middleware initialization skipped.");
             }
 
-            /*
-            if (soajs.param.bodyParser && soajs.param.oauth) {
-                var oauthserver = require('oauth2-server');
-                _self.oauth = oauthserver({
-                    model: provision.oauthModel,
-                    grants: registry.serviceConfig.oauth.grants,
-                    debug: registry.serviceConfig.oauth.debug,
-	                accessTokenLifetime: registry.serviceConfig.oauth.accessTokenLifetime,
-	                refreshTokenLifetime: registry.serviceConfig.oauth.refreshTokenLifetime
-                });
-
-                soajs.oauthService = soajs.param.oauthService || {"name": "oauth", "tokenApi": "/token", "authorizationApi": "/authorization"};
-                if (!soajs.oauthService.name) {
-                    soajs.oauthService.name = "oauth";
-                }
-                if (!soajs.oauthService.tokenApi) {
-                    soajs.oauthService.tokenApi = "/token";
-                }
-                if (!soajs.oauthService.authorizationApi) {
-                    soajs.oauthService.authorizationApi = "/authorization";
-                }
-
-                soajs.oauth = _self.oauth.authorise();
-                _self.log.info("oAuth middleware initialization done.");
-            }
-            else {
-                _self.log.info("oAuth middleware initialization skipped.");
-            }
-            */
-
             if (soajs.param.awareness) {
                 var awareness_mw = require("./../mw/awareness/index");
                 _self.app.use(awareness_mw({
@@ -359,21 +328,11 @@ service.prototype.init = function (callback) {
                 return core.registry.getCustom();
             };
 
-            /*
-	        //exposing provision functionality to generate keys
-	        _self.provision = {
-		        "init": provision.init,
-		        "generateInternalKey": provision.generateInternalKey,
-		        "generateExtKey": provision.generateExtKey,
-		        "loadProvision": provision.loadProvision
-	        };
-	        */
-
-	        _self.registry = {
-		        "loadByEnv": core.registry.loadByEnv,
+            _self.registry = {
+                "loadByEnv": core.registry.loadByEnv,
                 "get": core.registry.get
-	        };
-	        
+            };
+
             callback();
         });
     }
@@ -396,131 +355,114 @@ service.prototype.start = function (cb) {
         _self.app.use(clientErrorHandler);
         _self.app.use(errorHandler);
 
-        //_self.log.info("Loading Service Provision ...");
-        //provision.init(registry.coreDB.provision, _self.log);
-        //provision.loadProvision(function (loaded) {
-            //if (loaded) {
-                //_self.log.info("Service provision loaded.");
-                _self.log.info("Starting Service ...");
-                _self.app.httpServer = _self.app.listen(_self.app.soajs.serviceConf.info.port, function (err) {
-                    if (err) {
-                        _self.log.error(core.error.generate(141));
-                        _self.log.error(err);
-                    }
-                    else if (!process.env.SOAJS_DEPLOY_HA) {
-                        core.registry.registerHost({
-                            "serviceName": _self.app.soajs.param.serviceName,
-                            "serviceVersion": _self.app.soajs.param.serviceVersion,
+        _self.log.info("Starting Service ...");
+        _self.app.httpServer = _self.app.listen(_self.app.soajs.serviceConf.info.port, function (err) {
+            if (err) {
+                _self.log.error(core.error.generate(141));
+                _self.log.error(err);
+            }
+            else if (!process.env.SOAJS_DEPLOY_HA) {
+                core.registry.registerHost({
+                    "serviceName": _self.app.soajs.param.serviceName,
+                    "serviceVersion": _self.app.soajs.param.serviceVersion,
+                    "serviceIp": _self.app.soajs.param.serviceIp,
+                    "serviceHATask": _self.app.soajs.param.serviceHATask
+                }, registry, function (registered) {
+                    if (registered)
+                        _self.log.info("Host IP [" + _self.app.soajs.param.serviceIp + "] for service [" + _self.app.soajs.param.serviceName + "@" + _self.app.soajs.param.serviceVersion + "] successfully registered.");
+                    else
+                        _self.log.warn("Unable to register host IP [" + _self.app.soajs.param.serviceIp + "] for service [" + _self.app.soajs.param.serviceName + "@" + _self.app.soajs.param.serviceVersion + "]");
+
+                    _self.log.info(_self.app.soajs.param.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
+
+                    if (autoRegHost) {
+                        _self.log.info("Initiating service auto register for awareness ...");
+                        core.registry.autoRegisterService({
+                            "name": _self.app.soajs.param.serviceName,
                             "serviceIp": _self.app.soajs.param.serviceIp,
-                            "serviceHATask": _self.app.soajs.param.serviceHATask
-                        }, registry, function (registered) {
-                            if (registered)
-                                _self.log.info("Host IP [" + _self.app.soajs.param.serviceIp + "] for service [" + _self.app.soajs.param.serviceName + "@" + _self.app.soajs.param.serviceVersion + "] successfully registered.");
-                            else
-                                _self.log.warn("Unable to register host IP [" + _self.app.soajs.param.serviceIp + "] for service [" + _self.app.soajs.param.serviceName + "@" + _self.app.soajs.param.serviceVersion + "]");
-
-                            _self.log.info(_self.app.soajs.param.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
-
-                            if (autoRegHost) {
-                                _self.log.info("Initiating service auto register for awareness ...");
-                                core.registry.autoRegisterService({
-                                    "name": _self.app.soajs.param.serviceName,
-                                    "serviceIp": _self.app.soajs.param.serviceIp,
-                                    "serviceVersion": _self.app.soajs.param.serviceVersion,
-                                    "serviceHATask": _self.app.soajs.param.serviceHATask,
-                                    "what": "services"
-                                }, function (err, registered) {
-                                    if (err) {
-                                        _self.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
-                                    } else if (registered) {
-                                        _self.log.info('The autoRegisterService @ controllers for [' + _self.app.soajs.param.serviceName + '@' + _self.app.soajs.param.serviceIp + '] successfully finished.');
-                                    }
-                                });
-                            }
-                            else {
-                                _self.log.info("Service auto register for awareness, skipped.");
+                            "serviceVersion": _self.app.soajs.param.serviceVersion,
+                            "serviceHATask": _self.app.soajs.param.serviceHATask,
+                            "what": "services"
+                        }, function (err, registered) {
+                            if (err) {
+                                _self.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
+                            } else if (registered) {
+                                _self.log.info('The autoRegisterService @ controllers for [' + _self.app.soajs.param.serviceName + '@' + _self.app.soajs.param.serviceIp + '] successfully finished.');
                             }
                         });
                     }
-                    if (cb) {
-                        cb(err);
+                    else {
+                        _self.log.info("Service auto register for awareness, skipped.");
                     }
                 });
+            }
+            if (cb) {
+                cb(err);
+            }
+        });
 
-                //MAINTENANCE Service Routes
-                _self.log.info("Adding Service Maintenance Routes ...");
-                var maintenancePort = _self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
-                var maintenanceResponse = function (req, route) {
-                    var response = {
-                        'result': false,
-                        'ts': Date.now(),
-                        'service': {
-                            'service': _self.app.soajs.param.serviceName.toUpperCase(),
-                            'type': 'rest',
-                            'route': route || req.path
-                        }
-                    };
-                    return response;
-                };
-                _self.appMaintenance.get("/heartbeat", function (req, res) {
-                    var response = maintenanceResponse(req);
-                    response['result'] = true;
-                    res.jsonp(response);
-                });
-                _self.appMaintenance.get("/reloadRegistry", function (req, res) {
-                    core.registry.reload({
-                        "serviceName": _self.app.soajs.param.serviceName,
-                        "serviceGroup": _self.app.soajs.param.serviceGroup,
-                        "serviceVersion": _self.app.soajs.param.serviceVersion,
-                        "designatedPort": _self.app.soajs.param.servicePort,
-                        "extKeyRequired": _self.app.soajs.param.extKeyRequired,
-                        "requestTimeout": _self.app.soajs.param.requestTimeout,
-                        "requestTimeoutRenewal": _self.app.soajs.param.requestTimeoutRenewal,
-                        "awareness": _self.app.soajs.param.awareness,
-                        "serviceIp": _self.app.soajs.param.serviceIp
-                    }, function (err, reg) {
-                        if (err) {
-                            _self.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
-                        }
-                        var response = maintenanceResponse(req);
-                        response['result'] = true;
-                        response['data'] = reg;
-                        res.jsonp(response);
+        //MAINTENANCE Service Routes
+        _self.log.info("Adding Service Maintenance Routes ...");
+        var maintenancePort = _self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
+        var maintenanceResponse = function (req, route) {
+            var response = {
+                'result': false,
+                'ts': Date.now(),
+                'service': {
+                    'service': _self.app.soajs.param.serviceName.toUpperCase(),
+                    'type': 'rest',
+                    'route': route || req.path
+                }
+            };
+            return response;
+        };
+        _self.appMaintenance.get("/heartbeat", function (req, res) {
+            var response = maintenanceResponse(req);
+            response['result'] = true;
+            res.jsonp(response);
+        });
+        _self.appMaintenance.get("/reloadRegistry", function (req, res) {
+            core.registry.reload({
+                "serviceName": _self.app.soajs.param.serviceName,
+                "serviceGroup": _self.app.soajs.param.serviceGroup,
+                "serviceVersion": _self.app.soajs.param.serviceVersion,
+                "designatedPort": _self.app.soajs.param.servicePort,
+                "extKeyRequired": _self.app.soajs.param.extKeyRequired,
+                "requestTimeout": _self.app.soajs.param.requestTimeout,
+                "requestTimeoutRenewal": _self.app.soajs.param.requestTimeoutRenewal,
+                "serviceIp": _self.app.soajs.param.serviceIp
+            }, function (err, reg) {
+                if (err) {
+                    _self.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
+                }
+                var response = maintenanceResponse(req);
+                response['result'] = true;
+                response['data'] = reg;
+                res.jsonp(response);
 
-                    });
-                });
-                /*
-                _self.appMaintenance.get("/loadProvision", function (req, res) {
-                    provision.loadProvision(function (loaded) {
-                        var response = maintenanceResponse(req);
-                        response['result'] = loaded;
-                        res.jsonp(response);
-                    });
-                });
-                */
-                _self.appMaintenance.get("/resourceInfo", function (req, res) {
-                    var response = maintenanceResponse(req);
-                    var data = {};
-                    data['hostname'] = os.hostname();
-                    data['uptime'] = os.uptime();
-                    data['cpus'] = os.cpus();
-                    data['net'] = os.networkInterfaces();
-                    data['mem'] = {'total': os.totalmem(), 'free': os.freemem()};
-                    data['load'] = os.loadavg();
-                    response['result'] = true;
-                    response['data'] = data;
-                    res.jsonp(response);
-                });
-                _self.appMaintenance.all('*', function (req, res) {
-                    var response = maintenanceResponse(req, "heartbeat");
-                    response['result'] = true;
-                    res.jsonp(response);
-                });
-                _self.appMaintenance.httpServer = _self.appMaintenance.listen(maintenancePort, function (err) {
-                    _self.log.info(_self.app.soajs.param.serviceName + " service maintenance is listening on port: " + maintenancePort);
-                });
-           // }
-        //});
+            });
+        });
+        _self.appMaintenance.get("/resourceInfo", function (req, res) {
+            var response = maintenanceResponse(req);
+            var data = {};
+            data['hostname'] = os.hostname();
+            data['uptime'] = os.uptime();
+            data['cpus'] = os.cpus();
+            data['net'] = os.networkInterfaces();
+            data['mem'] = {'total': os.totalmem(), 'free': os.freemem()};
+            data['load'] = os.loadavg();
+            response['result'] = true;
+            response['data'] = data;
+            res.jsonp(response);
+        });
+        _self.appMaintenance.all('*', function (req, res) {
+            var response = maintenanceResponse(req, "heartbeat");
+            response['result'] = true;
+            res.jsonp(response);
+        });
+        _self.appMaintenance.httpServer = _self.appMaintenance.listen(maintenancePort, function (err) {
+            _self.log.info(_self.app.soajs.param.serviceName + " service maintenance is listening on port: " + maintenancePort);
+        });
     } else {
         if (cb && typeof cb === "function") {
             cb(new Error('Failed starting service'));
@@ -599,9 +541,9 @@ function isSOAJready(app, log) {
  * @param args
  * @returns {*}
  */
-function routeInjection (_self, args){
+function routeInjection(_self, args) {
     args = injectInputmask(_self, args);
-    args = injectServiceMW (_self, args);
+    args = injectServiceMW(_self, args);
     return args;
 }
 /**

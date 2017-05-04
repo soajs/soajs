@@ -6,7 +6,7 @@ var request = require('request');
 var httpProxy = require('http-proxy');
 var url = require('url');
 
-var coreModules = require ("soajs.core.modules");
+var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
 var provision = coreModules.provision;
 
@@ -38,17 +38,17 @@ function controller(param) {
     //TODO: we might not need bodyParser
     param.bodyParser = false;
 
-    _self.soajs = {"param" : param};
+    _self.soajs = {"param": param};
 }
 
 controller.prototype.init = function (callback) {
     var _self = this;
     var fetchedHostIp = null;
     var serviceIpNotDetected = false;
-    if (!autoRegHost  && !process.env.SOAJS_DEPLOY_HA) {
+    if (!autoRegHost && !process.env.SOAJS_DEPLOY_HA) {
         _self.serviceIp = '127.0.0.1';
     }
-    if (!_self.serviceIp  && !process.env.SOAJS_DEPLOY_HA) {
+    if (!_self.serviceIp && !process.env.SOAJS_DEPLOY_HA) {
         core.getHostIp(function (getHostIpResponse) {
             fetchedHostIp = getHostIpResponse;
             if (fetchedHostIp && fetchedHostIp.result) {
@@ -71,7 +71,6 @@ controller.prototype.init = function (callback) {
             "serviceName": _self.serviceName,
             "serviceVersion": _self.serviceVersion,
             "apiList": null,
-            "awareness": _self.awareness,
             "serviceIp": _self.serviceIp
         }, function (reg) {
             _self.registry = reg;
@@ -117,7 +116,7 @@ controller.prototype.init = function (callback) {
                 "log": _self.log,
                 "serviceIp": _self.serviceIp
             }));
-	        
+
             var oauthserver = require('oauth2-server');
             _self.oauth = oauthserver({
                 model: provision.oauthModel,
@@ -139,9 +138,7 @@ controller.prototype.init = function (callback) {
 
 
             var mt_mw = require("./../mw/mt/index");
-            //_self.soajs.mtMW =
-            // req.route.path will not work for now
-            app.use (mt_mw({"soajs": _self.soajs, "app": app, "param": _self.soajs.param}));
+            app.use(mt_mw({"soajs": _self.soajs, "app": app, "param": _self.soajs.param}));
             _self.log.info("SOAJS MT middleware initialization done.");
 
             app.use(function (req, res, next) {
@@ -198,7 +195,6 @@ controller.prototype.init = function (callback) {
                                 "serviceName": _self.serviceName,
                                 "serviceVersion": null,
                                 "apiList": null,
-                                "awareness": _self.awareness,
                                 "serviceIp": _self.serviceIp
                             }, function (err, reg) {
                                 res.writeHead(200, {'Content-Type': 'application/json'});
@@ -223,49 +219,49 @@ controller.prototype.init = function (callback) {
                             return res.end(JSON.stringify(response));
                         });
 
-                if (parsedUrl.pathname === '/reloadRegistry') {
-                    reloadRegistry();
-                }
-                else if (parsedUrl.pathname === '/awarenessStat') {
-                    res.writeHead(200, {'Content-Type': 'application/json'});
-                    var tmp = core.registry.get();
-                    response = maintenanceResponse(req);
-                    if (tmp && (tmp.services || tmp.daemons)) {
-                        response['result'] = true;
-                        response['data'] = {"services": tmp.services, "daemons": tmp.daemons};
-                    }
-
-	                if (process.env.SOAJS_DEPLOY_HA) {
-		                awareness_mw({
-			                "awareness": _self.awareness,
-			                "serviceName": _self.serviceName,
-			                "log": _self.log,
-			                "serviceIp": _self.serviceIp
-		                });
-	                }
-
-                    return res.end(JSON.stringify(response));
-                }
-                else if (parsedUrl.pathname === '/register') {
-                    if (parsedUrl.query.serviceHATask) {
-                        reloadRegistry();
-                    }
-                    else {
-                        res.writeHead(200, {'Content-Type': 'application/json'});
-                        response = maintenanceResponse(req);
-                        var regOptions = {
-                            "name": parsedUrl.query.name,
-                            "group": parsedUrl.query.group,
-                            "port": parseInt(parsedUrl.query.port),
-                            "ip": parsedUrl.query.ip,
-                            "type": parsedUrl.query.type,
-                            "version": parseInt(parsedUrl.query.version)
-                        };
-                        if (regOptions.type === "service") {
-                            regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
-                            regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
-                            regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);
+                        if (parsedUrl.pathname === '/reloadRegistry') {
+                            reloadRegistry();
                         }
+                        else if (parsedUrl.pathname === '/awarenessStat') {
+                            res.writeHead(200, {'Content-Type': 'application/json'});
+                            var tmp = core.registry.get();
+                            response = maintenanceResponse(req);
+                            if (tmp && (tmp.services || tmp.daemons)) {
+                                response['result'] = true;
+                                response['data'] = {"services": tmp.services, "daemons": tmp.daemons};
+                            }
+
+                            if (process.env.SOAJS_DEPLOY_HA) {
+                                awareness_mw({
+                                    "awareness": _self.awareness,
+                                    "serviceName": _self.serviceName,
+                                    "log": _self.log,
+                                    "serviceIp": _self.serviceIp
+                                });
+                            }
+
+                            return res.end(JSON.stringify(response));
+                        }
+                        else if (parsedUrl.pathname === '/register') {
+                            if (parsedUrl.query.serviceHATask) {
+                                reloadRegistry();
+                            }
+                            else {
+                                res.writeHead(200, {'Content-Type': 'application/json'});
+                                response = maintenanceResponse(req);
+                                var regOptions = {
+                                    "name": parsedUrl.query.name,
+                                    "group": parsedUrl.query.group,
+                                    "port": parseInt(parsedUrl.query.port),
+                                    "ip": parsedUrl.query.ip,
+                                    "type": parsedUrl.query.type,
+                                    "version": parseInt(parsedUrl.query.version)
+                                };
+                                if (regOptions.type === "service") {
+                                    regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
+                                    regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
+                                    regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);
+                                }
 
                                 core.registry.register(
                                     regOptions,
