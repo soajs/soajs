@@ -37,7 +37,6 @@ function service(param) {
     if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true") {
         param.extKeyRequired = false;
         param.session = false;
-        param.oauth = false;
         param.awareness = false;
         param.awarenessEnv = false;
     }
@@ -120,6 +119,14 @@ service.prototype.init = function (callback) {
     soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
     soajs.param.serviceHATask = null;
     soajs.param.swagger = soajs.param.swagger || false;
+    soajs.param.urac = soajs.param.urac || false;
+    soajs.param.urac_Profile = soajs.param.urac_Profile || false;
+    soajs.param.urac_ACL = soajs.param.urac_ACL || false;
+    soajs.param.provision_ACL = soajs.param.provision_ACL || false;
+    if (soajs.param.hasOwnProperty("oauth"))
+        soajs.param.oauth = soajs.param.oauth;
+    else
+        soajs.param.oauth = true;
 
     var fetchedHostIp = null;
     var serviceIpNotDetected = false;
@@ -160,6 +167,11 @@ service.prototype.init = function (callback) {
             "requestTimeoutRenewal": soajs.param.requestTimeoutRenewal,
             "serviceIp": soajs.param.serviceIp,
             "swagger": soajs.param.swagger,
+            "urac": soajs.param.urac,
+            "urac_Profile": soajs.param.urac_Profile,
+            "urac_ACL": soajs.param.urac_ACL,
+            "provision_ACL": soajs.param.provision_ACL,
+            "oauth": soajs.param.oauth,
             "apiList": soajs.apiList
         }, function (reg) {
             registry = reg;
@@ -298,7 +310,6 @@ service.prototype.init = function (callback) {
                     "requestTimeoutRenewal": soajs.param.requestTimeoutRenewal,
                     "awareness": soajs.param.awareness,
                     "serviceIp": soajs.param.serviceIp,
-                    "apiList": soajs.apiList,
                     "log": _self.log
                 }));
                 _self.log.info("Awareness middleware initialization done.");

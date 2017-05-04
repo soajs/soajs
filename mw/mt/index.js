@@ -142,10 +142,27 @@ module.exports = function (configuration) {
                                             "geo": data.geo
                                         };
 
-                                        if (req.soajs.uracDriver)
-                                            injectObj.urac = req.soajs.uracDriver.getProfile();
-
-                                        if (serviceName.toLowerCase() !== 'dashboard') {
+                                        if (req.soajs.uracDriver) {
+                                            if (serviceParam.urac) {
+                                                var uracObj = req.soajs.uracDriver.getProfile();
+                                                injectObj.urac = {
+                                                    "_id": uracObj._id,
+                                                    "username": uracObj.username,
+                                                    "firstName": uracObj.firstName,
+                                                    "lastName": uracObj.lastName,
+                                                    "email": uracObj.email,
+                                                    "groups": uracObj.groups,
+                                                    "socialLogin": uracObj.socialLogin
+                                                };
+                                                if (serviceParam.urac_Profile)
+                                                    injectObj.urac.profile = uracObj.profile;
+                                                if (serviceParam.urac_ACL)
+                                                    injectObj.urac.acl = req.soajs.uracDriver.getAcl();
+                                                if (serviceParam.urac_ACL)
+                                                    injectObj.urac.acl_AllEnv = req.soajs.uracDriver.getAclAllEnv();
+                                            }
+                                        }
+                                        if (!serviceParam.provision_ACL) {
                                             delete injectObj.application.acl;
                                             delete injectObj.application.acl_all_env;
                                             delete injectObj.package.acl_all_env;
