@@ -27,11 +27,7 @@ module.exports = function (configuration) {
          * 		urac
          * 		urac_Profile
          * 		urac_ACL
-         * 		urac_AllEnvACL
-         * 		package_ACL
-         * 		package_AllEnvACL
-         * 		application_ACL
-         * 		application_AllEnvACL
+         * 		provision_ACL
 		 * 		extKeyRequired ? maybe
 		 * 		oauth
          */
@@ -40,11 +36,7 @@ module.exports = function (configuration) {
 			"urac" : serviceInfo.urac || false,
             "urac_Profile" : serviceInfo.urac_Profile || false,
             "urac_ACL" : serviceInfo.urac_ACL || false,
-            "urac_AllEnvACL" : serviceInfo.urac_AllEnvACL || false,
-            "package_ACL" : serviceInfo.package_ACL || false,
-            "package_AllEnvACL" : serviceInfo.package_AllEnvACL || false,
-            "application_ACL" : serviceInfo.application_ACL || false,
-            "application_AllEnvACL" : serviceInfo.application_AllEnvACL || false,
+			"provision_ACL" : serviceInfo.provision_ACL || false,
             "extKeyRequired" : serviceInfo.extKeyRequired || false,
             "oauth" : serviceInfo.oauth || true
 		};
@@ -52,22 +44,6 @@ module.exports = function (configuration) {
             serviceParam.oauth = serviceInfo.oauth;
 
 		if (serviceInfo[regEnvironment]){
-			if (serviceInfo[regEnvironment].hasOwnProperty("urac"))
-                serviceParam.urac = serviceInfo[regEnvironment].urac;
-            if (serviceInfo[regEnvironment].hasOwnProperty("urac_Profile"))
-                serviceParam.urac_Profile = serviceInfo[regEnvironment].urac_Profile;
-            if (serviceInfo[regEnvironment].hasOwnProperty("urac_ACL"))
-                serviceParam.urac_ACL = serviceInfo[regEnvironment].urac_ACL;
-            if (serviceInfo[regEnvironment].hasOwnProperty("urac_AllEnvACL"))
-                serviceParam.urac_AllEnvACL = serviceInfo[regEnvironment].urac_AllEnvACL;
-            if (serviceInfo[regEnvironment].hasOwnProperty("package_ACL"))
-                serviceParam.package_ACL = serviceInfo[regEnvironment].package_ACL;
-            if (serviceInfo[regEnvironment].hasOwnProperty("package_AllEnvACL"))
-                serviceParam.package_AllEnvACL = serviceInfo[regEnvironment].package_AllEnvACL;
-            if (serviceInfo[regEnvironment].hasOwnProperty("application_ACL"))
-                serviceParam.application_ACL = serviceInfo[regEnvironment].application_ACL;
-            if (serviceInfo[regEnvironment].hasOwnProperty("application_AllEnvACL"))
-                serviceParam.application_AllEnvACL = serviceInfo[regEnvironment].application_AllEnvACL;
             if (serviceInfo[regEnvironment].hasOwnProperty("extKeyRequired"))
                 serviceParam.extKeyRequired = serviceInfo[regEnvironment].extKeyRequired;
             if (serviceInfo[regEnvironment].hasOwnProperty("oauth"))
