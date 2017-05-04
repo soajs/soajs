@@ -131,7 +131,7 @@ function filterOutRegExpObj(aclObj) {
 		var pathToRegexp = require('path-to-regexp');
 		var keys = [];
 		var out = pathToRegexp(route, keys, {sensitive: true});
-		return out.toString();
+		return out;
 	}
 	
 	/**
@@ -388,7 +388,7 @@ var utils = {
 			
 			var system = _system.getAcl(obj);
 			var api = (system && system.apis ? system.apis[obj.req.soajs.controller.serviceParams.path] : null);
-			if (!api && system && system.apisRegExp && Object.keys(system.apisRegExp).length) {
+			if (!api && system && system.apisRegExp && Object.keys(system.apisRegExp).length > 0) {
 				for (var jj = 0; jj < system.apisRegExp.length; jj++) {
 					if (system.apisRegExp[jj].regExp && obj.req.soajs.controller.serviceParams.path.match(system.apisRegExp[jj].regExp)) {
 						api = system.apisRegExp[jj];
