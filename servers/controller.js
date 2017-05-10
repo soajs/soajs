@@ -16,6 +16,7 @@ var soajs_mw = require('./../mw/soajs/index');
 var response_mw = require('./../mw/response/index');
 var enhancer_mw = require('./../mw/enhancer/index');
 var awareness_mw = require('./../mw/awareness/index');
+var awarenessEnv_mw = require("./../mw/awarenessEnv/index");
 var controller_mw = require('./../mw/controller/index');
 
 var autoRegHost = process.env.SOAJS_SRV_AUTOREGISTERHOST || true;
@@ -116,6 +117,14 @@ controller.prototype.init = function (callback) {
                 "log": _self.log,
                 "serviceIp": _self.serviceIp
             }));
+	        _self.log.info("Awareness middleware initialization done.");
+            
+	        //added mw awarenessEnv so that proxy can use req.soajs.awarenessEnv.getHost('dev', cb)
+	        app.use(awarenessEnv_mw({
+		        "awarenessEnv": true,
+		        "log": _self.log
+	        }));
+	        _self.log.info("AwarenessEnv middleware initialization done.");
 
             var oauthserver = require('oauth2-server');
             _self.oauth = oauthserver({

@@ -7,8 +7,8 @@ var http = require('http');
 
 var coreModules = require ("soajs.core.modules");
 var core = coreModules.core;
+
 var drivers = require('soajs.core.drivers');
-var parsedUrl;
 
 /**
  *
@@ -24,7 +24,7 @@ module.exports = function () {
 			req.soajs.controller = {};
 		}
 		
-		parsedUrl = url.parse(req.url, true);
+		var parsedUrl = url.parse(req.url, true);
 		if(!req.query && parsedUrl.query && parsedUrl.query.access_token){
 			req.query = {
 				access_token: parsedUrl.query.access_token
@@ -48,7 +48,20 @@ module.exports = function () {
 			}
 			service_n = service_nv.substr(0, index);
 		}
-		extractBuildParameters(req, service_n, service_nv, service_v, parsedUrl.path, function(error, parameters){
+		
+		//check if proxy/redirect
+		//create proxy info object before calling extractbuildparams
+		//reason on line: 307
+		var proxy = (serviceInfo[1] === 'proxy' && serviceInfo[2] === 'redirect');
+		var proxyInfo;
+		if(proxy){
+			proxyInfo = {
+				query: parsedUrl.query,
+				pathname: parsedUrl.pathname
+			};
+		}
+		
+		extractBuildParameters(req, service_n, service_nv, service_v, proxyInfo, parsedUrl.path, function(error, parameters){
 			if(error){
 				req.soajs.log.fatal(error);
 				return req.soajs.controllerResponse(core.error.getError(130));
@@ -59,6 +72,7 @@ module.exports = function () {
 				return req.soajs.controllerResponse(core.error.getError(130));
 			}
 			
+			parameters.parsedUrl = parsedUrl;
 			req.soajs.controller.serviceParams = parameters;
 			
 			var d = domain.create();
@@ -81,8 +95,6 @@ module.exports = function () {
 				if (serviceInfo[2] === "passport" && serviceInfo[3] === "login")
 					passportLogin = true;
 			}
-			
-			var proxy = (serviceInfo[1] === 'proxy' && serviceInfo[2] === 'redirect');
 			
 			if (parameters.extKeyRequired) {
 				var key = req.headers.key || parsedUrl.query.key;
@@ -130,17 +142,18 @@ function proxyRequest(req, res) {
 	 get ext key for remote env requested
 	 */
 	var tenant = req.soajs.tenant;
+	var parsedUrl=  req.soajs.controller.serviceParams.parsedUrl;
+	
 	var remoteENV = (parsedUrl.query) ? parsedUrl.query.__env : req.headers.__env;
 	remoteENV = remoteENV.toUpperCase();
 	
 	var requestedRoute;
 	//check if requested route is provided as query param
-	if(req.query && req.query.proxyRoute){
-		requestedRoute = decodeURIComponent(req.query.proxyRoute);
-		delete req.query.proxyRoute;
+	if(parsedUrl.query && parsedUrl.query.proxyRoute){
+		requestedRoute = decodeURIComponent(parsedUrl.query.proxyRoute);
 	}
 	//possible requested route is provided as path param
-	else if(parsedUrl.pathname.replace(/^\/proxy/,'') !== ''){
+	if(!requestedRoute && parsedUrl.pathname.replace(/^\/proxy/,'') !== ''){
 		requestedRoute = parsedUrl.pathname.replace(/^\/proxy/, '');
 	}
 	
@@ -148,9 +161,13 @@ function proxyRequest(req, res) {
 	if(!requestedRoute){
 		return req.soajs.controllerResponse(core.error.getError(139));
 	}
+	
 	req.soajs.log.debug("attempting to redirect to: " + requestedRoute + " in " + remoteENV + " Environment.");
 	
-	getOriginalTenantRecord(req, tenant, function(originalTenant){
+	getOriginalTenantRecord(tenant, function(error, originalTenant){
+		if(error){
+			return req.soajs.controllerResponse(core.error.getError(139)); //todo: make sure we have set the correct error code number
+		}
 		
 		//get extKey for remote environment for this tenant
 		var remoteExtKey = findExtKeyForEnvironment(originalTenant, remoteENV);
@@ -168,17 +185,21 @@ function proxyRequest(req, res) {
 	});
 }
 
-function getOriginalTenantRecord(req, tenant, cb) {
+/**
+ * function that fetches a tenant record from core.provision
+ * @param {Object} tenant
+ * @param {Callback} cb
+ */
+function getOriginalTenantRecord(tenant, cb) {
+	//note: using mongo to get the full tenant record.
+	//note: attempted to use provision methods but none of them returns the full tenant record thus cannot get ext of remote env from that
 	core.registry.loadByEnv({
-		"envCode": "dashboard" // send env
+		"envCode": process.env.SOAJS_ENV.toLowerCase()
 	}, function (err, reg) {
 		var Mongo = coreModules.mongo;
 		var mongo = new Mongo(reg.coreDB.provision);
-		mongo.find('tenants', {"code": tenant.code}, function (err, records) {
-			return cb(records[0]);
-		});
+		mongo.findOne('tenants', {"code": tenant.code}, cb);
 	});
-	
 }
 
 /**
@@ -187,7 +208,7 @@ function getOriginalTenantRecord(req, tenant, cb) {
  * @param {String} env
  * @returns {null|String}
  */
-function findExtKeyForEnvironment(tenant, env,cb){
+function findExtKeyForEnvironment(tenant, env){
 	var key;
 	tenant.applications.forEach(function(oneApplication){
 		
@@ -218,7 +239,7 @@ function findExtKeyForEnvironment(tenant, env,cb){
  */
 function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRoute){
 	//get remote env controller
-	req.soajs.awarenessEnv.getHost(remoteENV, function (host) {
+	req.soajs.awarenessEnv.getHost(remoteENV.toLowerCase(), function (host) {
 		if (!host) {
 			return req.soajs.controllerResponse(core.error.getError(138));
 		}
@@ -281,7 +302,30 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
  * @param url
  * @returns {*}
  */
-function extractBuildParameters(req, service, service_nv, version, url, callback) {
+function extractBuildParameters(req, service, service_nv, version, proxyInfo, url, callback) {
+	
+	//todo: need to know what to do with the below if
+	//right now it is set to bypass all the below BL and return valid cb data to proceed above with the execution
+	if(proxyInfo){
+		var requestedRoute;
+		//check if requested route is provided as query param
+		if(proxyInfo.query && proxyInfo.query.proxyRoute){
+			requestedRoute = decodeURIComponent(proxyInfo.query.proxyRoute);
+		}
+		//possible requested route is provided as path param
+		if(!requestedRoute && proxyInfo.pathname.replace(/^\/proxy/,'') !== ''){
+			requestedRoute = proxyInfo.pathname.replace(/^\/proxy/, '');
+		}
+		
+		var proxyInfo = {
+			"registry": req.soajs.registry.services[service],
+			"name": requestedRoute.split("/")[1],
+			"url": requestedRoute,
+			"version": 1,
+			"extKeyRequired": true
+		};
+		return callback(null, proxyInfo);
+	}
 	
 	if (service &&
 		req.soajs.registry &&
@@ -452,6 +496,7 @@ function redirectToService(req, res) {
  */
 function preRedirect(req, res, cb) {
 	var restServiceParams = req.soajs.controller.serviceParams;
+	
 	var config = req.soajs.registry.services.controller;
 	if (!config)
 		return req.soajs.controllerResponse(core.error.getError(131));
