@@ -32,14 +32,19 @@ module.exports = function (configuration) {
          *        oauth
          */
         var serviceInfo = req.soajs.controller.serviceParams.registry.versions[req.soajs.controller.serviceParams.version];
+	    var oauth = true;
+	    if(Object.hasOwnProperty.call(serviceInfo, 'oauth')){
+		    oauth = serviceInfo.oauth;
+	    }
         var serviceParam = {
             "urac": serviceInfo.urac || false,
             "urac_Profile": serviceInfo.urac_Profile || false,
             "urac_ACL": serviceInfo.urac_ACL || false,
             "provision_ACL": serviceInfo.provision_ACL || false,
             "extKeyRequired": serviceInfo.extKeyRequired || false,
-            "oauth": serviceInfo.oauth || true
+            "oauth": oauth
         };
+        
         if (serviceInfo.hasOwnProperty("oauth"))
             serviceParam.oauth = serviceInfo.oauth;
 

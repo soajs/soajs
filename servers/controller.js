@@ -267,6 +267,7 @@ controller.prototype.init = function (callback) {
                                     "version": parseInt(parsedUrl.query.version)
                                 };
                                 if (regOptions.type === "service") {
+                                    regOptions["oauth"] = (parsedUrl.query.oauth === "false" ? false : true);
                                     regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
                                     regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
                                     regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);
