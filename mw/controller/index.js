@@ -304,8 +304,6 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
  */
 function extractBuildParameters(req, service, service_nv, version, proxyInfo, url, callback) {
 	
-	//todo: need to know what to do with the below if
-	//right now it is set to bypass all the below BL and return valid cb data to proceed above with the execution
 	if(proxyInfo){
 		var requestedRoute;
 		//check if requested route is provided as query param
@@ -325,90 +323,87 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
 			"extKeyRequired": true
 		};
 		return callback(null, proxyInfo);
-	}
-	
-	if (service &&
-		req.soajs.registry &&
-		req.soajs.registry.services &&
-		req.soajs.registry.services[service] &&
-		req.soajs.registry.services[service].port &&
-		(process.env.SOAJS_DEPLOY_HA || req.soajs.registry.services[service].hosts) // || service==='proxy'
-	) {
-		service = service.toLowerCase();
-		service_nv = service_nv.toLowerCase();
-		
-		var nextStep = function(version){
-			var extKeyRequired = false;
-			if (req.soajs.registry.services[service].versions && req.soajs.registry.services[service].versions[version])
-				extKeyRequired = req.soajs.registry.services[service].versions[version].extKeyRequired || false;
+	}else{
+		if (service &&
+			req.soajs.registry &&
+			req.soajs.registry.services &&
+			req.soajs.registry.services[service] &&
+			req.soajs.registry.services[service].port &&
+			(process.env.SOAJS_DEPLOY_HA || req.soajs.registry.services[service].hosts)
+		) {
+			service = service.toLowerCase();
+			service_nv = service_nv.toLowerCase();
 			
-			var serviceInfo = {
-				"registry": req.soajs.registry.services[service],
-				"name": service,
-				"url": url.substring(service_nv.length + 1),
-				"version": version,
-				"extKeyRequired": extKeyRequired
-			};
-			var path = serviceInfo.url;
-			var pathIndex = path.indexOf("?");
-			if (pathIndex !== -1){
-				path = path.substring (0, pathIndex);
-				pathIndex = path.lastIndexOf("/");
-				if (pathIndex === (path.length-1))
+			var nextStep = function(version){
+				var extKeyRequired = false;
+				if (req.soajs.registry.services[service].versions && req.soajs.registry.services[service].versions[version])
+					extKeyRequired = req.soajs.registry.services[service].versions[version].extKeyRequired || false;
+				
+				var serviceInfo = {
+					"registry": req.soajs.registry.services[service],
+					"name": service,
+					"url": url.substring(service_nv.length + 1),
+					"version": version,
+					"extKeyRequired": extKeyRequired
+				};
+				var path = serviceInfo.url;
+				var pathIndex = path.indexOf("?");
+				if (pathIndex !== -1){
 					path = path.substring (0, pathIndex);
-			}
-			serviceInfo.path = path;
-			return callback(null, serviceInfo);
-		};
-		
-		if (!version){
-			if(process.env.SOAJS_DEPLOY_HA){
-				var latestCachedVersion = req.soajs.awareness.getLatestVersionFromCache(service);
-				if(latestCachedVersion){
-					version = latestCachedVersion;
-					nextStep(version);
+					pathIndex = path.lastIndexOf("/");
+					if (pathIndex === (path.length-1))
+						path = path.substring (0, pathIndex);
 				}
-				else{
-					var info = req.soajs.registry.deployer.selected.split('.');
-					var deployerConfig = req.soajs.registry.deployer.container[info[1]][info[2]];
-					
-					var options = {
-						"strategy": process.env.SOAJS_DEPLOY_HA,
-						"driver": info[1] + "." + info[2],
-						"deployerConfig": deployerConfig,
-						"soajs": {
-							"registry": req.soajs.registry
-						},
-						"model": {},
-						"params": {
-							"serviceName": service,
-							"env": process.env.SOAJS_ENV
-						}
-					};
-					drivers.getLatestVersion(options, function(error, latestVersion){
-						if(error){
-							return callback(error);
-						}
-						version = latestVersion;
+				serviceInfo.path = path;
+				return callback(null, serviceInfo);
+			};
+			
+			if (!version){
+				if(process.env.SOAJS_DEPLOY_HA){
+					var latestCachedVersion = req.soajs.awareness.getLatestVersionFromCache(service);
+					if(latestCachedVersion){
+						version = latestCachedVersion;
 						nextStep(version);
-					});
+					}
+					else{
+						var info = req.soajs.registry.deployer.selected.split('.');
+						var deployerConfig = req.soajs.registry.deployer.container[info[1]][info[2]];
+						
+						var options = {
+							"strategy": process.env.SOAJS_DEPLOY_HA,
+							"driver": info[1] + "." + info[2],
+							"deployerConfig": deployerConfig,
+							"soajs": {
+								"registry": req.soajs.registry
+							},
+							"model": {},
+							"params": {
+								"serviceName": service,
+								"env": process.env.SOAJS_ENV
+							}
+						};
+						drivers.getLatestVersion(options, function(error, latestVersion){
+							if(error){
+								return callback(error);
+							}
+							version = latestVersion;
+							nextStep(version);
+						});
+					}
+				}
+				else if(req.soajs.registry.services[service].hosts){
+					version = req.soajs.registry.services[service].hosts.latest;
+					nextStep(version);
+				} else{
+					return callback(null, null);
 				}
 			}
-			else if(req.soajs.registry.services[service].hosts){
-				version = req.soajs.registry.services[service].hosts.latest;
+			else
 				nextStep(version);
-			// }
-			// else if(service === 'proxy'){
-			// 	nextStep();
-			} else{
-				return callback(null, null);
-			}
 		}
-		else
-			nextStep(version);
-	}
-	else{
-		return callback(null, null);
+		else{
+			return callback(null, null);
+		}
 	}
 }
 
