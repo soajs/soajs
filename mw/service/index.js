@@ -73,6 +73,10 @@ module.exports = function (configuration) {
         if(input.urac){
             output.urac = input.urac || null;
         }
+		
+		if(input.param){
+			output.param = input.param || {};
+		}
 
 		return output;
 	}
@@ -115,7 +119,13 @@ module.exports = function (configuration) {
 		var urac_id = null;
 		if (obj.req.soajs.urac && obj.req.soajs.urac._id)
             urac_id = obj.req.soajs.urac._id;
-        obj.req.soajs.uracDriver = new uracDriver({"soajs": obj.req.soajs, "_id": urac_id});
+	
+	    obj.req.soajs.uracDriver = new uracDriver({"soajs": obj.req.soajs, "_id": urac_id});
+	
+	    if(obj.req.soajs.param.urac_Profile && obj.req.soajs.param.urac_ACL){
+		    obj.req.soajs.uracDriver.userRecord = obj.req.soajs.urac;
+	    }
+        
         obj.req.soajs.uracDriver.init(function (error, uracProfile) {
             if (error)
                 obj.req.soajs.log.error(error);
@@ -142,6 +152,7 @@ module.exports = function (configuration) {
             req.soajs.servicesConfig = injectObj.key.config;
             req.soajs.device = injectObj.device;
             req.soajs.geo = injectObj.geo;
+			req.soajs.param = injectObj.param;
 
             var serviceCheckArray = [function (cb) {
                 cb(null, {
