@@ -159,6 +159,11 @@ module.exports = function (configuration) {
                                                     "groups": uracObj.groups,
                                                     "socialLogin": uracObj.socialLogin
                                                 };
+
+                                                injectObj.param = injectObj.param || {};
+                                                injectObj.param.urac_Profile = serviceParam.urac_Profile;
+                                                injectObj.param.urac_ACL = serviceParam.urac_ACL;
+
                                                 if (serviceParam.urac_Profile)
                                                     injectObj.urac.profile = uracObj.profile;
                                                 if (serviceParam.urac_ACL)
