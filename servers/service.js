@@ -4,10 +4,10 @@ var path = require('path');
 var os = require('os');
 var fs = require('fs');
 
-var coreModules = require ("soajs.core.modules");
+var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
 var provision = coreModules.provision;
-var lib = require ("soajs.core.libs");
+var lib = require("soajs.core.libs");
 
 var express = require("./../classes/express");
 
@@ -181,9 +181,9 @@ service.prototype.init = function (callback) {
             _self.log = core.getLogger(soajs.param.serviceName, registry.serviceConfig.logger);
 
             //turn on swagger path
-            if (fs.existsSync('./'+soajs.param.swaggerFilename)) {
-                _self.app.use('/'+soajs.param.swaggerFilename, express.static('./'+soajs.param.swaggerFilename));
-                _self.log.info("Swagger route [/"+soajs.param.swaggerFilename+"] is ON.");
+            if (fs.existsSync('./' + soajs.param.swaggerFilename)) {
+                _self.app.use('/' + soajs.param.swaggerFilename, express.static('./' + soajs.param.swaggerFilename));
+                _self.log.info("Swagger route [/" + soajs.param.swaggerFilename + "] is ON.");
             }
 
             if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true")
@@ -420,6 +420,16 @@ service.prototype.start = function (cb) {
 
         //MAINTENANCE Service Routes
         _self.log.info("Adding Service Maintenance Routes ...");
+        var loadVersion = function () {
+            var rootPath = process.cwd();
+            var version = null;
+            if (fs.existsSync(rootPath + "/package.json")) {
+                var packageJson = require(rootPath + "/package.json");
+                version = packageJson.version;
+            }
+            return version;
+        }
+        var packageVersion = loadVersion();
         var maintenancePort = _self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
         var maintenanceResponse = function (req, route) {
             var response = {
@@ -431,6 +441,8 @@ service.prototype.start = function (cb) {
                     'route': route || req.path
                 }
             };
+            if (packageVersion)
+                response.service.version = packageVersion;
             return response;
         };
         _self.appMaintenance.get("/heartbeat", function (req, res) {
