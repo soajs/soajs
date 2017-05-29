@@ -157,9 +157,17 @@ module.exports = function (configuration) {
                                                     "lastName": uracObj.lastName,
                                                     "email": uracObj.email,
                                                     "groups": uracObj.groups,
-                                                    "socialLogin": uracObj.socialLogin
+                                                    "socialLogin": uracObj.socialLogin,
+	                                                "tenant": {
+                                                    	"id": uracObj.tenant.id,
+		                                                "code": uracObj.tenant.code
+	                                                },
+	                                                "groupsConfig" : uracObj.groupsConfig,
+	                                                "status" : uracObj.status,
+	                                                "ts" : uracObj.ts,
+	                                                "config" : uracObj.config
                                                 };
-
+	                                            
                                                 injectObj.param = injectObj.param || {};
                                                 injectObj.param.urac_Profile = serviceParam.urac_Profile;
                                                 injectObj.param.urac_ACL = serviceParam.urac_ACL;

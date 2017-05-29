@@ -61,9 +61,13 @@ urac.prototype.getProfile = function (_ALL) {
             "email": _self.userRecord.email,
             "groups": _self.userRecord.groups,
             "profile": _self.userRecord.profile,
-            "tenant": _self.userRecord.tenant
+            "tenant": _self.userRecord.tenant,
+	        "status": _self.userRecord.status,
+	        "ts": _self.userRecord.ts,
+	        "config": _self.userRecord.config,
+	        "groupsConfig": _self.userRecord.groupsConfig
         };
-	    
+        
         if (_self.userRecord.socialLogin) {
             urac.socialLogin = {
                 "strategy": _self.userRecord.socialLogin.strategy,
