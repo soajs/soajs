@@ -161,11 +161,7 @@ module.exports = function (configuration) {
 	                                                "tenant": {
                                                     	"id": uracObj.tenant.id,
 		                                                "code": uracObj.tenant.code
-	                                                },
-	                                                "groupsConfig" : uracObj.groupsConfig,
-	                                                "status" : uracObj.status,
-	                                                "ts" : uracObj.ts,
-	                                                "config" : uracObj.config
+	                                                }
                                                 };
 	                                            
                                                 injectObj.param = injectObj.param || {};
