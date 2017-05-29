@@ -1,7 +1,7 @@
 {
   "name": "soajs",
   "description": "soajs framework",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -30,7 +30,7 @@
     "grunt-coveralls": "1.0.1",
     "lodash": "4.17.4",
     "shelljs": "0.7.5",
-    "soajs.mongodb.data": "1.*"
+    "soajs.mongodb.data": "1.0.*"
   },
   "dependencies": {
     "async": "2.1.4",
@@ -49,9 +49,9 @@
     "path-to-regexp": "1.7.0",
     "request": "2.79.0",
     "soajs.core.drivers": "0.0.*",
-    "soajs.core.libs": "1.*",
-    "soajs.core.modules": "1.*",
-    "soajs.urac.driver": "1.*",
+    "soajs.core.libs": "1.0.*",
+    "soajs.core.modules": "1.0.*",
+    "soajs.urac.driver": "1.0.*",
     "useragent": "2.1.10",
     "validator": "6.2.0"
   }

@@ -2,11 +2,12 @@
 
 var path = require('path');
 var os = require('os');
+var fs = require('fs');
 
-var coreModules = require("soajs.core.modules");
+var coreModules = require ("soajs.core.modules");
 var core = coreModules.core;
-//var provision = coreModules.provision;
-var lib = require("soajs.core.libs");
+var provision = coreModules.provision;
+var lib = require ("soajs.core.libs");
 
 var express = require("./../classes/express");
 
@@ -119,6 +120,7 @@ service.prototype.init = function (callback) {
     soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
     soajs.param.serviceHATask = null;
     soajs.param.swagger = soajs.param.swagger || false;
+    soajs.param.swaggerFilename = soajs.param.swaggerFilename || 'swagger.yml';
     soajs.param.urac = soajs.param.urac || false;
     soajs.param.urac_Profile = soajs.param.urac_Profile || false;
     soajs.param.urac_ACL = soajs.param.urac_ACL || false;
@@ -155,8 +157,6 @@ service.prototype.init = function (callback) {
     function resume() {
         soajs.apiList = extractAPIsList(soajs.param.schema);
 
-        //TODO: remove registry to be retrieved from body injection
-        //NOTE: we need to resolve register service for both type of deployment (HA, manual) and register host for manual deployment
         core.registry.load({
             "serviceName": soajs.param.serviceName,
             "serviceGroup": soajs.param.serviceGroup,
@@ -179,6 +179,12 @@ service.prototype.init = function (callback) {
             soajs.serviceConf = lib.registry.getServiceConf(soajs.param.serviceName, registry);
 
             _self.log = core.getLogger(soajs.param.serviceName, registry.serviceConfig.logger);
+
+            //turn on swagger path
+            if (fs.existsSync('./'+soajs.param.swaggerFilename)) {
+                _self.app.use('/'+soajs.param.swaggerFilename, express.static('./'+soajs.param.swaggerFilename));
+                _self.log.info("Swagger route [/"+soajs.param.swaggerFilename+"] is ON.");
+            }
 
             if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true")
                 _self.log.info("SOAJS is in SOLO mode, the following got turned OFF [extKeyRequired, session, oauth, awareness, awarenessEnv].");

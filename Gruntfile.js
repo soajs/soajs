@@ -100,6 +100,7 @@ module.exports = function (grunt) {
 			mochaTest: {
 				// SOAJS_TEST: true,
 				SOAJS_ENV: "dashboard",
+                SOAJS_REGISTRY_BUILDALL: true,
 				APP_DIR_FOR_CODE_COVERAGE: '../test/coverage/instrument/',
 				SOAJS_DAEMON_GRP_CONF: 'group1',
                 SOAJS_REGISTRY_BUILDALL: true
@@ -108,6 +109,7 @@ module.exports = function (grunt) {
 			coverage: {
 				// SOAJS_TEST: true,
 				SOAJS_ENV: "dashboard",
+                SOAJS_REGISTRY_BUILDALL: true,
 				APP_DIR_FOR_CODE_COVERAGE: '../test/coverage/instrument/',
 				SOAJS_DAEMON_GRP_CONF: 'group1',
                 SOAJS_REGISTRY_BUILDALL: true
