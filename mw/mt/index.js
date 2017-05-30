@@ -32,6 +32,10 @@ module.exports = function (configuration) {
          *        oauth
          */
         var serviceInfo = req.soajs.controller.serviceParams.registry.versions[req.soajs.controller.serviceParams.version];
+        if(!serviceInfo){
+	        return next(133);
+        }
+        
 	    var oauth = true;
 	    if(Object.hasOwnProperty.call(serviceInfo, 'oauth')){
 		    oauth = serviceInfo.oauth;
