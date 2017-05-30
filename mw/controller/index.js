@@ -26,13 +26,10 @@ module.exports = function () {
 		
 		var parsedUrl = url.parse(req.url, true);
 		if(!req.query && parsedUrl.query && parsedUrl.query.access_token){
-			req.query = {
-				access_token: parsedUrl.query.access_token
-			};
+			req.query = parsedUrl.query;
 		}
 		if(!req.query){
-			req.query = {
-			};
+			req.query = {};
 		}
 		
 		var serviceInfo = parsedUrl.pathname.split('/');
@@ -315,9 +312,10 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
 			requestedRoute = proxyInfo.pathname.replace(/^\/proxy/, '');
 		}
 		
+		var serviceName = requestedRoute.split("/")[1];
 		var proxyInfo = {
-			"registry": req.soajs.registry.services[service],
-			"name": requestedRoute.split("/")[1],
+			"registry": req.soajs.registry.services[serviceName],
+			"name": serviceName,
 			"url": requestedRoute,
 			"version": 1,
 			"extKeyRequired": true
@@ -387,7 +385,6 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
 								return callback(error);
 							}
 							version = latestVersion;
-							console.log('drivers: ', latestVersion);
 							nextStep(version);
 						});
 					}
