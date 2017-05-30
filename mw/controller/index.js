@@ -317,7 +317,7 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
 			"registry": req.soajs.registry.services[serviceName],
 			"name": serviceName,
 			"url": requestedRoute,
-			"version": 1,
+			"version": req.soajs.registry.services[serviceName].version || 1,
 			"extKeyRequired": true
 		};
 		return callback(null, proxyInfo);
