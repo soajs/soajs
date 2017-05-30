@@ -97,83 +97,6 @@ controller.prototype.init = function (callback) {
             }));
             app.use(cors_mw());
             app.use(response_mw({"controllerResponse": true}));
-	        app.use(awareness_mw({
-		        "awareness": _self.awareness,
-		        "serviceName": _self.serviceName,
-		        "log": _self.log,
-		        "serviceIp": _self.serviceIp
-	        }));
-	        _self.log.info("Awareness middleware initialization done.");
-	
-	        //added mw awarenessEnv so that proxy can use req.soajs.awarenessEnv.getHost('dev', cb)
-	        app.use(awarenessEnv_mw({
-		        "awarenessEnv": true,
-		        "log": _self.log
-	        }));
-	        _self.log.info("AwarenessEnv middleware initialization done.");
-
-            if (_self.soajs.param.bodyParser) {
-                var bodyParser = require('body-parser');
-                var options = (_self.soajs.param.bodyParser.limit) ? {limit: _self.soajs.param.bodyParser.limit} : null;
-                app.use(bodyParser.json(options));
-                app.use(bodyParser.urlencoded({extended: true}));
-                _self.log.info("Body-Parse middleware initialization done.");
-            }
-            else {
-                _self.log.info("Body-Parser middleware initialization skipped.");
-            }
-	        
-	        app.use(controller_mw());
-	
-	        app.use(enhancer_mw({}));
-	        
-            var oauthserver = require('oauth2-server');
-            _self.oauth = oauthserver({
-                model: provision.oauthModel,
-                grants: _self.registry.serviceConfig.oauth.grants,
-                debug: _self.registry.serviceConfig.oauth.debug,
-                accessTokenLifetime: _self.registry.serviceConfig.oauth.accessTokenLifetime,
-                refreshTokenLifetime: _self.registry.serviceConfig.oauth.refreshTokenLifetime
-            });
-            _self.soajs.oauthService = _self.soajs.param.oauthService || {
-                    "name": "oauth",
-                    "tokenApi": "/token",
-                    "authorizationApi": "/authorization"
-                };
-            _self.soajs.oauthService.name = _self.soajs.oauthService.name || "oauth";
-            _self.soajs.oauthService.tokenApi = _self.soajs.oauthService.tokenApi || "/token";
-            _self.soajs.oauthService.authorizationApi = _self.soajs.oauthService.authorizationApi || "/authorization";
-            _self.soajs.oauth = _self.oauth.authorise();
-            _self.log.info("oAuth middleware initialization done.");
-
-
-            var mt_mw = require("./../mw/mt/index");
-            app.use(mt_mw({"soajs": _self.soajs, "app": app, "param": _self.soajs.param}));
-            _self.log.info("SOAJS MT middleware initialization done.");
-
-            app.use(function (req, res, next) {
-                setImmediate(function () {
-                    req.soajs.controller.gotoservice(req, res, null);
-                });
-
-                req.on("error", function (error) {
-                    req.soajs.log.error("Error @ controller:", error);
-                    if (req.soajs.controller.redirectedRequest) {
-                        req.soajs.controller.redirectedRequest.abort();
-                    }
-                });
-
-                req.on("close", function () {
-                    if (req.soajs.controller.redirectedRequest) {
-                        req.soajs.log.info("Request aborted:", req.url);
-                        req.soajs.controller.redirectedRequest.abort();
-                    }
-                });
-            });
-
-            app.use(logErrors);
-            app.use(clientErrorHandler);
-            app.use(errorHandler);
 
             _self.log.info("Loading Provision ...");
             provision.init(_self.registry.coreDB.provision, _self.log);
@@ -322,6 +245,85 @@ controller.prototype.init = function (callback) {
                             return heartbeat(res);
                         }
                     });
+	
+	                app.use(awareness_mw({
+		                "awareness": _self.awareness,
+		                "serviceName": _self.serviceName,
+		                "log": _self.log,
+		                "serviceIp": _self.serviceIp
+	                }));
+	                _self.log.info("Awareness middleware initialization done.");
+	
+	                //added mw awarenessEnv so that proxy can use req.soajs.awarenessEnv.getHost('dev', cb)
+	                app.use(awarenessEnv_mw({
+		                "awarenessEnv": true,
+		                "log": _self.log
+	                }));
+	                _self.log.info("AwarenessEnv middleware initialization done.");
+	
+	                if (_self.soajs.param.bodyParser) {
+		                var bodyParser = require('body-parser');
+		                var options = (_self.soajs.param.bodyParser.limit) ? {limit: _self.soajs.param.bodyParser.limit} : null;
+		                app.use(bodyParser.json(options));
+		                app.use(bodyParser.urlencoded({extended: true}));
+		                _self.log.info("Body-Parse middleware initialization done.");
+	                }
+	                else {
+		                _self.log.info("Body-Parser middleware initialization skipped.");
+	                }
+	
+	                app.use(controller_mw());
+	
+	                app.use(enhancer_mw({}));
+	
+	                var oauthserver = require('oauth2-server');
+	                _self.oauth = oauthserver({
+		                model: provision.oauthModel,
+		                grants: _self.registry.serviceConfig.oauth.grants,
+		                debug: _self.registry.serviceConfig.oauth.debug,
+		                accessTokenLifetime: _self.registry.serviceConfig.oauth.accessTokenLifetime,
+		                refreshTokenLifetime: _self.registry.serviceConfig.oauth.refreshTokenLifetime
+	                });
+	                _self.soajs.oauthService = _self.soajs.param.oauthService || {
+			                "name": "oauth",
+			                "tokenApi": "/token",
+			                "authorizationApi": "/authorization"
+		                };
+	                _self.soajs.oauthService.name = _self.soajs.oauthService.name || "oauth";
+	                _self.soajs.oauthService.tokenApi = _self.soajs.oauthService.tokenApi || "/token";
+	                _self.soajs.oauthService.authorizationApi = _self.soajs.oauthService.authorizationApi || "/authorization";
+	                _self.soajs.oauth = _self.oauth.authorise();
+	                _self.log.info("oAuth middleware initialization done.");
+	
+	
+	                var mt_mw = require("./../mw/mt/index");
+	                app.use(mt_mw({"soajs": _self.soajs, "app": app, "param": _self.soajs.param}));
+	                _self.log.info("SOAJS MT middleware initialization done.");
+	
+	                app.use(function (req, res, next) {
+		                setImmediate(function () {
+			                req.soajs.controller.gotoservice(req, res, null);
+		                });
+		
+		                req.on("error", function (error) {
+			                req.soajs.log.error("Error @ controller:", error);
+			                if (req.soajs.controller.redirectedRequest) {
+				                req.soajs.controller.redirectedRequest.abort();
+			                }
+		                });
+		
+		                req.on("close", function () {
+			                if (req.soajs.controller.redirectedRequest) {
+				                req.soajs.log.info("Request aborted:", req.url);
+				                req.soajs.controller.redirectedRequest.abort();
+			                }
+		                });
+	                });
+	
+	                app.use(logErrors);
+	                app.use(clientErrorHandler);
+	                app.use(errorHandler);
+	                
                     callback();
                 }
                 else
