@@ -97,20 +97,6 @@ controller.prototype.init = function (callback) {
             }));
             app.use(cors_mw());
             app.use(response_mw({"controllerResponse": true}));
-	        app.use(awareness_mw({
-		        "awareness": _self.awareness,
-		        "serviceName": _self.serviceName,
-		        "log": _self.log,
-		        "serviceIp": _self.serviceIp
-	        }));
-	        _self.log.info("Awareness middleware initialization done.");
-	
-	        //added mw awarenessEnv so that proxy can use req.soajs.awarenessEnv.getHost('dev', cb)
-	        app.use(awarenessEnv_mw({
-		        "awarenessEnv": true,
-		        "log": _self.log
-	        }));
-	        _self.log.info("AwarenessEnv middleware initialization done.");
 
             if (_self.soajs.param.bodyParser) {
                 var bodyParser = require('body-parser');
@@ -122,11 +108,11 @@ controller.prototype.init = function (callback) {
             else {
                 _self.log.info("Body-Parser middleware initialization skipped.");
             }
-	        
+
 	        app.use(controller_mw());
-	
+
 	        app.use(enhancer_mw({}));
-	        
+
             var oauthserver = require('oauth2-server');
             _self.oauth = oauthserver({
                 model: provision.oauthModel,
@@ -322,6 +308,23 @@ controller.prototype.init = function (callback) {
                             return heartbeat(res);
                         }
                     });
+
+                    //initializing awareness after maintenance routes have been set
+                    app.use(awareness_mw({
+        		        "awareness": _self.awareness,
+        		        "serviceName": _self.serviceName,
+        		        "log": _self.log,
+        		        "serviceIp": _self.serviceIp
+        	        }));
+        	        _self.log.info("Awareness middleware initialization done.");
+
+        	        //added mw awarenessEnv so that proxy can use req.soajs.awarenessEnv.getHost('dev', cb)
+        	        app.use(awarenessEnv_mw({
+        		        "awarenessEnv": true,
+        		        "log": _self.log
+        	        }));
+        	        _self.log.info("AwarenessEnv middleware initialization done.");
+
                     callback();
                 }
                 else
