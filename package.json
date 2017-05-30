@@ -51,7 +51,7 @@
     "soajs.core.drivers": "0.0.*",
     "soajs.core.libs": "1.0.*",
     "soajs.core.modules": "git://github.com/soajs/soajs.core.modules#feature/sessionLessCtrl",
-    "soajs.urac.driver": "git://github.com/soajs/soajs.core.modules#feature/sessionLess",
+    "soajs.urac.driver": "git://github.com/soajs/soajs.urac.driver#feature/sessionLess",
     "useragent": "2.1.10",
     "validator": "6.2.0"
   }
