@@ -387,6 +387,7 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
 								return callback(error);
 							}
 							version = latestVersion;
+							console.log('drivers: ', latestVersion);
 							nextStep(version);
 						});
 					}
