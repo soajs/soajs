@@ -120,6 +120,7 @@ var lib = {
 			}, function () {
 				awarenessCache = myCache;
 				param.log.debug("Awareness cache rebuilt successfully");
+				param.log.debug(awarenessCache);
 
 				var cacheTTL = core.registry.get().serviceConfig.awareness.cacheTTL;
 				if (cacheTTL) {
