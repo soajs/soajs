@@ -23,6 +23,15 @@ describe("importing sample data", function () {
 			require("./mw-cors.test.js");
 			require("./mw-urac.test.js");
 			require("./mw-imfv.test.js");
+			
+			require("./mw/mt/utils.test.js");
+			require("./mw/mt/index.test.js");
+			
+			require("./mw/enhancer/index.test.js");
+			
+			require("./mw/favicon/index.test.js");
+			
+			require("./mw/controller/index.test.js");
 			done();
 		}, 1000);
 	});
