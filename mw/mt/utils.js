@@ -57,8 +57,10 @@ var _system = {
 				var aclObjClone = coreLibs.utils.cloneObj(newAclObj);
 				return filterOutRegExpObj(aclObjClone);
 			}
-			else
-				return filterOutRegExpObj(aclObj);
+			else{
+				var aclObjClone = coreLibs.utils.cloneObj(newAclObj);
+				return filterOutRegExpObj(aclObjClone);
+			}
 		}
 	}
 };
