@@ -91,6 +91,7 @@ module.exports = function (configuration) {
 
                                 serviceCheckArray.push(utils.securityGeoCheck);
                                 serviceCheckArray.push(utils.securityDeviceCheck);
+                                serviceCheckArray.push(utils.aclCheck);
                                 serviceCheckArray.push(utils.oauthCheck);
                                 serviceCheckArray.push(utils.uracCheck);
                                 serviceCheckArray.push(utils.serviceCheck);
