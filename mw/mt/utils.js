@@ -1,4 +1,5 @@
 "use strict";
+var coreLibs = require("soajs.core.libs");
 var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
 var provision = coreModules.provision;
@@ -21,40 +22,7 @@ regEnvironment = regEnvironment.toLowerCase();
  */
 var _system = {
 	"getAcl": function (obj) {
-		var aclObj = null;
-		if (obj.req.soajs.uracDriver) {
-			var uracACL = obj.req.soajs.uracDriver.getAcl();
-			if (uracACL)
-				aclObj = uracACL[obj.req.soajs.controller.serviceParams.name];
-		}
-		if (!aclObj && obj.keyObj.application.acl) {
-			aclObj = obj.keyObj.application.acl[obj.req.soajs.controller.serviceParams.name];
-		}
-		if (!aclObj && obj.packObj.acl)
-			aclObj = obj.packObj.acl[obj.req.soajs.controller.serviceParams.name];
-		
-		if (aclObj && (aclObj.apis || aclObj.apisRegExp))
-			return filterOutRegExpObj(aclObj);
-		else {
-			//ACL with method support restful
-			var method = obj.req.method.toLocaleLowerCase();
-			if (aclObj && aclObj[method] && typeof aclObj[method] === "object") {
-				var newAclObj = {};
-				if (aclObj.hasOwnProperty('access'))
-					newAclObj.access = aclObj.access;
-				if (aclObj[method].hasOwnProperty('apis'))
-					newAclObj.apis = aclObj[method].apis;
-				if (aclObj[method].hasOwnProperty('apisRegExp'))
-					newAclObj.apisRegExp = aclObj[method].apisRegExp;
-				if (aclObj[method].hasOwnProperty('apisPermission'))
-					newAclObj.apisPermission = aclObj[method].apisPermission;
-				else if (aclObj.hasOwnProperty('apisPermission'))
-					newAclObj.apisPermission = aclObj.apisPermission;
-				return filterOutRegExpObj(newAclObj);
-			}
-			else
-				return filterOutRegExpObj(aclObj);
-		}
+		return obj.finalAcl;
 	}
 };
 
@@ -120,8 +88,8 @@ var _api = {
  * loops inside ACL object and moves routes that contain path params from api to apiRegExp
  * @param {Objec} aclObj
  */
-function filterOutRegExpObj(aclObj) {
-	
+function filterOutRegExpObj(originalAclObj) {
+	var aclObj = coreLibs.utils.cloneObj(originalAclObj);
 	/**
 	 * changes all tokens found in url with a regular expression
 	 * @param {String} route
@@ -131,6 +99,9 @@ function filterOutRegExpObj(aclObj) {
 		var pathToRegexp = require('path-to-regexp');
 		var keys = [];
 		var out = pathToRegexp(route, keys, {sensitive: true});
+		if(out && out.keys && out.keys.length > 0){
+			out =  new RegExp(out.keys[0].pattern);
+		}
 		return out;
 	}
 	
@@ -201,11 +172,51 @@ function filterOutRegExpObj(aclObj) {
 	if (aclObj && typeof aclObj === 'object' && Object.keys(aclObj).length > 0) {
 		fetchSubObjectsAndReplace(null, aclObj);
 	}
-	
 	return aclObj;
 }
 
 var utils = {
+	"aclCheck": function(obj, cb){
+		var aclObj = null;
+		if (obj.req.soajs.uracDriver) {
+			var uracACL = obj.req.soajs.uracDriver.getAcl();
+			if (uracACL)
+				aclObj = uracACL[obj.req.soajs.controller.serviceParams.name];
+		}
+		if (!aclObj && obj.keyObj.application.acl) {
+			aclObj = obj.keyObj.application.acl[obj.req.soajs.controller.serviceParams.name];
+		}
+		if (!aclObj && obj.packObj.acl)
+			aclObj = obj.packObj.acl[obj.req.soajs.controller.serviceParams.name];
+		
+		if (aclObj && (aclObj.apis || aclObj.apisRegExp)){
+			obj.finalAcl = filterOutRegExpObj(aclObj);
+		}
+		else {
+			//ACL with method support restful
+			var method = obj.req.method.toLocaleLowerCase();
+			if (aclObj && aclObj[method] && typeof aclObj[method] === "object") {
+				var newAclObj = {};
+				if (aclObj.hasOwnProperty('access'))
+					newAclObj.access = aclObj.access;
+				if (aclObj[method].hasOwnProperty('apis'))
+					newAclObj.apis = aclObj[method].apis;
+				if (aclObj[method].hasOwnProperty('apisRegExp'))
+					newAclObj.apisRegExp = aclObj[method].apisRegExp;
+				if (aclObj[method].hasOwnProperty('apisPermission'))
+					newAclObj.apisPermission = aclObj[method].apisPermission;
+				else if (aclObj.hasOwnProperty('apisPermission'))
+					newAclObj.apisPermission = aclObj.apisPermission;
+				
+				obj.finalAcl = filterOutRegExpObj(newAclObj);
+			}
+			else{
+				obj.finalAcl = filterOutRegExpObj(aclObj);
+			}
+		}
+		return cb(null, obj);
+	},
+	
 	/**
 	 * Checks if the requested service is accessible based on the ACL configuration
 	 *
