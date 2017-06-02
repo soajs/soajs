@@ -41,6 +41,7 @@ describe("testing Multitenant index", function () {
 	let serviceStubUtils4;
 	let serviceStubUtils5;
 	let serviceStubUtils6;
+	let serviceStubUtils7;
 	
 	afterEach(function (done) {
 		if (serviceStub) {
@@ -66,6 +67,9 @@ describe("testing Multitenant index", function () {
 		}
 		if (serviceStubUtils6) {
 			serviceStubUtils6.restore();
+		}
+		if (serviceStubUtils7) {
+			serviceStubUtils7.restore();
 		}
 		done();
 	});
@@ -150,6 +154,10 @@ describe("testing Multitenant index", function () {
 				return cb(null, utilsData);
 			}
 		);
+		serviceStubUtils7 = sinon.stub(utils, 'aclCheck', (code, cb) => {
+				return cb(null, utilsData);
+			}
+		);
 		
 		var functionMw = index(configuration);
 		
@@ -159,8 +167,6 @@ describe("testing Multitenant index", function () {
 		});
 		
 	});
-	
-	
 });
 
 
