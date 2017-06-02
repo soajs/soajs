@@ -8,9 +8,9 @@ var core = require("soajs.core.modules/soajs.core/index.js");
 
 var coreLogger = core.getLogger('testing', {
 	"src": true,
-	"level": "debug",
+	"level": "fatal",
 	"formatter": {
-		outputMode: 'long'
+		outputMode: 'short'
 	}
 });
 
