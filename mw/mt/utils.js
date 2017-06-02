@@ -1,4 +1,5 @@
 "use strict";
+var coreLibs = require("soajs.core.libs");
 var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
 var provision = coreModules.provision;
@@ -33,8 +34,10 @@ var _system = {
 		if (!aclObj && obj.packObj.acl)
 			aclObj = obj.packObj.acl[obj.req.soajs.controller.serviceParams.name];
 		
-		if (aclObj && (aclObj.apis || aclObj.apisRegExp))
-			return filterOutRegExpObj(aclObj);
+		if (aclObj && (aclObj.apis || aclObj.apisRegExp)){
+			var aclObjClone = coreLibs.utils.cloneObj(aclObj);
+			return filterOutRegExpObj(aclObjClone);
+		}
 		else {
 			//ACL with method support restful
 			var method = obj.req.method.toLocaleLowerCase();
@@ -50,7 +53,9 @@ var _system = {
 					newAclObj.apisPermission = aclObj[method].apisPermission;
 				else if (aclObj.hasOwnProperty('apisPermission'))
 					newAclObj.apisPermission = aclObj.apisPermission;
-				return filterOutRegExpObj(newAclObj);
+				
+				var aclObjClone = coreLibs.utils.cloneObj(newAclObj);
+				return filterOutRegExpObj(aclObjClone);
 			}
 			else
 				return filterOutRegExpObj(aclObj);
@@ -121,7 +126,6 @@ var _api = {
  * @param {Objec} aclObj
  */
 function filterOutRegExpObj(aclObj) {
-	
 	/**
 	 * changes all tokens found in url with a regular expression
 	 * @param {String} route
@@ -131,6 +135,7 @@ function filterOutRegExpObj(aclObj) {
 		var pathToRegexp = require('path-to-regexp');
 		var keys = [];
 		var out = pathToRegexp(route, keys, {sensitive: true});
+		out =  new RegExp(out.keys[0].pattern);
 		return out;
 	}
 	
@@ -201,7 +206,6 @@ function filterOutRegExpObj(aclObj) {
 	if (aclObj && typeof aclObj === 'object' && Object.keys(aclObj).length > 0) {
 		fetchSubObjectsAndReplace(null, aclObj);
 	}
-	
 	return aclObj;
 }
 
