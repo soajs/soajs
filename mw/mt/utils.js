@@ -169,16 +169,26 @@ function filterOutRegExpObj(originalAclObj) {
 		}
 	}
 	
+	console.log("++++ ------* INPUT ");
+	console.log(JSON.stringify(aclObj,null,2));
+	console.log("++++ ------*");
 	if (aclObj && typeof aclObj === 'object' && Object.keys(aclObj).length > 0) {
 		fetchSubObjectsAndReplace(null, aclObj);
 	}
+	console.log("++++ ------* OUTPUT ");
+	console.log(JSON.stringify(aclObj,null,2));
+	console.log("++++ ------*");
 	return aclObj;
 }
 
 var utils = {
 	"aclCheck": function(obj, cb){
+		console.log("------* 2 ACL check");
+		console.log(JSON.stringify(obj,null,2));
+		console.log("------* 2 ");
 		var aclObj = null;
 		if (obj.req.soajs.uracDriver) {
+			console.log("------* p1 ");
 			var uracACL = obj.req.soajs.uracDriver.getAcl();
 			if (uracACL)
 				aclObj = uracACL[obj.req.soajs.controller.serviceParams.name];
@@ -190,9 +200,11 @@ var utils = {
 			aclObj = obj.packObj.acl[obj.req.soajs.controller.serviceParams.name];
 		
 		if (aclObj && (aclObj.apis || aclObj.apisRegExp)){
+			console.log("------* p12 ");
 			obj.finalAcl = filterOutRegExpObj(aclObj);
 		}
 		else {
+			console.log("------* p2 ");
 			//ACL with method support restful
 			var method = obj.req.method.toLocaleLowerCase();
 			if (aclObj && aclObj[method] && typeof aclObj[method] === "object") {
@@ -208,9 +220,11 @@ var utils = {
 				else if (aclObj.hasOwnProperty('apisPermission'))
 					newAclObj.apisPermission = aclObj.apisPermission;
 				
+				console.log("------* p21 ");
 				obj.finalAcl = filterOutRegExpObj(newAclObj);
 			}
 			else{
+				console.log("------* p22 ");
 				obj.finalAcl = filterOutRegExpObj(aclObj);
 			}
 		}
@@ -225,6 +239,9 @@ var utils = {
 	 * @returns {Callback}
 	 */
 	"serviceCheck": function (obj, cb) {
+		console.log("------* 1 serviceCheck");
+		console.log(JSON.stringify(obj,null,2));
+		console.log("------* 1");
 		var system = _system.getAcl(obj);
 		if (system)
 			return cb(null, obj);
