@@ -313,6 +313,10 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
 		}
 		
 		var serviceName = requestedRoute.split("/")[1];
+		if(!req.soajs.registry.services[serviceName]){
+			return callback(core.error.getError(130));
+		}
+		
 		var proxyInfo = {
 			"registry": req.soajs.registry.services[serviceName],
 			"name": serviceName,

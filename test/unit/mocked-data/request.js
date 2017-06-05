@@ -1,4 +1,5 @@
 var request1 = {
+	url:"http://127.0.0.1:4000/example/any",
 	soajs: {
 		log: {
 			domain: null,

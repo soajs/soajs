@@ -90,6 +90,7 @@ var _api = {
  */
 function filterOutRegExpObj(originalAclObj) {
 	var aclObj = coreLibs.utils.cloneObj(originalAclObj);
+	
 	/**
 	 * changes all tokens found in url with a regular expression
 	 * @param {String} route
@@ -99,8 +100,8 @@ function filterOutRegExpObj(originalAclObj) {
 		var pathToRegexp = require('path-to-regexp');
 		var keys = [];
 		var out = pathToRegexp(route, keys, {sensitive: true});
-		if(out && out.keys && out.keys.length > 0){
-			out =  new RegExp(out.keys[0].pattern);
+		if (out && out.keys && out.keys.length > 0) {
+			out = new RegExp(out.keys[0].pattern);
 		}
 		return out;
 	}
@@ -172,27 +173,40 @@ function filterOutRegExpObj(originalAclObj) {
 	if (aclObj && typeof aclObj === 'object' && Object.keys(aclObj).length > 0) {
 		fetchSubObjectsAndReplace(null, aclObj);
 	}
+	
 	return aclObj;
 }
 
 var utils = {
-	"aclCheck": function(obj, cb){
-		var aclObj = null;
+	"aclUrackCheck": function(obj, cb){
 		if (obj.req.soajs.uracDriver) {
 			var uracACL = obj.req.soajs.uracDriver.getAcl();
-			if (uracACL)
-				aclObj = uracACL[obj.req.soajs.controller.serviceParams.name];
+			if (uracACL){
+				obj.req.soajs.log.debug("Found ACL at URAC level, overriding default ACL configuration.");
+				obj.finalAcl = uracACL[obj.req.soajs.controller.serviceParams.name];
+			}
 		}
+		return cb(null, obj);
+	},
+	
+	"aclCheck": function (obj, cb) {
+		var aclObj = null;
 		if (!aclObj && obj.keyObj.application.acl) {
+			obj.req.soajs.log.debug("Found ACL at Tenant Application level, overriding default ACL configuration.");
 			aclObj = obj.keyObj.application.acl[obj.req.soajs.controller.serviceParams.name];
 		}
-		if (!aclObj && obj.packObj.acl)
+		if (!aclObj && obj.packObj.acl){
+			obj.req.soajs.log.debug("Found Default ACL at Package level, setting default ACL configuration.");
 			aclObj = obj.packObj.acl[obj.req.soajs.controller.serviceParams.name];
+		}
 		
-		if (aclObj && (aclObj.apis || aclObj.apisRegExp)){
+		if (aclObj && (aclObj.apis || aclObj.apisRegExp)) {
+			obj.req.soajs.log.debug("Detected old schema ACL Configuration ...");
 			obj.finalAcl = filterOutRegExpObj(aclObj);
 		}
 		else {
+			obj.req.soajs.log.debug("Detected new schema ACL Configuration using http methods ...");
+			
 			//ACL with method support restful
 			var method = obj.req.method.toLocaleLowerCase();
 			if (aclObj && aclObj[method] && typeof aclObj[method] === "object") {
@@ -210,10 +224,11 @@ var utils = {
 				
 				obj.finalAcl = filterOutRegExpObj(newAclObj);
 			}
-			else{
+			else {
 				obj.finalAcl = filterOutRegExpObj(aclObj);
 			}
 		}
+		
 		return cb(null, obj);
 	},
 	
