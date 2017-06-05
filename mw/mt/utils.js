@@ -186,6 +186,11 @@ var utils = {
 	"aclCheck": function (obj, cb) {
 		console.log("------* ACL check");
 		console.log(Object.keys(obj, null, 2));
+		
+		if(obj.req.soajs && obj.req.soajs.controller && obj.req.soajs.controller.serviceParams){
+			console.log(obj.req.soajs.controller.serviceParams);
+		}
+		
 		console.log("------* ");
 		
 		var aclObj = null;
