@@ -170,58 +170,43 @@ function filterOutRegExpObj(originalAclObj) {
 		}
 	}
 	
-	console.log("++++ ------* INPUT ");
-	console.log(JSON.stringify(aclObj, null, 2));
-	console.log("++++ ------*");
 	if (aclObj && typeof aclObj === 'object' && Object.keys(aclObj).length > 0) {
 		fetchSubObjectsAndReplace(null, aclObj);
 	}
-	console.log("++++ ------* OUTPUT ");
-	console.log(JSON.stringify(aclObj, null, 2));
-	console.log("++++ ------*");
+	
 	return aclObj;
 }
 
 var utils = {
-	"aclCheck": function (obj, cb) {
-		console.log("------* ACL check");
-		console.log(Object.keys(obj, null, 2));
-		
-		if(obj.req.soajs && obj.req.soajs.controller && obj.req.soajs.controller.serviceParams){
-			console.log(obj.req.soajs.controller.serviceParams);
-		}
-		
-		console.log("------* ");
-		
-		var aclObj = null;
+	"aclUrackCheck": function(obj, cb){
 		if (obj.req.soajs.uracDriver) {
-			console.log("------* p1 ");
 			var uracACL = obj.req.soajs.uracDriver.getAcl();
-			console.log(uracACL);
-			if (uracACL)
-				aclObj = uracACL[obj.req.soajs.controller.serviceParams.name];
-			
-			console.log(aclObj);
-			console.log("------* p1 ");
+			if (uracACL){
+				obj.req.soajs.log.debug("Found ACL at URAC level, overriding default ACL configuration.");
+				obj.finalAcl = uracACL[obj.req.soajs.controller.serviceParams.name];
+			}
 		}
+		return cb(null, obj);
+	},
+	
+	"aclCheck": function (obj, cb) {
+		var aclObj = null;
 		if (!aclObj && obj.keyObj.application.acl) {
-			console.log("------* p3 ");
+			obj.req.soajs.log.debug("Found ACL at Tenant Application level, overriding default ACL configuration.");
 			aclObj = obj.keyObj.application.acl[obj.req.soajs.controller.serviceParams.name];
-			console.log(aclObj);
-			console.log("------* p3 ");
 		}
 		if (!aclObj && obj.packObj.acl){
-			console.log("------* p4 ");
+			obj.req.soajs.log.debug("Found Default ACL at Package level, setting default ACL configuration.");
 			aclObj = obj.packObj.acl[obj.req.soajs.controller.serviceParams.name];
-			console.log(aclObj);
-			console.log("------* p4 ");
 		}
+		
 		if (aclObj && (aclObj.apis || aclObj.apisRegExp)) {
-			console.log("------* p5 ");
+			obj.req.soajs.log.debug("Detected old schema ACL Configuration ...");
 			obj.finalAcl = filterOutRegExpObj(aclObj);
 		}
 		else {
-			console.log("------* p2 ");
+			obj.req.soajs.log.debug("Detected new schema ACL Configuration using http methods ...");
+			
 			//ACL with method support restful
 			var method = obj.req.method.toLocaleLowerCase();
 			if (aclObj && aclObj[method] && typeof aclObj[method] === "object") {
@@ -237,16 +222,13 @@ var utils = {
 				else if (aclObj.hasOwnProperty('apisPermission'))
 					newAclObj.apisPermission = aclObj.apisPermission;
 				
-				console.log("------* p21 ");
 				obj.finalAcl = filterOutRegExpObj(newAclObj);
 			}
 			else {
-				console.log("------* p22 ");
 				obj.finalAcl = filterOutRegExpObj(aclObj);
 			}
 		}
-		console.log(JSON.stringify(obj.finalAcl, null , 2));
-		console.log("------***** ");
+		
 		return cb(null, obj);
 	},
 	
@@ -259,9 +241,6 @@ var utils = {
 	 */
 	"serviceCheck": function (obj, cb) {
 		var system = _system.getAcl(obj);
-		console.log("------* 1 serviceCheck");
-		console.log(system);
-		console.log("------* 1");
 		if (system)
 			return cb(null, obj);
 		else

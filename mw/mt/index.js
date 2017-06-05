@@ -4,6 +4,7 @@ var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
 var provision = coreModules.provision;
 
+var url = require('url');
 var async = require("async");
 
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
@@ -36,6 +37,11 @@ module.exports = function (configuration) {
 	        return next(133);
         }
         
+        //if there is a proxy no need to do any of the below, return next
+	    var parsedUrl = url.parse(req.url, true);
+	    var proxyInfo = parsedUrl.pathname.split('/');
+	    var proxy = (proxyInfo[1] === 'proxy' && proxyInfo[2] === 'redirect');
+	    
 	    var oauth = true;
 	    if(Object.hasOwnProperty.call(serviceInfo, 'oauth')){
 		    oauth = serviceInfo.oauth;
@@ -77,7 +83,12 @@ module.exports = function (configuration) {
                                 req.soajs.tenant.application.package_acl = packObj.acl;
                                 req.soajs.tenant.application.package_acl_all_env = packObj.acl_all_env;
                                 req.soajs.servicesConfig = keyObj.config;
-
+	
+	                            if(proxy){
+		                            req.soajs.log.debug("Detected proxy request, bypassing MT ACL checks...");
+		                            return next();
+	                            }
+	                            
                                 var serviceCheckArray = [function (cb) {
                                     cb(null, {
                                         "app": app,
@@ -91,9 +102,12 @@ module.exports = function (configuration) {
 
                                 serviceCheckArray.push(utils.securityGeoCheck);
                                 serviceCheckArray.push(utils.securityDeviceCheck);
+                                
                                 serviceCheckArray.push(utils.aclCheck);
                                 serviceCheckArray.push(utils.oauthCheck);
                                 serviceCheckArray.push(utils.uracCheck);
+	                            serviceCheckArray.push(utils.aclUrackCheck);
+	                            
                                 serviceCheckArray.push(utils.serviceCheck);
                                 serviceCheckArray.push(utils.apiCheck);
 

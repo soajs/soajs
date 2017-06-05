@@ -71,10 +71,6 @@ module.exports = function () {
 			
 			parameters.parsedUrl = parsedUrl;
 			req.soajs.controller.serviceParams = parameters;
-			console.log("=====()()()()()()(");
-			console.log(JSON.stringify(parameters));
-			console.log("=====()()()()()()(");
-			
 			
 			var d = domain.create();
 			d.add(req);
@@ -308,8 +304,6 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
 	if(proxyInfo){
 		var requestedRoute;
 		//check if requested route is provided as query param
-		console.log("======*");
-		console.log(JSON.stringify(proxyInfo,null,2));
 		if(proxyInfo.query && proxyInfo.query.proxyRoute){
 			requestedRoute = decodeURIComponent(proxyInfo.query.proxyRoute);
 		}
@@ -318,18 +312,7 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
 			requestedRoute = proxyInfo.pathname.replace(/^\/proxy/, '');
 		}
 		
-		console.log("======* requested route");
-		console.log(requestedRoute);
-		console.log("======*");
-		
 		var serviceName = requestedRoute.split("/")[1];
-		
-		console.log("======* service name");
-		console.log(serviceName);
-		console.log("======*");
-		console.log(JSON.stringify(req.soajs.registry.services,null,2));
-		console.log("======*");
-		
 		if(!req.soajs.registry.services[serviceName]){
 			return callback(core.error.getError(130));
 		}
