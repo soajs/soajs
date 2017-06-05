@@ -90,6 +90,7 @@ var _api = {
  */
 function filterOutRegExpObj(originalAclObj) {
 	var aclObj = coreLibs.utils.cloneObj(originalAclObj);
+	
 	/**
 	 * changes all tokens found in url with a regular expression
 	 * @param {String} route
@@ -99,8 +100,8 @@ function filterOutRegExpObj(originalAclObj) {
 		var pathToRegexp = require('path-to-regexp');
 		var keys = [];
 		var out = pathToRegexp(route, keys, {sensitive: true});
-		if(out && out.keys && out.keys.length > 0){
-			out =  new RegExp(out.keys[0].pattern);
+		if (out && out.keys && out.keys.length > 0) {
+			out = new RegExp(out.keys[0].pattern);
 		}
 		return out;
 	}
@@ -170,37 +171,48 @@ function filterOutRegExpObj(originalAclObj) {
 	}
 	
 	console.log("++++ ------* INPUT ");
-	console.log(JSON.stringify(aclObj,null,2));
+	console.log(JSON.stringify(aclObj, null, 2));
 	console.log("++++ ------*");
 	if (aclObj && typeof aclObj === 'object' && Object.keys(aclObj).length > 0) {
 		fetchSubObjectsAndReplace(null, aclObj);
 	}
 	console.log("++++ ------* OUTPUT ");
-	console.log(JSON.stringify(aclObj,null,2));
+	console.log(JSON.stringify(aclObj, null, 2));
 	console.log("++++ ------*");
 	return aclObj;
 }
 
 var utils = {
-	"aclCheck": function(obj, cb){
-		console.log("------* 2 ACL check");
-		console.log(JSON.stringify(obj,null,2));
-		console.log("------* 2 ");
+	"aclCheck": function (obj, cb) {
+		console.log("------* ACL check");
+		console.log(Object.keys(obj, null, 2));
+		console.log("------* ");
+		
 		var aclObj = null;
 		if (obj.req.soajs.uracDriver) {
 			console.log("------* p1 ");
 			var uracACL = obj.req.soajs.uracDriver.getAcl();
+			console.log(uracACL);
 			if (uracACL)
 				aclObj = uracACL[obj.req.soajs.controller.serviceParams.name];
+			
+			console.log(aclObj);
+			console.log("------* p1 ");
 		}
 		if (!aclObj && obj.keyObj.application.acl) {
+			console.log("------* p3 ");
 			aclObj = obj.keyObj.application.acl[obj.req.soajs.controller.serviceParams.name];
+			console.log(aclObj);
+			console.log("------* p3 ");
 		}
-		if (!aclObj && obj.packObj.acl)
+		if (!aclObj && obj.packObj.acl){
+			console.log("------* p4 ");
 			aclObj = obj.packObj.acl[obj.req.soajs.controller.serviceParams.name];
-		
-		if (aclObj && (aclObj.apis || aclObj.apisRegExp)){
-			console.log("------* p12 ");
+			console.log(aclObj);
+			console.log("------* p4 ");
+		}
+		if (aclObj && (aclObj.apis || aclObj.apisRegExp)) {
+			console.log("------* p5 ");
 			obj.finalAcl = filterOutRegExpObj(aclObj);
 		}
 		else {
@@ -223,11 +235,13 @@ var utils = {
 				console.log("------* p21 ");
 				obj.finalAcl = filterOutRegExpObj(newAclObj);
 			}
-			else{
+			else {
 				console.log("------* p22 ");
 				obj.finalAcl = filterOutRegExpObj(aclObj);
 			}
 		}
+		console.log(JSON.stringify(obj.finalAcl, null , 2));
+		console.log("------***** ");
 		return cb(null, obj);
 	},
 	
@@ -239,10 +253,10 @@ var utils = {
 	 * @returns {Callback}
 	 */
 	"serviceCheck": function (obj, cb) {
-		console.log("------* 1 serviceCheck");
-		console.log(JSON.stringify(obj,null,2));
-		console.log("------* 1");
 		var system = _system.getAcl(obj);
+		console.log("------* 1 serviceCheck");
+		console.log(system);
+		console.log("------* 1");
 		if (system)
 			return cb(null, obj);
 		else
