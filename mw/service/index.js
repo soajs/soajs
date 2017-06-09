@@ -93,7 +93,7 @@ module.exports = function (configuration) {
 			'tenant': {
 				'id': obj.req.soajs.tenant.id,
 				'key': obj.req.soajs.tenant.key.iKey,
-				'extKey': obj.req.soajs.tenant.key.extKey
+				'extKey': obj.req.soajs.tenant.key.eKey
 			},
 			'product': {
 				'product': obj.req.soajs.tenant.application.product,
