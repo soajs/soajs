@@ -1,4 +1,6 @@
 'use strict';
+var coreModules = require ("soajs.core.modules");
+var core = coreModules.core;
 
 var MultiTenantSession = require("../../classes/MultiTenantSession");
 var async = require("async");
@@ -93,7 +95,7 @@ module.exports = function (configuration) {
 			'tenant': {
 				'id': obj.req.soajs.tenant.id,
 				'key': obj.req.soajs.tenant.key.iKey,
-				'extKey': obj.req.soajs.tenant.key.extKey
+				'extKey': obj.req.soajs.tenant.key.eKey
 			},
 			'product': {
 				'product': obj.req.soajs.tenant.application.product,
@@ -109,7 +111,23 @@ module.exports = function (configuration) {
 		obj.req.soajs.session = mtSession;
 		return cb(null, obj);
 	}
-
+	
+	/**
+	 *
+	 * @param obj
+	 * @param cb
+	 */
+	function persistSession(obj, cb) {
+		obj.req.sessionStore.set(obj.req.sessionID, obj.req.session, function (err, data) {
+			if (err) {
+				obj.req.soajs.log.error(err);
+				return cb(163);
+			}
+			core.security.authorization.set(obj.res, obj.req.sessionID);
+			return cb(null, obj);
+		});
+	}
+	
     /**
 	 *
      * @param obj
@@ -162,8 +180,11 @@ module.exports = function (configuration) {
                 });
             }];
 
-            if (param.session)
-                serviceCheckArray.push(sessionCheck);
+            if (param.session){
+	            serviceCheckArray.push(sessionCheck);
+	            serviceCheckArray.push(persistSession);
+            }
+			
             if(param.uracDriver && req.soajs.urac)
                 serviceCheckArray.push(uracCheck);
 

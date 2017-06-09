@@ -135,6 +135,30 @@ service.prototype.init = function (callback) {
     if (!autoRegHost && !process.env.SOAJS_DEPLOY_HA) {
         soajs.param.serviceIp = '127.0.0.1';
     }
+    var loadVersion = function () {
+        var rootPath = process.cwd();
+        var version = null;
+        if (fs.existsSync(rootPath + "/package.json")) {
+            var packageJson = require(rootPath + "/package.json");
+            version = packageJson.version;
+        }
+        return version;
+    }
+    var packageVersion = loadVersion();
+    _self.maintenanceResponse = function (req, route) {
+        var response = {
+            'result': false,
+            'ts': Date.now(),
+            'service': {
+                'service': _self.app.soajs.param.serviceName.toUpperCase(),
+                'type': 'rest',
+                'route': route || req.path
+            }
+        };
+        if (packageVersion)
+            response.service.version = packageVersion;
+        return response;
+    };
     if (!soajs.param.serviceIp && !process.env.SOAJS_DEPLOY_HA) {
         core.getHostIp(function (getHostIpResponse) {
             fetchedHostIp = getHostIpResponse;
@@ -429,24 +453,9 @@ service.prototype.start = function (cb) {
             }
             return version;
         }
-        var packageVersion = loadVersion();
         var maintenancePort = _self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
-        var maintenanceResponse = function (req, route) {
-            var response = {
-                'result': false,
-                'ts': Date.now(),
-                'service': {
-                    'service': _self.app.soajs.param.serviceName.toUpperCase(),
-                    'type': 'rest',
-                    'route': route || req.path
-                }
-            };
-            if (packageVersion)
-                response.service.version = packageVersion;
-            return response;
-        };
         _self.appMaintenance.get("/heartbeat", function (req, res) {
-            var response = maintenanceResponse(req);
+            var response = _self.maintenanceResponse(req);
             response['result'] = true;
             res.jsonp(response);
         });
@@ -464,7 +473,7 @@ service.prototype.start = function (cb) {
                 if (err) {
                     _self.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
                 }
-                var response = maintenanceResponse(req);
+                var response = _self.maintenanceResponse(req);
                 response['result'] = true;
                 response['data'] = reg;
                 res.jsonp(response);
@@ -472,7 +481,7 @@ service.prototype.start = function (cb) {
             });
         });
         _self.appMaintenance.get("/resourceInfo", function (req, res) {
-            var response = maintenanceResponse(req);
+            var response = _self.maintenanceResponse(req);
             var data = {};
             data['hostname'] = os.hostname();
             data['uptime'] = os.uptime();
@@ -485,7 +494,7 @@ service.prototype.start = function (cb) {
             res.jsonp(response);
         });
         _self.appMaintenance.all('*', function (req, res) {
-            var response = maintenanceResponse(req, "heartbeat");
+            var response = _self.maintenanceResponse(req, "heartbeat");
             response['result'] = true;
             res.jsonp(response);
         });
