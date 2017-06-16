@@ -29,7 +29,7 @@ module.exports = function (configuration) {
         if (!input) {
             return null;
         }
-
+		
 		var output = {};
 		
 		if (input.tenant) {
@@ -80,6 +80,27 @@ module.exports = function (configuration) {
 			output.param = input.param || {};
 		}
 
+		if(input.awareness){
+			if(!req.soajs.awareness){
+				req.soajs.awareness = {
+					getHost : function(){
+						var service;
+						var cb = arguments[arguments.length -1];
+						if(arguments.length > 1){
+							service = arguments[0];
+						}
+						var host = input.awareness.host + ":" + input.awareness.port + "/";
+						
+						if(service && service.toLowerCase() !== 'controller'){
+							host += service;
+						}
+						
+						return cb(host);
+					}
+				};
+			}
+		}
+		
 		return output;
 	}
 	
