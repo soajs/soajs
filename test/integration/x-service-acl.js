@@ -232,6 +232,7 @@ var lib = {
 			"oauth": true,
 			"roaming": true,
 			"swagger": true,
+			"awareness":false,
 			"serviceVersion": 1,
 			"requestTimeout": 2,
 			"requestTimeoutRenewal": 2,
@@ -257,10 +258,14 @@ var lib = {
 		holder.service.init(function() {
 
 			holder.service.get("/info", function(req, res) {
-				holder.service.registry.loadByEnv({
-					"envCode": process.env.SOAJS_ENV
-				}, function (err, reg) {
-					return res.json(req.soajs.buildResponse(null, {"reg": reg}));
+				req.soajs.awareness.getHost(function(host){
+					
+					console.log(host);
+					holder.service.registry.loadByEnv({
+						"envCode": process.env.SOAJS_ENV
+					}, function (err, reg) {
+						return res.json(req.soajs.buildResponse(null, {"reg": reg}));
+					});
 				});
 			});
 
@@ -500,6 +505,40 @@ describe("testing multi tenancy", function() {
 	it("call info api another user", function(done){
 		requester('get', {
 			uri: 'http://localhost:4000/example03/info',
+			headers: {
+				key: testTenant.applications[3].keys[0].extKeys[0].extKey
+			},
+			qs:{
+				access_token: auth
+			}
+		}, function(err, body) {
+			assert.ifError(err);
+			assert.ok(body);
+			assert.ok(body.data);
+			done();
+		});
+	});
+	
+	it("call info api another user with versioning using v annotation", function(done){
+		requester('get', {
+			uri: 'http://localhost:4000/example03/v1/info',
+			headers: {
+				key: testTenant.applications[3].keys[0].extKeys[0].extKey
+			},
+			qs:{
+				access_token: auth
+			}
+		}, function(err, body) {
+			assert.ifError(err);
+			assert.ok(body);
+			assert.ok(body.data);
+			done();
+		});
+	});
+	
+	it("call info api another user with versioning using : annotation", function(done){
+		requester('get', {
+			uri: 'http://localhost:4000/example03:1/info',
 			headers: {
 				key: testTenant.applications[3].keys[0].extKeys[0].extKey
 			},
