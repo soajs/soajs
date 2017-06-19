@@ -70,7 +70,10 @@ var request1 = {
 		controllerResponse: function () {
 			return 1;
 		},
-		awareness: {getHost: {}},
+		awareness: {getHost: function(input, cb){
+			var controllerHostInThisEnvironment = {};
+			cb(controllerHostInThisEnvironment);
+		}},
 		awarenessEnv: {getHost: {}},
 		controller: {
 			serviceParams: {
