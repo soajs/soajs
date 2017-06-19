@@ -36,14 +36,30 @@ module.exports = function () {
 		var service_nv = serviceInfo[1];
 		var service_n = service_nv;
 		var service_v = null;
-		var index = service_nv.indexOf(":");
-		if (index !== -1) {
-			service_v = parseInt(service_nv.substr(index + 1));
-			if (isNaN(service_v)) {
-				service_v = null;
-				req.soajs.log.warn('Service version must be integer: [' + service_nv + ']');
+		
+		//check if there is /v1 in the url
+		var matches = req.url.match(/\/v[0-9]+/);
+		if(matches && matches.length > 0){
+			var hit = matches[0].replace("/", '');
+			if(serviceInfo[2] === hit && serviceInfo.length > 3){
+				service_v = parseInt(hit.replace("v", ''));
+				serviceInfo.splice(2, 1);
+				req.url = req.url.replace(matches[0], "");
+				parsedUrl = url.parse(req.url, true);
 			}
-			service_n = service_nv.substr(0, index);
+		}
+		
+		//check if there is service:1 in the url
+		if(!service_v){
+			var index = service_nv.indexOf(":");
+			if (index !== -1) {
+				service_v = parseInt(service_nv.substr(index + 1));
+				if (isNaN(service_v)) {
+					service_v = null;
+					req.soajs.log.warn('Service version must be integer: [' + service_nv + ']');
+				}
+				service_n = service_nv.substr(0, index);
+			}
 		}
 		
 		//check if proxy/redirect
