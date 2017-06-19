@@ -259,12 +259,17 @@ var lib = {
 
 			holder.service.get("/info", function(req, res) {
 				req.soajs.awareness.getHost(function(host){
-					
-					console.log(host);
-					holder.service.registry.loadByEnv({
-						"envCode": process.env.SOAJS_ENV
-					}, function (err, reg) {
-						return res.json(req.soajs.buildResponse(null, {"reg": reg}));
+					req.soajs.awareness.getHost('example03', function(host){
+						req.soajs.awareness.getHost('example03', 1, function(host){
+							req.soajs.awareness.getHost('example03', 1, process.env.SOAJS_ENV.toLowerCase(), function(host){
+								
+								holder.service.registry.loadByEnv({
+									"envCode": process.env.SOAJS_ENV
+								}, function (err, reg) {
+									return res.json(req.soajs.buildResponse(null, {"reg": reg}));
+								});
+							});
+						});
 					});
 				});
 			});

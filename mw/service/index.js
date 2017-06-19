@@ -84,15 +84,37 @@ module.exports = function (configuration) {
 			if(!req.soajs.awareness){
 				req.soajs.awareness = {
 					getHost : function(){
-						var service;
-						var cb = arguments[arguments.length -1];
-						if(arguments.length > 1){
-							service = arguments[0];
-						}
-						var host = input.awareness.host + ":" + input.awareness.port + "/";
+						var serviceName, version, env, cb;
+						cb = arguments[arguments.length -1];
 						
-						if(service && service.toLowerCase() !== 'controller'){
-							host += service;
+						switch(arguments.length){
+							//controller, cb
+							case 2:
+								serviceName = arguments[0];
+								break;
+							
+							//controller, 1, cb
+							case 3:
+								serviceName = arguments[0];
+								version = arguments[1];
+								break;
+							
+							//controller, 1, dash, cb [dash is ignored]
+							case 4:
+								serviceName = arguments[0];
+								version = arguments[1];
+								break;
+						}
+						
+						var host = input.awareness.host;
+						
+						if(serviceName && serviceName.toLowerCase() !== 'controller'){
+							host += ":" + input.awareness.port + "/";
+							host += serviceName;
+							
+							if(version && !isNaN(parseInt(version))){
+								host += "v" + version + "/"
+							}
 						}
 						
 						return cb(host);
