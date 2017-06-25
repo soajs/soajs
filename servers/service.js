@@ -206,8 +206,8 @@ service.prototype.init = function (callback) {
 
             //turn on swagger path
             if (fs.existsSync('./' + soajs.param.swaggerFilename)) {
-                _self.app.use('/' + soajs.param.swaggerFilename, express.static('./' + soajs.param.swaggerFilename));
-                _self.log.info("Swagger route [/" + soajs.param.swaggerFilename + "] is ON.");
+                _self.app.use('/swagger', express.static('./' + soajs.param.swaggerFilename));
+                _self.log.info("Swagger route [/swagger] is ON.");
             }
 
             if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true")
@@ -420,6 +420,11 @@ service.prototype.start = function (cb) {
                         _self.log.info("Initiating service auto register for awareness ...");
                         core.registry.autoRegisterService({
                             "name": _self.app.soajs.param.serviceName,
+                            "oauth": _self.app.soajs.param.oauth,
+                            "urac": _self.app.soajs.param.urac,
+                            "urac_Profile": _self.app.soajs.param.urac_Profile,
+                            "urac_ACL": _self.app.soajs.param.urac_ACL,
+                            "provision_ACL": _self.app.soajs.param.provision_ACL,
                             "serviceIp": _self.app.soajs.param.serviceIp,
                             "serviceVersion": _self.app.soajs.param.serviceVersion,
                             "serviceHATask": _self.app.soajs.param.serviceHATask,

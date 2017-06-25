@@ -192,6 +192,10 @@ controller.prototype.init = function (callback) {
                                 };
                                 if (regOptions.type === "service") {
                                     regOptions["oauth"] = (parsedUrl.query.oauth === "false" ? false : true);
+                                    regOptions["urac"] = (parsedUrl.query.urac === "false" ? false : true);
+                                    regOptions["urac_Profile"] = (parsedUrl.query.urac_Profile === "false" ? false : true);
+                                    regOptions["urac_ACL"] = (parsedUrl.query.urac_ACL === "false" ? false : true);
+                                    regOptions["provision_ACL"] = (parsedUrl.query.provision_ACL === "false" ? false : true);
                                     regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
                                     regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
                                     regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);

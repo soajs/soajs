@@ -4,7 +4,6 @@ var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
 var provision = coreModules.provision;
 
-var url = require('url');
 var async = require("async");
 
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
@@ -38,8 +37,7 @@ module.exports = function (configuration) {
         }
         
         //if there is a proxy no need to do any of the below, return next
-	    var parsedUrl = url.parse(req.url, true);
-	    var proxyInfo = parsedUrl.pathname.split('/');
+	    var proxyInfo = req.soajs.controller.serviceParams.serviceInfo;
 	    var proxy = (proxyInfo[1] === 'proxy' && proxyInfo[2] === 'redirect');
 	    
 	    var oauth = true;
@@ -66,7 +64,7 @@ module.exports = function (configuration) {
         }
 	    
 	    req.soajs.awareness.getHost('controller', function(controllerHostInThisEnvironment){
-		    if (serviceParam.extKeyRequired) {
+		    if (proxyInfo[2] !== "swagger" && serviceParam.extKeyRequired) {
 			    try {
 				    provision.getExternalKeyData(req.get("key"), req.soajs.registry.serviceConfig.key, function (err, keyObj) {
 					    if (err)

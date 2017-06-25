@@ -86,6 +86,7 @@ module.exports = function () {
 			}
 			
 			parameters.parsedUrl = parsedUrl;
+            parameters.serviceInfo = serviceInfo;
 			req.soajs.controller.serviceParams = parameters;
 			
 			var d = domain.create();
@@ -109,7 +110,7 @@ module.exports = function () {
 					passportLogin = true;
 			}
 			
-			if (parameters.extKeyRequired) {
+			if (serviceInfo[2] !== "swagger" && parameters.extKeyRequired) {
 				var key = req.headers.key || parsedUrl.query.key;
 				if (!key) {
 					return req.soajs.controllerResponse(core.error.getError(132));
