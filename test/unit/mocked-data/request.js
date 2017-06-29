@@ -101,6 +101,7 @@ var request1 = {
 				version: 1,
 				extKeyRequired: true,
 				path: '/permissions/get',
+				serviceInfo: ['dashboard','permissions', 'get'],
 				parsedUrl: [Object]
 			},
 			gotoservice: {}
