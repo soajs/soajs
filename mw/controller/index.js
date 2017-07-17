@@ -110,7 +110,7 @@ module.exports = function () {
 					passportLogin = true;
 			}
 			
-			if (serviceInfo[2] !== "swagger" && parameters.extKeyRequired) {
+			if ( (serviceInfo[2] !== "swagger" || (serviceInfo[2] === "swagger" && serviceInfo[serviceInfo.length-1] === 2)) && parameters.extKeyRequired) {
 				var key = req.headers.key || parsedUrl.query.key;
 				if (!key) {
 					return req.soajs.controllerResponse(core.error.getError(132));
