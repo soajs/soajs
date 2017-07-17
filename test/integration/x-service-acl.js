@@ -232,6 +232,7 @@ var lib = {
 			"oauth": true,
 			"roaming": true,
 			"swagger": true,
+			"swaggerFilename": true,
 			"awareness":false,
 			"serviceVersion": 1,
 			"requestTimeout": 2,
@@ -247,6 +248,12 @@ var lib = {
 				"/info": {
 					"_apiInfo": {
 						"l": "Information",
+						"group": "Urac"
+					}
+				},
+				"/swagger/other":{
+					"_apiInfo": {
+						"l": "api not related to swagger",
 						"group": "Urac"
 					}
 				}
@@ -277,6 +284,10 @@ var lib = {
 			holder.service.get("/info2", function(req, res) {
 				var user = req.soajs.uracDriver.getProfile();
 				return res.json(req.soajs.buildResponse(null, user));
+			});
+			
+			holder.service.get("/swagger/other", function(req, res) {
+				return res.json(req.soajs.buildResponse(null, true));
 			});
 
 			holder.service.start(cb);
@@ -510,6 +521,39 @@ describe("testing multi tenancy", function() {
 	it("call info api another user", function(done){
 		requester('get', {
 			uri: 'http://localhost:4000/example03/info',
+			headers: {
+				key: testTenant.applications[3].keys[0].extKeys[0].extKey
+			},
+			qs:{
+				access_token: auth
+			}
+		}, function(err, body) {
+			assert.ifError(err);
+			assert.ok(body);
+			assert.ok(body.data);
+			done();
+		});
+	});
+	
+	it("call swagger api", function(done){
+		requester('get', {
+			uri: 'http://localhost:4000/example03/swagger',
+			headers: {
+				key: testTenant.applications[3].keys[0].extKeys[0].extKey
+			},
+			qs:{
+				access_token: auth
+			}
+		}, function(err, body) {
+			assert.ifError(err);
+			assert.ok(body);
+			done();
+		});
+	});
+	
+	it("call api that has swagger in its path", function(done){
+		requester('get', {
+			uri: 'http://localhost:4000/example03/swagger/other',
 			headers: {
 				key: testTenant.applications[3].keys[0].extKeys[0].extKey
 			},

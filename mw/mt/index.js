@@ -62,7 +62,7 @@ module.exports = function (configuration) {
             if (serviceInfo[regEnvironment].hasOwnProperty("oauth"))
                 serviceParam.oauth = serviceInfo[regEnvironment].oauth;
         }
-        if (proxyInfo[2] === "swagger")
+        if (proxyInfo[2] === "swagger" && proxyInfo[proxyInfo.length-1] === 2)
             return next();
 
         req.soajs.awareness.getHost('controller', function (controllerHostInThisEnvironment) {
