@@ -52,7 +52,7 @@
     "soajs.core.drivers": "git://github.com/soajs/soajs.core.drivers#feature/bcryptjs",
     "soajs.core.libs": "git://github.com/soajs/soajs.core.libs#feature/bcryptjs",
     "soajs.core.modules": "git://github.com/soajs/soajs.core.modules#feature/bcryptjs",
-    "soajs.urac.driver": "1.0.*",
+    "soajs.urac.driver": "git://github.com/soajs/soajs.urac.driver#feature/bcryptjs",
     "useragent": "2.1.10",
     "validator": "6.2.0"
   }
