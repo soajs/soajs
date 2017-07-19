@@ -19,7 +19,7 @@
     "test": "grunt test"
   },
   "devDependencies": {
-    "bcrypt": "*",
+    "bcryptjs": "*",
     "grunt": "0.4.5",
     "grunt-contrib-jshint": "1.1.0",
     "grunt-jsdoc": "2.1.0",
@@ -31,7 +31,7 @@
     "lodash": "4.17.4",
     "shelljs": "0.7.5",
     "sinon": "*",
-    "soajs.mongodb.data": "1.0.*"
+    "soajs.mongodb.data": "git://github.com/soajs/soajs.mongodb.data#feature/bcryptjs"
   },
   "dependencies": {
     "async": "2.1.4",
@@ -49,10 +49,10 @@
     "oauth2-server": "2.4.1",
     "path-to-regexp": "1.7.0",
     "request": "2.79.0",
-    "soajs.core.drivers": "0.0.*",
-    "soajs.core.libs": "1.0.*",
-    "soajs.core.modules": "1.0.*",
-    "soajs.urac.driver": "1.0.*",
+    "soajs.core.drivers": "git://github.com/soajs/soajs.core.drivers#feature/bcryptjs",
+    "soajs.core.libs": "git://github.com/soajs/soajs.core.libs#feature/bcryptjs",
+    "soajs.core.modules": "git://github.com/soajs/soajs.core.modules#feature/bcryptjs",
+    "soajs.urac.driver": "git://github.com/soajs/soajs.urac.driver#feature/bcryptjs",
     "useragent": "2.1.10",
     "validator": "6.2.0"
   }
