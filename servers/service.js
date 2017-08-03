@@ -296,7 +296,6 @@ service.prototype.init = function (callback) {
                 var session = require('express-session');
                 var MongoStore = coreModules.mongoStore(session);
                 var store = new MongoStore(registry.coreDB.session);
-                _self.log.info(registry.coreDB.session);
                 var sessConf = {};
                 for (var key in soajs.serviceConf._conf.session) {
                     if (Object.hasOwnProperty.call(soajs.serviceConf._conf.session, key)) {
