@@ -30,7 +30,7 @@
     "grunt-coveralls": "1.0.1",
     "lodash": "4.17.4",
     "shelljs": "0.7.5",
-    "sinon": "*",
+    "sinon": "1.17.6",
     "soajs.mongodb.data": "1.0.*"
   },
   "dependencies": {
