@@ -178,25 +178,30 @@ function proxyRequest(req, res) {
 	
 	req.soajs.log.debug("attempting to redirect to: " + requestedRoute + " in " + remoteENV + " Environment.");
 	
-	getOriginalTenantRecord(tenant, function(error, originalTenant){
-		if(error){
-			return req.soajs.controllerResponse(core.error.getError(139)); //todo: make sure we have set the correct error code number
-		}
-		
-		//get extKey for remote environment for this tenant
-		var remoteExtKey = findExtKeyForEnvironment(originalTenant, remoteENV);
-		
-		//no key found
-		if(!remoteExtKey){
-			req.soajs.log.fatal("No remote key found for tenant: " + tenant.code + " in environment: " + remoteENV);
-			return req.soajs.controllerResponse(core.error.getError(137));
-		}
-		else{
-			//proceed with proxying the request
-			proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRoute);
-		}
-		
-	});
+	if(tenant){
+		getOriginalTenantRecord(tenant, function(error, originalTenant){
+			if(error){
+				return req.soajs.controllerResponse(core.error.getError(139)); //todo: make sure we have set the correct error code number
+			}
+			
+			//get extKey for remote environment for this tenant
+			var remoteExtKey = findExtKeyForEnvironment(originalTenant, remoteENV);
+			
+			//no key found
+			if(!remoteExtKey){
+				req.soajs.log.fatal("No remote key found for tenant: " + tenant.code + " in environment: " + remoteENV);
+				return req.soajs.controllerResponse(core.error.getError(137));
+			}
+			else{
+				//proceed with proxying the request
+				proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRoute);
+			}
+			
+		});
+	}
+	else{
+		proxyRequestToRemoteEnv(req, res, remoteENV, null, requestedRoute);
+	}
 }
 
 /**
@@ -276,8 +281,14 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
 					'jar': false,
 					'headers': req.headers
 				};
-				//add remote ext key in headers
-				requestConfig.headers.key = remoteExtKey;
+				
+				if(remoteExtKey){
+					//add remote ext key in headers
+					requestConfig.headers.key = remoteExtKey;
+				}
+				else{
+					delete requestConfig.headers.key;
+				}
 				
 				//add remaining query params
 				if (req.query && Object.keys(req.query).length > 0) {
