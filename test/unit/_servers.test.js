@@ -32,6 +32,8 @@ describe("importing sample data", function () {
 			require("./mw/favicon/index.test.js");
 			
 			require("./mw/controller/index.test.js");
+			
+			require("./mw/service/index.test.js");
 			done();
 		}, 1000);
 	});
