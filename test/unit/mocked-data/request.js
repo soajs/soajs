@@ -1,22 +1,26 @@
 var request1 = {
 	url: "http://127.0.0.1:4000/example/any",
 	soajs: {
-		meta : {
-			tenantDB : function(){
-				var response = { name: 'DBTN_urac',
+		meta: {
+			tenantDB: function () {
+				var response = {
+					name: 'DBTN_urac',
 					prefix: '',
-					servers: [ { host: '127.0.0.1', port: 27017 } ],
+					servers: [{host: '127.0.0.1', port: 27017}],
 					credentials: null,
 					streaming: null,
-					URLParam:
-						{ connectTimeoutMS: 0,
-							socketTimeoutMS: 0,
-							native_parser: true,
-							bufferMaxEntries: 0,
-							autoReconnect: false },
-					extraParam:
-						{ db: { native_parser: true, bufferMaxEntries: 0 },
-							server: { socketOptions: [Object] } } };
+					URLParam: {
+						connectTimeoutMS: 0,
+						socketTimeoutMS: 0,
+						native_parser: true,
+						bufferMaxEntries: 0,
+						autoReconnect: false
+					},
+					extraParam: {
+						db: {native_parser: true, bufferMaxEntries: 0},
+						server: {socketOptions: [Object]}
+					}
+				};
 				return response;
 			}
 		},
@@ -78,7 +82,10 @@ var request1 = {
 				dashboard: [Object],
 				oauth: [Object],
 				testjava: [Object],
-				example06: [Object]
+				example06: [Object],
+				testing : {
+					extKeyRequired: true
+				}
 			},
 			daemons: {
 				catalogdaemon: [Object],
@@ -177,16 +184,17 @@ var request1 = {
 		"cookie": "",
 		"connection": "close"
 	},
-	route : {
-		path : "test/test"
+	route: {
+		path: "test/test"
 	},
-	session : {
-			cookie:
-				{ path: '/',
-					_expires: null,
-					originalMaxAge: null,
-					httpOnly: true,
-					secure: false }
+	session: {
+		cookie: {
+			path: '/',
+			_expires: null,
+			originalMaxAge: null,
+			httpOnly: true,
+			secure: false
+		}
 	}
 };
 

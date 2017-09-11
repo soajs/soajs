@@ -125,7 +125,7 @@ module.exports = function (grunt) {
 		},
 
 		instrument: {
-			files: ['classes/**/*.js', 'servers/*.js', 'mw/**/*.js', 'index.js'],
+			files: ['classes/**/*.js', 'servers/*.js', 'mw/**/*.js', 'utilities/*.js', 'index.js'],
 			//files: ['**/*.js'],
 			options: {
 				lazy: false,
