@@ -4,7 +4,6 @@ node_js: 6
 
 services:
   - mongodb
-  - elasticsearch
 
 env:
   - CXX=g++-4.8
@@ -28,7 +27,6 @@ before_install:
 
 before_script:
   - npm install -g grunt-cli
-  - sleep 10
 
 script:
   - grunt coverage
