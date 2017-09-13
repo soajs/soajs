@@ -11,13 +11,16 @@ var configuration = {
 		}
 	},
 	app: {},
-	param: {bodyParser: false}
+	param: {
+		bodyParser: false
+	}
 };
 
 var configuration2 = {
 	soajs: {
 		param: {
-			bodyParser: false
+			bodyParser: false,
+			serviceName : "testing"
 		},
 		oauthService: {
 			name: 'oauth',
@@ -39,6 +42,9 @@ var configuration2 = {
 		bodyParser: false,
 		session: false,
 		uracDriver: true
+	},
+	controllerResponse : {
+		
 	}
 };
 
@@ -61,9 +67,324 @@ var getExternalKeyDataKeyObj = {
 	"config": {}
 };
 
+var objectWithAclData = {
+	keyObj : {
+		application : {
+			"product": "DSBRD",
+			"package": "DSBRD_OWNER",
+			"appId": "55cc56a3c3aca9179e5048e6",
+			"acl": null,
+			"acl_all_env": null,
+			"package_acl": {
+				"oauth": {
+					"access": false
+				},
+				"kbprofile": {
+					"access": false
+				},
+				"urac": {
+					"access": false,
+					"apisRegExp": [
+						{
+							"regExp": {},
+							"access": true
+						},
+						{
+							"regExp": {},
+							"access": true
+						},
+						{
+							"regExp": {},
+							"access": [
+								"owner"
+							]
+						}
+					]
+				},
+				"dashboard": {
+					"access": false
+				},
+				"shoppingcart": {
+					"access": false,
+					"apisPermission": "restricted",
+					"apis": {
+						"/dashboard/getCarts": {}
+					}
+				},
+				"order": {
+					"access": false,
+					"apis": {}
+				},
+				"catalog": {
+					"apisRegExp": [
+						{
+							"regExp": {}
+						}
+					],
+					"get": {},
+					"post": {},
+					"put": {}
+				},
+				"knowledgebase": {
+					"access": false,
+					"apisPermission": "restricted",
+					"apisRegExp": [
+						{
+							"regExp": {},
+							"access": false
+						},
+						{
+							"regExp": {},
+							"access": false
+						},
+						{
+							"regExp": {},
+							"access": false
+						},
+						{
+							"regExp": {},
+							"access": false
+						},
+						{
+							"regExp": {},
+							"access": false
+						},
+						{
+							"regExp": {},
+							"access": false
+						}
+					]
+				},
+				"drivers": {
+					"access": false,
+					"apisPermission": "restricted",
+					"apis": {
+						"/loadDrivers": {},
+						"/executeDriver": {},
+						"/getDriverInfo": {}
+					}
+				}
+			},
+			"package_acl_all_env": {
+				"oauth": {
+					"access": false
+				},
+				"kbprofile": {
+					"access": false
+				},
+				"urac": {
+					"access": false,
+					"apis": {
+						"/account/getUser": {
+							"access": true
+						},
+						"/account/changePassword": {
+							"access": true
+						},
+						"/account/editProfile": {
+							"access": true
+						},
+						"/account/changeEmail": {
+							"access": true
+						},
+						"/login": {},
+						"/passport/login/:strategy": {},
+						"/passport/validate/:strategy": {},
+						"/forgotPassword": {},
+						"/changeEmail/validate": {},
+						"/logout": {},
+						"/resetPassword": {}
+					}
+				},
+				"dashboard": {
+					"access": false
+				},
+				"shoppingcart": {
+					"access": false,
+					"apisPermission": "restricted",
+					"apis": {
+						"/dashboard/getCarts": {}
+					}
+				},
+				"order": {
+					"access": false,
+					"apis": {}
+				},
+				"catalog": {
+					"apisRegExp": [
+						{
+							"regExp": {}
+						}
+					],
+					"get": {},
+					"post": {},
+					"put": {}
+				},
+				"knowledgebase": {
+					"access": false,
+					"apisPermission": "restricted",
+					"apisRegExp": [
+						{
+							"regExp": {},
+							"access": false
+						},
+						{
+							"regExp": {},
+							"access": false
+						},
+						{
+							"regExp": {},
+							"access": false
+						},
+						{
+							"regExp": {},
+							"access": false
+						},
+						{
+							"regExp": {},
+							"access": false
+						},
+						{
+							"regExp": {},
+							"access": false
+						}
+					]
+				},
+				"drivers": {
+					"access": false,
+					"apisPermission": "restricted",
+					"apis": {
+						"/loadDrivers": {},
+						"/executeDriver": {},
+						"/getDriverInfo": {}
+					}
+				}
+			}
+		}
+	},
+	packObj : {
+		acl : {
+			"oauth": {
+				"access": false
+			},
+			"kbprofile": {
+				"access": false
+			},
+			"urac": {
+				"access": false,
+				"apis": {
+					"/account/getUser": {
+						"access": true
+					},
+					"/account/changePassword": {
+						"access": true
+					},
+					"/account/editProfile": {
+						"access": true
+					},
+					"/account/changeEmail": {
+						"access": true
+					},
+					"/login": {},
+					"/passport/login/:strategy": {},
+					"/passport/validate/:strategy": {},
+					"/forgotPassword": {},
+					"/changeEmail/validate": {},
+					"/logout": {},
+					"/resetPassword": {}
+				}
+			},
+			"dashboard": {
+				"access": false
+			},
+			"shoppingcart": {
+				"access": false,
+				"apisPermission": "restricted",
+				"apis": {
+					"/dashboard/getCarts": {}
+				}
+			},
+			"order": {
+				"access": false,
+				"apis": {}
+			},
+			"catalog": {
+				"apisRegExp": [
+					{
+						"regExp": {}
+					}
+				],
+				"get": {},
+				"post": {},
+				"put": {}
+			},
+			"test": {
+				"access": false,
+				"apisPermission": "restricted",
+				"test": {
+					"access": false,
+					"apisPermission": "restricted",
+					"apisRegExp": [
+						{
+							"regExp": {},
+							"access": false
+						},
+						{
+							"regExp": {},
+							"access": false
+						},
+						{
+							"regExp": {},
+							"access": false
+						},
+						{
+							"regExp": {},
+							"access": false
+						},
+						{
+							"regExp": {},
+							"access": false
+						},
+						{
+							"regExp": {},
+							"access": false
+						}
+					],
+					"apis": {
+						"/loadDrivers": {},
+						"/executeDriver": {},
+						"/getDriverInfo": {}
+					}
+				}
+			},
+			"test2": {
+				"access": false,
+				"apisPermission": "restricted",
+				"test2": {
+					"access": false,
+					"apis": {
+						"/loadDrivers": {},
+						"/executeDriver": {},
+						"/getDriverInfo": {}
+					}
+				}
+			},
+			"drivers": {
+				"access": false,
+				"apisPermission": "restricted",
+				"apis": {
+					"/loadDrivers": {},
+					"/executeDriver": {},
+					"/getDriverInfo": {}
+				}
+			}
+		}
+	}
+}
 
 module.exports = {
-	configuration: configuration,
-	configuration2: configuration2,
-	getExternalKeyDataKeyObj: getExternalKeyDataKeyObj
+	configuration,
+	configuration2,
+	getExternalKeyDataKeyObj,
+	objectWithAclData
 };

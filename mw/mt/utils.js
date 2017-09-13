@@ -308,15 +308,16 @@ var utils = {
 					if (da[fieldName].trim().toUpperCase() !== uaObj[fieldName].trim().toUpperCase()) {
 						return false;
 					}
+				}else{ // object
 					if (da[fieldName].min) {
 						if (da[fieldName].min.trim() > uaObj[fieldName].trim()) {
 							return false;
 						}
 					}
-				}
-				if (da[fieldName].max) {
-					if (da[fieldName].max.trim() < uaObj[fieldName].trim()) {
-						return false;
+					if (da[fieldName].max) {
+						if (da[fieldName].max.trim() < uaObj[fieldName].trim()) {
+							return false;
+						}
 					}
 				}
 			}

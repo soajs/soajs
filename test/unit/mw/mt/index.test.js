@@ -21,7 +21,7 @@ var utilsData = {
 		soajs: {
 			controller: {
 				serviceParams: {
-					name: "ssss"
+					name: "data"
 				}
 			},
 			tenant: {

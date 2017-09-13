@@ -11,6 +11,8 @@ var lib = require("soajs.core.libs");
 
 var express = require("./../classes/express");
 
+var utils = require("./../utilities/utils");
+
 var autoRegHost = process.env.SOAJS_SRV_AUTOREGISTERHOST || true;
 if (autoRegHost && typeof(autoRegHost) !== 'boolean') {
     autoRegHost = (autoRegHost === 'true');
@@ -391,9 +393,9 @@ service.prototype.start = function (cb) {
             res.jsonp(req.soajs.buildResponse(core.error.getError(151)));
         });
 
-        _self.app.use(logErrors);
-        _self.app.use(clientErrorHandler);
-        _self.app.use(errorHandler);
+        _self.app.use(utils.logErrors);
+        _self.app.use(utils.serviceClientErrorHandler);
+        _self.app.use(utils.serviceErrorHandler);
 
         _self.log.info("Starting Service ...");
         _self.app.httpServer = _self.app.listen(_self.app.soajs.serviceConf.info.port, function (err) {
@@ -634,67 +636,5 @@ service.prototype.delete = function () {
     var args = routeInjection(_self, arguments);
     _self.app.delete.apply(_self.app, args);
 };
-
-
-//-------------------------- ERROR Handling MW
-/**
- *
- * @param err
- * @param req
- * @param res
- * @param next
- */
-function logErrors(err, req, res, next) {
-    if (typeof err === "number") {
-        req.soajs.log.error(core.error.generate(err));
-        return next(err);
-    }
-    if (typeof err === "object") {
-        if (err.code && err.message) {
-            req.soajs.log.error(err);
-            return next({"code": err.code, "msg": err.message});
-        }
-        else {
-            req.soajs.log.error(err);
-            req.soajs.log.error(core.error.generate(164));
-        }
-    }
-    else {
-        req.soajs.log.error(err);
-        req.soajs.log.error(core.error.generate(164));
-    }
-
-    return next(core.error.getError(164));
-}
-/**
- *
- * @param err
- * @param req
- * @param res
- * @param next
- */
-function clientErrorHandler(err, req, res, next) {
-    if (req.xhr) {
-        req.soajs.log.error(core.error.generate(150));
-        res.status(500).send(req.soajs.buildResponse(core.error.getError(150)));
-    } else {
-        return next(err);
-    }
-}
-/**
- *
- * @param err
- * @param req
- * @param res
- * @param next
- */
-function errorHandler(err, req, res, next) {
-    res.status(500);
-    if (err.code && err.msg) {
-        res.jsonp(req.soajs.buildResponse(err));
-    } else {
-        res.jsonp(req.soajs.buildResponse(core.error.getError(err)));
-    }
-}
 
 module.exports = service;
