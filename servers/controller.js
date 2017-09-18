@@ -308,6 +308,11 @@ controller.prototype.init = function (callback) {
 	                _self.log.info("SOAJS MT middleware initialization done.");
 	
 	                app.use(function (req, res, next) {
+
+	                    //TODO: regv2, add internal admin routes
+                        // url is already parsed @ req.soajs.controller.serviceParams
+                        // if not admin route jump to below setImmediate
+
 		                setImmediate(function () {
 			                req.soajs.controller.gotoservice(req, res, null);
 		                });
