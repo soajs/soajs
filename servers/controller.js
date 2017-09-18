@@ -306,13 +306,19 @@ controller.prototype.init = function (callback) {
 	                var mt_mw = require("./../mw/mt/index");
 	                app.use(mt_mw({"soajs": _self.soajs, "app": app, "param": _self.soajs.param}));
 	                _self.log.info("SOAJS MT middleware initialization done.");
+
+	                app.use('/_soajsAdmin/getRegistry',function (req, res, next) {
+	                    var reqEnv = req.query.env;
+                        var reqServiceName = req.query.serviceName;
+
+	                    core.registry.loadByEnv({"envCode": reqEnv},function (err, reg){
+                            if (err)
+                                req.soajs.log.error(reqServiceName, err);
+                            return req.soajs.controllerResponse(reg);
+                        });
+                    });
 	
 	                app.use(function (req, res, next) {
-
-	                    //TODO: regv2, add internal admin routes
-                        // url is already parsed @ req.soajs.controller.serviceParams
-                        // if not admin route jump to below setImmediate
-
 		                setImmediate(function () {
 			                req.soajs.controller.gotoservice(req, res, null);
 		                });
