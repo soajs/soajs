@@ -307,6 +307,7 @@ controller.prototype.init = function (callback) {
 	                app.use(mt_mw({"soajs": _self.soajs, "app": app, "param": _self.soajs.param}));
 	                _self.log.info("SOAJS MT middleware initialization done.");
 
+	                //TODO: regv2, turn this on only if env is dashboard and handle error properly
 	                app.use('/_soajsAdmin/getRegistry',function (req, res, next) {
 	                    var reqEnv = req.query.env;
                         var reqServiceName = req.query.serviceName;
