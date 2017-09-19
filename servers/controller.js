@@ -239,6 +239,20 @@ controller.prototype.init = function (callback) {
                                 return res.end(JSON.stringify(response));
                             });
                         }
+                        else if (parsedUrl.pathname === '/getRegistry'){
+                            var reqEnv = parsedUrl.query.env;
+                            var reqServiceName = parsedUrl.query.serviceName;
+                            core.registry.loadByEnv({"envCode": reqEnv, "serviceName": "controller", "donotBbuildSpecificRegistry": true, "donotRegisterHost": true},function (err, reg){
+                                var response = maintenanceResponse(req);
+                                if (err)
+                                    _self.log.error(reqServiceName, err);
+                                else {
+                                    response['result'] = true;
+                                    response['data'] = reg;
+                                }
+                                return res.end(JSON.stringify(response));
+                            });
+                        }
                         else {
                             var heartbeat = function (res) {
                                 res.writeHead(200, {'Content-Type': 'application/json'});
@@ -301,23 +315,10 @@ controller.prototype.init = function (callback) {
 	                _self.soajs.oauthService.authorizationApi = _self.soajs.oauthService.authorizationApi || "/authorization";
 	                _self.soajs.oauth = _self.oauth.authorise();
 	                _self.log.info("oAuth middleware initialization done.");
-	
-	
+
 	                var mt_mw = require("./../mw/mt/index");
 	                app.use(mt_mw({"soajs": _self.soajs, "app": app, "param": _self.soajs.param}));
 	                _self.log.info("SOAJS MT middleware initialization done.");
-
-	                //TODO: regv2, turn this on only if env is dashboard and handle error properly
-	                app.use('/_soajsAdmin/getRegistry',function (req, res, next) {
-	                    var reqEnv = req.query.env;
-                        var reqServiceName = req.query.serviceName;
-
-	                    core.registry.loadByEnv({"envCode": reqEnv},function (err, reg){
-                            if (err)
-                                req.soajs.log.error(reqServiceName, err);
-                            return req.soajs.controllerResponse(reg);
-                        });
-                    });
 	
 	                app.use(function (req, res, next) {
 		                setImmediate(function () {
