@@ -250,6 +250,7 @@ controller.prototype.init = function (callback) {
                                     response['result'] = true;
                                     response['data'] = reg;
                                 }
+                                res.writeHead(200, {'Content-Type': 'application/json'});
                                 return res.end(JSON.stringify(response));
                             });
                         }
