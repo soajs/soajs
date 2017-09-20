@@ -242,7 +242,7 @@ controller.prototype.init = function (callback) {
                         else if (parsedUrl.pathname === '/getRegistry'){
                             var reqEnv = parsedUrl.query.env;
                             var reqServiceName = parsedUrl.query.serviceName;
-                            core.registry.loadByEnv({"envCode": reqEnv, "serviceName": "controller", "donotBbuildSpecificRegistry": true, "donotRegisterHost": true},function (err, reg){
+                            core.registry.loadByEnv({"envCode": reqEnv, "serviceName": "controller", "donotBbuildSpecificRegistry": false, "donotRegisterHost": true},function (err, reg){
                                 var response = maintenanceResponse(req);
                                 if (err)
                                     _self.log.error(reqServiceName, err);
