@@ -31,8 +31,8 @@ var awareness_reloadRegistry = function () {
     }, function (err, reg) {
         if (err)
             param.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
-        param.log.info("Self Awareness reloaded registry. next reload is in [" + registry.serviceConfig.awareness.autoRelaodRegistry + "] milliseconds");
-        setTimeout(awareness_reloadRegistry, registry.serviceConfig.awareness.autoRelaodRegistry);
+        //param.log.info("Self Awareness reloaded registry. next reload is in [" + registry.serviceConfig.awareness.autoRelaodRegistry + "] milliseconds");
+        //setTimeout(awareness_reloadRegistry, registry.serviceConfig.awareness.autoRelaodRegistry);
     });
 };
 var awareness_healthCheck = function () {
@@ -200,8 +200,8 @@ function init(_param) {
 
     if (registry.serviceConfig.awareness.healthCheckInterval)
         awareness_healthCheck();
-    if (registry.serviceConfig.awareness.autoRelaodRegistry)
-        setTimeout(awareness_reloadRegistry, registry.serviceConfig.awareness.autoRelaodRegistry);
+    //if (registry.serviceConfig.awareness.autoRelaodRegistry)
+       // setTimeout(awareness_reloadRegistry, registry.serviceConfig.awareness.autoRelaodRegistry);
 }
 
 module.exports = {
