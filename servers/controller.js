@@ -239,6 +239,21 @@ controller.prototype.init = function (callback) {
                                 return res.end(JSON.stringify(response));
                             });
                         }
+                        else if (parsedUrl.pathname === '/getRegistry'){
+                            var reqEnv = parsedUrl.query.env;
+                            var reqServiceName = parsedUrl.query.serviceName;
+                            core.registry.loadByEnv({"envCode": reqEnv, "serviceName": "controller", "donotBbuildSpecificRegistry": false},function (err, reg){
+                                var response = maintenanceResponse(req);
+                                if (err)
+                                    _self.log.error(reqServiceName, err);
+                                else {
+                                    response['result'] = true;
+                                    response['data'] = reg;
+                                }
+                                res.writeHead(200, {'Content-Type': 'application/json'});
+                                return res.end(JSON.stringify(response));
+                            });
+                        }
                         else {
                             var heartbeat = function (res) {
                                 res.writeHead(200, {'Content-Type': 'application/json'});
@@ -301,8 +316,7 @@ controller.prototype.init = function (callback) {
 	                _self.soajs.oauthService.authorizationApi = _self.soajs.oauthService.authorizationApi || "/authorization";
 	                _self.soajs.oauth = _self.oauth.authorise();
 	                _self.log.info("oAuth middleware initialization done.");
-	
-	
+
 	                var mt_mw = require("./../mw/mt/index");
 	                app.use(mt_mw({"soajs": _self.soajs, "app": app, "param": _self.soajs.param}));
 	                _self.log.info("SOAJS MT middleware initialization done.");
