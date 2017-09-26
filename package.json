@@ -41,7 +41,7 @@
     "cookie-parser": "1.4.3",
     "cron": "1.2.1",
     "express": "4.15.5",
-    "express-session": "1.15.5",
+    "express-session": "1.15.6",
     "http-proxy": "1.16.2",
     "merge": "1.2.0",
     "method-override": "2.3.9",
