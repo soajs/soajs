@@ -19,7 +19,7 @@ describe("importing sample data", function () {
 	after(function (done) {
 		setTimeout(function () {
 			console.log('test data imported.');
-			//require("./controllerServer.unit.test.js");
+			
 			require("./mw-cors.test.js");
 			require("./mw-urac.test.js");
 			require("./mw-imfv.test.js");
@@ -42,15 +42,7 @@ describe("importing sample data", function () {
 			
 			require("./mw/service/index.test.js");
 			
-			// require("./mw/awarenessEnv/custom.test"); //
-			
-			// require("./mw/awareness/index.test.js"); //
-			
 			require("./classes/MultiTenantSession.test");
-			
-			// require("./servers/controller.test"); //
-			require("./servers/daemon.test");
-			
 			require("./utilities/utils.test");
 			
 			done();
