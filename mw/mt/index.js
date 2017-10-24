@@ -139,6 +139,7 @@ module.exports = function (configuration) {
                                                 "tenant": {
                                                     "id": keyObj.tenant.id,
                                                     "code": keyObj.tenant.code,
+                                                    "locked": keyObj.tenant.locked,
                                                     "roaming": data.req.soajs.tenant.roaming
                                                 },
                                                 "key": {
