@@ -5,7 +5,7 @@ var url = require('url');
 var request = require('request');
 var http = require('http');
 
-var coreModules = require ("soajs.core.modules");
+var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
 
 var drivers = require('soajs.core.drivers');
@@ -25,10 +25,10 @@ module.exports = function () {
 		}
 		
 		var parsedUrl = url.parse(req.url, true);
-		if(!req.query && parsedUrl.query && parsedUrl.query.access_token){
+		if (!req.query && parsedUrl.query && parsedUrl.query.access_token) {
 			req.query = parsedUrl.query;
 		}
-		if(!req.query){
+		if (!req.query) {
 			req.query = {};
 		}
 		
@@ -39,9 +39,9 @@ module.exports = function () {
 		
 		//check if there is /v1 in the url
 		var matches = req.url.match(/\/v[0-9]+/);
-		if(matches && matches.length > 0){
+		if (matches && matches.length > 0) {
 			var hit = matches[0].replace("/", '');
-			if(serviceInfo[2] === hit && serviceInfo.length > 3){
+			if (serviceInfo[2] === hit && serviceInfo.length > 3) {
 				service_v = parseInt(hit.replace("v", ''));
 				serviceInfo.splice(2, 1);
 				req.url = req.url.replace(matches[0], "");
@@ -50,7 +50,7 @@ module.exports = function () {
 		}
 		
 		//check if there is service:1 in the url
-		if(!service_v){
+		if (!service_v) {
 			var index = service_nv.indexOf(":");
 			if (index !== -1) {
 				service_v = parseInt(service_nv.substr(index + 1));
@@ -62,20 +62,58 @@ module.exports = function () {
 			}
 		}
 		
+		//check if route is key/permission/get then you also need to bypass the exctract Build Param BL
+		var keyPermissionGet = (serviceInfo[1] === 'key' && serviceInfo[2] === 'permission' && serviceInfo[3] === 'get');
+		if (keyPermissionGet) {
+			
+			if(!req.headers || !req.headers.key){
+				return req.soajs.controllerResponse(core.error.getError(135));
+			}
+			
+			req.soajs.controller.gotoservice = returnKeyAndPermissions;
+			var serviceName = "controller";
+			req.soajs.controller.serviceParams = {
+				"registry": req.soajs.registry.services[serviceName],
+				"name": serviceName,
+				"url": "/key/permission/get",
+				"version": 1,
+				"extKeyRequired": true
+			};
+			
+			req.soajs.controller.serviceParams.registry.versions = {
+				"1": {
+					"extKeyRequired": true,
+					"oauth": true,
+					"urac": true,
+					"urac_ACL": true,
+					"provision_ACL": true,
+					"apis": [
+						{
+							"l": "Get Key Permissions",
+							"v": "/key/permission/get",
+							"m": "get"
+						}
+					]
+				}
+			};
+			req.soajs.controller.serviceParams.serviceInfo = serviceInfo;
+			return next();
+		}
+		
 		//check if proxy/redirect
 		//create proxy info object before calling extractbuildparams
 		//reason on line: 307
 		var proxy = (serviceInfo[1] === 'proxy' && serviceInfo[2] === 'redirect');
 		var proxyInfo;
-		if(proxy){
+		if (proxy) {
 			proxyInfo = {
 				query: parsedUrl.query,
 				pathname: parsedUrl.pathname
 			};
 		}
 		
-		extractBuildParameters(req, service_n, service_nv, service_v, proxyInfo, parsedUrl.path, function(error, parameters){
-			if(error){
+		extractBuildParameters(req, service_n, service_nv, service_v, proxyInfo, parsedUrl.path, function (error, parameters) {
+			if (error) {
 				req.soajs.log.fatal(error);
 				return req.soajs.controllerResponse(core.error.getError(130));
 			}
@@ -86,7 +124,7 @@ module.exports = function () {
 			}
 			
 			parameters.parsedUrl = parsedUrl;
-            parameters.serviceInfo = serviceInfo;
+			parameters.serviceInfo = serviceInfo;
 			req.soajs.controller.serviceParams = parameters;
 			
 			var d = domain.create();
@@ -105,12 +143,12 @@ module.exports = function () {
 				}
 			});
 			var passportLogin = false;
-			if (serviceInfo[1] === "urac"){
+			if (serviceInfo[1] === "urac") {
 				if (serviceInfo[2] === "passport" && serviceInfo[3] === "login")
 					passportLogin = true;
 			}
 			
-			if ( (serviceInfo[2] !== "swagger" || (serviceInfo[2] === "swagger" && serviceInfo[serviceInfo.length-1] === 2)) && parameters.extKeyRequired) {
+			if ((serviceInfo[2] !== "swagger" || (serviceInfo[2] === "swagger" && serviceInfo[serviceInfo.length - 1] === 2)) && parameters.extKeyRequired) {
 				var key = req.headers.key || parsedUrl.query.key;
 				if (!key) {
 					return req.soajs.controllerResponse(core.error.getError(132));
@@ -124,11 +162,11 @@ module.exports = function () {
 					if (!req.headers.key) {
 						req.headers.key = key;
 					}
-					if (passportLogin){
+					if (passportLogin) {
 						req.soajs.controller.gotoservice = simpleRTS;
-					} else if(proxy){
+					} else if (proxy) {
 						req.soajs.controller.gotoservice = proxyRequest;
-					} else{
+					} else {
 						req.soajs.controller.gotoservice = redirectToService;
 					}
 					
@@ -136,11 +174,11 @@ module.exports = function () {
 				});
 			}
 			else {
-				if (passportLogin){
+				if (passportLogin) {
 					req.soajs.controller.gotoservice = simpleRTS;
-				} else if(proxy){
+				} else if (proxy) {
 					req.soajs.controller.gotoservice = proxyRequest;
-				} else{
+				} else {
 					req.soajs.controller.gotoservice = redirectToService;
 				}
 				
@@ -156,31 +194,31 @@ function proxyRequest(req, res) {
 	 get ext key for remote env requested
 	 */
 	var tenant = req.soajs.tenant;
-	var parsedUrl=  req.soajs.controller.serviceParams.parsedUrl;
+	var parsedUrl = req.soajs.controller.serviceParams.parsedUrl;
 	
 	var remoteENV = (parsedUrl.query) ? parsedUrl.query.__env : req.headers.__env;
 	remoteENV = remoteENV.toUpperCase();
 	
 	var requestedRoute;
 	//check if requested route is provided as query param
-	if(parsedUrl.query && parsedUrl.query.proxyRoute){
+	if (parsedUrl.query && parsedUrl.query.proxyRoute) {
 		requestedRoute = decodeURIComponent(parsedUrl.query.proxyRoute);
 	}
 	//possible requested route is provided as path param
-	if(!requestedRoute && parsedUrl.pathname.replace(/^\/proxy/,'') !== ''){
+	if (!requestedRoute && parsedUrl.pathname.replace(/^\/proxy/, '') !== '') {
 		requestedRoute = parsedUrl.pathname.replace(/^\/proxy/, '');
 	}
 	
 	//stop if no requested path was found
-	if(!requestedRoute){
+	if (!requestedRoute) {
 		return req.soajs.controllerResponse(core.error.getError(139));
 	}
 	
 	req.soajs.log.debug("attempting to redirect to: " + requestedRoute + " in " + remoteENV + " Environment.");
 	
-	if(tenant){
-		getOriginalTenantRecord(tenant, function(error, originalTenant){
-			if(error){
+	if (tenant) {
+		getOriginalTenantRecord(tenant, function (error, originalTenant) {
+			if (error) {
 				return req.soajs.controllerResponse(core.error.getError(139)); //todo: make sure we have set the correct error code number
 			}
 			
@@ -188,18 +226,18 @@ function proxyRequest(req, res) {
 			var remoteExtKey = findExtKeyForEnvironment(originalTenant, remoteENV);
 			
 			//no key found
-			if(!remoteExtKey){
+			if (!remoteExtKey) {
 				req.soajs.log.fatal("No remote key found for tenant: " + tenant.code + " in environment: " + remoteENV);
 				return req.soajs.controllerResponse(core.error.getError(137));
 			}
-			else{
+			else {
 				//proceed with proxying the request
 				proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRoute);
 			}
 			
 		});
 	}
-	else{
+	else {
 		proxyRequestToRemoteEnv(req, res, remoteENV, null, requestedRoute);
 	}
 }
@@ -210,15 +248,7 @@ function proxyRequest(req, res) {
  * @param {Callback} cb
  */
 function getOriginalTenantRecord(tenant, cb) {
-	//note: using mongo to get the full tenant record.
-	//note: attempted to use provision methods but none of them returns the full tenant record thus cannot get ext of remote env from that
-	core.registry.loadByEnv({
-		"envCode": process.env.SOAJS_ENV.toLowerCase()
-	}, function (err, reg) {
-		var Mongo = coreModules.mongo;
-		var mongo = new Mongo(reg.coreDB.provision);
-		mongo.findOne('tenants', {"code": tenant.code}, cb);
-	});
+	core.provision.getTenantByCode(tenant.code, cb);
 }
 
 /**
@@ -227,18 +257,18 @@ function getOriginalTenantRecord(tenant, cb) {
  * @param {String} env
  * @returns {null|String}
  */
-function findExtKeyForEnvironment(tenant, env){
+function findExtKeyForEnvironment(tenant, env) {
 	var key;
-	tenant.applications.forEach(function(oneApplication){
+	tenant.applications.forEach(function (oneApplication) {
 		
 		//loop in tenant keys
-		oneApplication.keys.forEach(function(oneKey){
+		oneApplication.keys.forEach(function (oneKey) {
 			
 			//loop in tenant ext keys
-			oneKey.extKeys.forEach(function(oneExtKey){
+			oneKey.extKeys.forEach(function (oneExtKey) {
 				//get the ext key for the request environment who also has dashboardAccess true
 				//note: only one extkey per env has dashboardAccess true, simply find it and break
-				if(oneExtKey.env && oneExtKey.env === env && oneExtKey.dashboardAccess){
+				if (oneExtKey.env && oneExtKey.env === env && oneExtKey.dashboardAccess) {
 					key = oneExtKey.extKey; // key or ext key/.???? no key
 				}
 			});
@@ -256,7 +286,7 @@ function findExtKeyForEnvironment(tenant, env){
  * @param {String} remoteExtKey
  * @param {String} requestedRoute
  */
-function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRoute){
+function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRoute) {
 	//get remote env controller
 	req.soajs.awarenessEnv.getHost(remoteENV.toLowerCase(), function (host) {
 		if (!host) {
@@ -264,7 +294,7 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
 		}
 		
 		//get remote env controller port
-		core.registry.loadByEnv({ "envCode": remoteENV }, function (err, reg) {
+		core.registry.loadByEnv({"envCode": remoteENV}, function (err, reg) {
 			if (err) {
 				req.soajs.log.error(err);
 				return req.soajs.controllerResponse(core.error.getError(207));
@@ -282,11 +312,11 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
 					'headers': req.headers
 				};
 				
-				if(remoteExtKey){
+				if (remoteExtKey) {
 					//add remote ext key in headers
 					requestConfig.headers.key = remoteExtKey;
 				}
-				else{
+				else {
 					delete requestConfig.headers.key;
 				}
 				
@@ -329,19 +359,19 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
  */
 function extractBuildParameters(req, service, service_nv, version, proxyInfo, url, callback) {
 	
-	if(proxyInfo){
+	if (proxyInfo) {
 		var requestedRoute;
 		//check if requested route is provided as query param
-		if(proxyInfo.query && proxyInfo.query.proxyRoute){
+		if (proxyInfo.query && proxyInfo.query.proxyRoute) {
 			requestedRoute = decodeURIComponent(proxyInfo.query.proxyRoute);
 		}
 		//possible requested route is provided as path param
-		if(!requestedRoute && proxyInfo.pathname.replace(/^\/proxy/,'') !== ''){
+		if (!requestedRoute && proxyInfo.pathname.replace(/^\/proxy/, '') !== '') {
 			requestedRoute = proxyInfo.pathname.replace(/^\/proxy/, '');
 		}
 		
 		var serviceName = requestedRoute.split("/")[1];
-		if(!req.soajs.registry.services[serviceName]){
+		if (!req.soajs.registry.services[serviceName]) {
 			return callback(core.error.getError(130));
 		}
 		
@@ -353,7 +383,7 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
 			"extKeyRequired": true
 		};
 		return callback(null, proxyInfo);
-	}else{
+	} else {
 		if (service &&
 			req.soajs.registry &&
 			req.soajs.registry.services &&
@@ -364,7 +394,7 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
 			service = service.toLowerCase();
 			service_nv = service_nv.toLowerCase();
 			
-			var nextStep = function(version){
+			var nextStep = function (version) {
 				var extKeyRequired = false;
 				if (req.soajs.registry.services[service].versions && req.soajs.registry.services[service].versions[version])
 					extKeyRequired = req.soajs.registry.services[service].versions[version].extKeyRequired || false;
@@ -378,24 +408,24 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
 				};
 				var path = serviceInfo.url;
 				var pathIndex = path.indexOf("?");
-				if (pathIndex !== -1){
-					path = path.substring (0, pathIndex);
+				if (pathIndex !== -1) {
+					path = path.substring(0, pathIndex);
 					pathIndex = path.lastIndexOf("/");
-					if (pathIndex === (path.length-1))
-						path = path.substring (0, pathIndex);
+					if (pathIndex === (path.length - 1))
+						path = path.substring(0, pathIndex);
 				}
 				serviceInfo.path = path;
 				return callback(null, serviceInfo);
 			};
 			
-			if (!version){
-				if(process.env.SOAJS_DEPLOY_HA){
+			if (!version) {
+				if (process.env.SOAJS_DEPLOY_HA) {
 					var latestCachedVersion = req.soajs.awareness.getLatestVersionFromCache(service);
-					if(latestCachedVersion){
+					if (latestCachedVersion) {
 						version = latestCachedVersion;
 						nextStep(version);
 					}
-					else{
+					else {
 						var info = req.soajs.registry.deployer.selected.split('.');
 						var deployerConfig = req.soajs.registry.deployer.container[info[1]][info[2]];
 						
@@ -412,8 +442,8 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
 								"env": process.env.SOAJS_ENV
 							}
 						};
-						drivers.getLatestVersion(options, function(error, latestVersion){
-							if(error){
+						drivers.getLatestVersion(options, function (error, latestVersion) {
+							if (error) {
 								return callback(error);
 							}
 							version = latestVersion;
@@ -421,17 +451,17 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
 						});
 					}
 				}
-				else if(req.soajs.registry.services[service].hosts){
+				else if (req.soajs.registry.services[service].hosts) {
 					version = req.soajs.registry.services[service].hosts.latest;
 					nextStep(version);
-				} else{
+				} else {
 					return callback(null, null);
 				}
 			}
 			else
 				nextStep(version);
 		}
-		else{
+		else {
 			return callback(null, null);
 		}
 	}
@@ -607,4 +637,61 @@ function isRequestAuthorized(req, requestOptions) {
 		}
 	}
 	return false;
+}
+
+/**
+ * Function that retrieves the dashboard access key and its ACL permissions from the public extkey provided via the header
+ * @param req
+ * @param res
+ */
+function returnKeyAndPermissions(req, res) {
+	if(!req.soajs.uracDriver){
+		return req.soajs.controllerResponse(core.error.getError(135));
+	}
+	
+	var tenant = req.soajs.uracDriver.getProfile().tenant;
+	findExtKey(tenant, function (error, data) {
+		if (error) {
+			req.soajs.log.error(error);
+			return req.soajs.controllerResponse(core.error.getError(135));
+		}
+		
+		findKeyPermissions(function(error, info){
+			if (error) {
+				req.soajs.log.error(error);
+				return req.soajs.controllerResponse(core.error.getError(135));
+			}
+			
+			for (let i in info) {
+				data[i] = info[i];
+			}
+			return req.soajs.controllerResponse(data);
+		});
+	});
+	
+	function findExtKey(tenant, cb) {
+		core.provision.getPrivateExtKeyFromPulic(tenant, cb);
+	}
+	
+	function findKeyPermissions(cb) {
+		var ACL = req.soajs.uracDriver.getAclAllEnv();
+		var tenant = req.soajs.tenant;
+		if (!ACL) {
+			ACL = (tenant.application.acl_all_env) ? tenant.application.acl_all_env : tenant.application.package_acl_all_env;
+			
+			//old system acl schema
+			if (!ACL) {
+				ACL = (tenant.application.acl) ? tenant.application.acl : tenant.application.package_acl;
+			}
+		}
+		
+		core.registry.getAllRegistriesInfo(function(error, environments){
+			if(error){
+				return cb(error);
+			}
+			
+			var envInfo = core.provision.getACLAndEnvironmentsFromKey(ACL, environments);
+			return cb(null, {"acl": ACL, "environments": envInfo});
+		});
+	}
 }
