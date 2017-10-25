@@ -646,7 +646,7 @@ function isRequestAuthorized(req, requestOptions) {
  */
 function returnKeyAndPermissions(req, res) {
 	if(!req.soajs.uracDriver){
-		return req.soajs.controllerResponse(core.error.getError(135));
+		return req.soajs.controllerResponse(core.error.getError(158));
 	}
 	
 	var tenant = req.soajs.uracDriver.getProfile().tenant;
