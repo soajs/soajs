@@ -670,7 +670,7 @@ function returnKeyAndPermissions(req, res) {
 	});
 	
 	function findExtKey(tenant, cb) {
-		core.provision.getPrivateExtKeyFromPulic(tenant, cb);
+		core.provision.getEnvironmentExtKeyWithDashboardAccess(tenant, cb);
 	}
 	
 	function findKeyPermissions(cb) {
