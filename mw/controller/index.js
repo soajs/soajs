@@ -690,7 +690,7 @@ function returnKeyAndPermissions(req, res) {
 				return cb(error);
 			}
 			
-			var envInfo = core.provision.getACLAndEnvironmentsFromKey(ACL, environments);
+			var envInfo = core.provision.getEnvironmentsFromACL(ACL, environments);
 			return cb(null, {"acl": ACL, "environments": envInfo});
 		});
 	}
