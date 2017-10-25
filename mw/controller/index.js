@@ -66,13 +66,15 @@ module.exports = function () {
 		var keyPermissionGet = (serviceInfo[1] === 'key' && serviceInfo[2] === 'permission' && serviceInfo[3] === 'get');
 		if (keyPermissionGet) {
 			
+			//doesn't work without a key in the headers
 			if(!req.headers || !req.headers.key){
-				return req.soajs.controllerResponse(core.error.getError(135));
+				return req.soajs.controllerResponse(core.error.getError(132));
 			}
 			
-			req.soajs.controller.gotoservice = returnKeyAndPermissions;
+			//mimic a service named controller with route /key/permission/get
 			var serviceName = "controller";
 			req.soajs.controller.serviceParams = {
+				"serviceInfo": serviceInfo,
 				"registry": req.soajs.registry.services[serviceName],
 				"name": serviceName,
 				"url": "/key/permission/get",
@@ -96,7 +98,9 @@ module.exports = function () {
 					]
 				}
 			};
-			req.soajs.controller.serviceParams.serviceInfo = serviceInfo;
+			
+			//assign the correct method to gotoservice in controller
+			req.soajs.controller.gotoservice = returnKeyAndPermissions;
 			return next();
 		}
 		
@@ -640,15 +644,11 @@ function isRequestAuthorized(req, requestOptions) {
 }
 
 /**
- * Function that retrieves the dashboard access key and its ACL permissions from the public extkey provided via the header
+ * Function that retrieves the dashboard access key and its ACL permissions from the public extkey provided for logged in users
  * @param req
  * @param res
  */
 function returnKeyAndPermissions(req, res) {
-	if(!req.soajs.uracDriver){
-		return req.soajs.controllerResponse(core.error.getError(158));
-	}
-	
 	var tenant = req.soajs.uracDriver.getProfile().tenant;
 	findExtKey(tenant, function (error, data) {
 		if (error) {

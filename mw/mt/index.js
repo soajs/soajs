@@ -117,10 +117,16 @@ module.exports = function (configuration) {
 
                                     async.waterfall(serviceCheckArray, function (err, data) {
 	                                    
-                                    	//if this is controller route: /key/permission/get, ignore response
+                                    	//if this is controller route: /key/permission/get, ignore async waterfall response
                                     	if (keyPermissionGet) {
-		                                    req.soajs.log.debug("Detected return get key permission request, bypassing MT ACL checks...");
-		                                    return next();
+		                                    if(!req.soajs.uracDriver){
+		                                        //doesn't work if you are not logged in
+			                                    return next(158);
+		                                    }
+		                                    else{
+			                                    req.soajs.log.debug("Detected return get key permission request, bypassing MT ACL checks...");
+			                                    return next();
+		                                    }
 	                                    }
 	                                    
                                         if (err)
