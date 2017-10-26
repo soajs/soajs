@@ -291,64 +291,59 @@ function findExtKeyForEnvironment(tenant, env) {
  * @param {String} requestedRoute
  */
 function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRoute) {
-	//get remote env controller
-	req.soajs.awarenessEnv.getHost(remoteENV.toLowerCase(), function (host) {
-		if (!host) {
-			return req.soajs.controllerResponse(core.error.getError(138));
+	//get remote env registry
+	core.registry.loadByEnv({"envCode": remoteENV}, function (err, reg) {
+		if (err) {
+			req.soajs.log.error(err);
+			return req.soajs.controllerResponse(core.error.getError(207));
 		}
-		
-		//get remote env controller port
-		core.registry.loadByEnv({"envCode": remoteENV}, function (err, reg) {
-			if (err) {
-				req.soajs.log.error(err);
-				return req.soajs.controllerResponse(core.error.getError(207));
+		else {
+			//formulate request and pipe
+			var myUri = reg.protocol + '://' + reg.apiPrefix + "." + reg.domain + ':' + reg.port + requestedRoute;
+			
+			var requestConfig = {
+				'uri': myUri,
+				'method': req.method,
+				'timeout': 1000 * 3600,
+				'jar': false,
+				'headers': req.headers
+			};
+			
+			if (remoteExtKey) {
+				//add remote ext key in headers
+				requestConfig.headers.key = remoteExtKey;
 			}
 			else {
-				//formulate request and pipe
-				var port = reg.services.controller.port;
-				var myUri = 'http://' + host + ':' + port + requestedRoute;
-				
-				var requestConfig = {
-					'uri': myUri,
-					'method': req.method,
-					'timeout': 1000 * 3600,
-					'jar': false,
-					'headers': req.headers
-				};
-				
-				if (remoteExtKey) {
-					//add remote ext key in headers
-					requestConfig.headers.key = remoteExtKey;
-				}
-				else {
-					delete requestConfig.headers.key;
-				}
-				
-				//add remaining query params
-				if (req.query && Object.keys(req.query).length > 0) {
-					requestConfig.qs = req.query;
-				}
-				req.soajs.log.debug(requestConfig);
-				
-				//proxy request
-				var proxy = request(requestConfig);
-				proxy.on('error', function (error) {
-					req.soajs.log.error(error);
-					try {
-						return req.soajs.controllerResponse(core.error.getError(135));
-					} catch (e) {
-						req.soajs.log.error(e);
-					}
-				});
-				
-				if (req.method === 'POST' || req.method === 'PUT') {
-					req.pipe(proxy).pipe(res);
-				}
-				else {
-					proxy.pipe(res);
-				}
+				delete requestConfig.headers.key;
 			}
-		});
+			
+			//add remaining query params
+			if (req.query && Object.keys(req.query).length > 0) {
+				requestConfig.qs = req.query;
+			}
+			delete requestConfig.qs.proxyRoute;
+			delete requestConfig.qs.__env;
+			
+			req.soajs.log.debug(requestConfig);
+			
+			//proxy request
+			var proxy = request(requestConfig);
+			proxy.on('error', function (error) {
+				req.soajs.log.error(error);
+				try {
+					return req.soajs.controllerResponse(core.error.getError(135));
+				} catch (e) {
+					req.soajs.log.error(e);
+				}
+			});
+			
+			if (req.method === 'POST' || req.method === 'PUT') {
+				req.pipe(proxy).pipe(res);
+			}
+			else {
+				proxy.pipe(res);
+			}
+		}
 	});
 }
 
