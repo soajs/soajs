@@ -321,6 +321,8 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
 			if (req.query && Object.keys(req.query).length > 0) {
 				requestConfig.qs = req.query;
 			}
+			
+			delete requestConfig.headers.host;
 			delete requestConfig.qs.proxyRoute;
 			delete requestConfig.qs.__env;
 			
