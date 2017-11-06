@@ -39,6 +39,7 @@ module.exports = function (configuration) {
         //if there is a proxy no need to do any of the below, return next
         var proxyInfo = req.soajs.controller.serviceParams.serviceInfo;
         var proxy = (proxyInfo[1] === 'proxy' && proxyInfo[2] === 'redirect');
+	    var keyPermissionGet = (proxyInfo[1] === 'key' && proxyInfo[2] === 'permission' && proxyInfo[3] === 'get');
 
         var oauth = true;
         if (Object.hasOwnProperty.call(serviceInfo, 'oauth')) {
@@ -115,6 +116,19 @@ module.exports = function (configuration) {
                                     serviceCheckArray.push(utils.apiCheck);
 
                                     async.waterfall(serviceCheckArray, function (err, data) {
+	                                    
+                                    	//if this is controller route: /key/permission/get, ignore async waterfall response
+                                    	if (keyPermissionGet) {
+		                                    if(!req.soajs.uracDriver){
+		                                        //doesn't work if you are not logged in
+			                                    return next(158);
+		                                    }
+		                                    else{
+			                                    req.soajs.log.debug("Detected return get key permission request, bypassing MT ACL checks...");
+			                                    return next();
+		                                    }
+	                                    }
+	                                    
                                         if (err)
                                             return next(err);
                                         else {
@@ -139,6 +153,7 @@ module.exports = function (configuration) {
                                                 "tenant": {
                                                     "id": keyObj.tenant.id,
                                                     "code": keyObj.tenant.code,
+                                                    "locked": keyObj.tenant.locked,
                                                     "roaming": data.req.soajs.tenant.roaming
                                                 },
                                                 "key": {

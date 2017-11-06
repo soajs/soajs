@@ -35,7 +35,8 @@ module.exports = function (configuration) {
 		if (input.tenant) {
 			output.tenant = {
 				id: input.tenant.id,
-				code: input.tenant.code
+				code: input.tenant.code,
+				locked: input.tenant.locked
 			};
 		}
 
