@@ -646,7 +646,7 @@ function isRequestAuthorized(req, requestOptions) {
  * @param res
  */
 function returnKeyAndPermissions(req, res) {
-	var tenant = req.soajs.uracDriver.getProfile().tenant;
+	var tenant = req.soajs.uracDriver.getProfile().tenant || req.soajs.tenant;
 	findExtKey(tenant, function (error, data) {
 		if (error) {
 			req.soajs.log.error(error);
