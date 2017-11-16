@@ -15,7 +15,7 @@ describe("importing sample data", function () {
 			});
 		});
 	});
-
+	
 	after(function (done) {
 		setTimeout(function () {
 			console.log('test data imported.');
@@ -44,6 +44,12 @@ describe("importing sample data", function () {
 			
 			require("./classes/MultiTenantSession.test");
 			require("./utilities/utils.test");
+			
+			require("./mw/awarenessEnv/custom.test.js");
+			
+			require("./servers/controller.test.js");
+			
+			require("./servers/daemon.test.js");
 			
 			done();
 		}, 1000);

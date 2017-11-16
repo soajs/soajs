@@ -108,7 +108,7 @@ daemon.prototype.init = function (callback) {
     }
 
     function resume() {
-        _self.soajs.jobList = extractJOBsList(_self.soajs.param.schema);
+	    _self.soajs.jobList = extractJOBsList(_self.soajs.param.schema);
         core.registry.load({
             "type": "daemon",
             "serviceName": _self.soajs.param.serviceName,
@@ -147,7 +147,6 @@ daemon.prototype.init = function (callback) {
                 }
                 return callback(new Error("Daemon Service shutdown due to failure!"));
             }
-
             // Registry now is loaded and all param are assured
 
             _self.soajs.log.info("Daemon Service middleware initialization started...");
@@ -161,7 +160,7 @@ daemon.prototype.init = function (callback) {
 
             if (_self.soajs.param.awarenessEnv) {
                 var awarenessEnv_mw = require("./../mw/awarenessEnv/index");
-                _self.soajs.mw.awarenessEnv = (awarenessEnv_mw({
+                _self.soajs.mw.awarenessEnv = (awarenessEnv_mw.getMw({
                     "awarenessEnv": _self.soajs.param.awarenessEnv,
                     "log": _self.soajs.log
                 }));
@@ -300,7 +299,7 @@ daemon.prototype.start = function (cb) {
                         res.jsonp(response);
                     });
                 });
-                
+
                 _self.appMaintenance.all('*', function (req, res) {
                     var response = maintenanceResponse(req, "heartbeat");
                     response['result'] = true;
@@ -470,7 +469,7 @@ daemon.prototype.start = function (cb) {
                             }
                         };
                         if (_self.daemonConf.processing && _self.daemonConf.processing === "sequential") {
-                            if (_self.daemonConf.order && Array.isArray(_self.daemonConf.order)) {
+                        	if (_self.daemonConf.order && Array.isArray(_self.daemonConf.order)) {
                                 for (var i = 0; i < _self.daemonConf.order.length; i++) {
                                     if (_self.daemonConf.jobs[_self.daemonConf.order[i]])
                                         buildJob(_self.daemonConf.jobs[_self.daemonConf.order[i]], _self.daemonConf.order[i]);
