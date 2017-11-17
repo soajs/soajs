@@ -101,7 +101,7 @@ describe("Proxy Tests", function () {
 		});
 	});
 	
-	it("success - will redirect to urac GET protocol", function (done) {
+	it.skip("success - will redirect to urac GET protocol", function (done) {
 		var options = {
 			uri: 'http://127.0.0.1:4000/proxy/redirect',
 			headers: {

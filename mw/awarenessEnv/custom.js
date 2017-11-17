@@ -86,7 +86,6 @@ var awareness_healthCheck = function () {
 function roundRobin () {
 	var s, v, env, cb;
 	cb = arguments[arguments.length -1];
-	
 	switch(arguments.length){
 		//dash, cb
 		case 2:
@@ -106,7 +105,6 @@ function roundRobin () {
 	
 	env = env || regEnvironment;
 	s = "controller";
-
     if (env, s && serviceAwarenessObj[env] && serviceAwarenessObj[env][s] && serviceAwarenessObj[env][s].healthy) {
         if (!v)
             v = serviceAwarenessObj[env][s].latest;
@@ -119,16 +117,18 @@ function roundRobin () {
             serviceAwarenessObj[env][s].indexes[v] += 1;
             return cb(host);
         }
-        else
-            return cb(null);
+        else{
+	        return cb(null);
+        }
     }
-    else
-        return cb(null);
+    else{
+	    return cb(null);
+    }
 };
 
 function init (_param) {
     param = _param;
-
+    
     if (registry.serviceConfig.awareness.autoRelaodRegistry)
         setTimeout(fetchControllerHosts, registry.serviceConfig.awareness.autoRelaodRegistry);
     if (registry.serviceConfig.awareness.healthCheckInterval)

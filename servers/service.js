@@ -335,7 +335,7 @@ service.prototype.init = function (callback) {
 
             if (soajs.param.awareness) {
                 var awareness_mw = require("./../mw/awareness/index");
-                _self.app.use(awareness_mw({
+                _self.app.use(awareness_mw.getMw({
                     "serviceName": soajs.param.serviceName,
                     "serviceGroup": soajs.param.serviceGroup,
                     "serviceVersion": soajs.param.serviceVersion,
@@ -355,7 +355,7 @@ service.prototype.init = function (callback) {
 
             if (soajs.param.awarenessEnv) {
                 var awarenessEnv_mw = require("./../mw/awarenessEnv/index");
-                _self.app.use(awarenessEnv_mw({
+                _self.app.use(awarenessEnv_mw.getMw({
                     "awarenessEnv": soajs.param.awarenessEnv,
                     "log": _self.log
                 }));

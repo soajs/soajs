@@ -72,7 +72,7 @@ controller.prototype.init = function (callback) {
         resume();
     }
     function resume() {
-        core.registry.load({
+	    core.registry.load({
             "serviceName": _self.serviceName,
             "serviceVersion": _self.serviceVersion,
             "apiList": null,
@@ -92,7 +92,7 @@ controller.prototype.init = function (callback) {
                     _self.log.info("The IP registered for service [" + _self.serviceName + "] awareness : ", fetchedHostIp.ip);
                 }
             }
-
+            
             var app = connect();
             app.use(favicon_mw());
             app.use(soajs_mw({
@@ -127,7 +127,7 @@ controller.prototype.init = function (callback) {
                             };
                             return response;
                         };
-                        var reloadRegistry = function () {
+	                    var reloadRegistry = function () {
                             core.registry.reload({
                                 "serviceName": _self.serviceName,
                                 "serviceVersion": null,
@@ -169,7 +169,7 @@ controller.prototype.init = function (callback) {
                             }
                             
                             if (process.env.SOAJS_DEPLOY_HA) {
-                                awareness_mw({
+                                awareness_mw.getMw({
                                     "awareness": _self.awareness,
                                     "serviceName": _self.serviceName,
                                     "log": _self.log,
@@ -257,8 +257,9 @@ controller.prototype.init = function (callback) {
                             var reqServiceName = parsedUrl.query.serviceName;
                             core.registry.loadByEnv({"envCode": reqEnv, "serviceName": "controller", "donotBbuildSpecificRegistry": false},function (err, reg){
                                 var response = maintenanceResponse(req);
-                                if (err)
-                                    _self.log.error(reqServiceName, err);
+                                if (err){
+	                                _self.log.error(reqServiceName, err);
+                                }
                                 else {
                                     response['result'] = true;
                                     response['data'] = reg;
@@ -280,8 +281,7 @@ controller.prototype.init = function (callback) {
                             return heartbeat(res);
                         }
                     });
-	
-	                app.use(awareness_mw({
+	                app.use(awareness_mw.getMw({
 		                "awareness": _self.awareness,
 		                "serviceName": _self.serviceName,
 		                "log": _self.log,
@@ -290,7 +290,7 @@ controller.prototype.init = function (callback) {
 	                _self.log.info("Awareness middleware initialization done.");
 	
 	                //added mw awarenessEnv so that proxy can use req.soajs.awarenessEnv.getHost('dev', cb)
-	                app.use(awarenessEnv_mw({
+	                app.use(awarenessEnv_mw.getMw({
 		                "awarenessEnv": true,
 		                "log": _self.log
 	                }));
@@ -360,8 +360,10 @@ controller.prototype.init = function (callback) {
 	                
                     callback();
                 }
-                else
-                    _self.log.error('Unable to load provision. controller will not start :(');
+                else{
+	                _self.log.error('Unable to load provision. controller will not start :(');
+	                callback();
+                }
             });
         });
     }

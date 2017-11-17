@@ -10,6 +10,7 @@ describe("starting integration tests", function () {
 		require("./x-service-acl2.js");
 		require("./servers.daemon.cron.js");
 		require("./servers.daemon.js");
+		require("./controller.js");
 		require("./controller-proxy.js");
 		require("./maintenance-operations.test.js");
 		done();

@@ -2,9 +2,19 @@
 var assert = require("assert");
 var helper = require("../../../helper.js");
 
-var custom = helper.requireModule('./mw/awarenessEnv/custom.js');
-
 describe("Testing awarenessEnv Custom", function () {
+	
+	let custom;
+	
+	before(function (done) {
+		custom = helper.requireModule('./mw/awarenessEnv/custom.js');
+		done();
+	});
+	
+	after(function (done) {
+		
+		done();
+	});
 	
 	it("test getControllerEnvHost 3 args", function (done) {
 		custom.getControllerEnvHost(1, 'dashboard', function (host) {
