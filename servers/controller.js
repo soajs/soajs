@@ -9,6 +9,7 @@ var url = require('url');
 var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
 var provision = coreModules.provision;
+var soajsUtils = require("soajs.core.libs").utils;
 
 var favicon_mw = require('./../mw/favicon/index');
 var cors_mw = require('./../mw/cors/index');
@@ -166,7 +167,7 @@ controller.prototype.init = function (callback) {
                                 response['result'] = true;
                                 response['data'] = {"services": tmp.services, "daemons": tmp.daemons};
                             }
-
+                            
                             if (process.env.SOAJS_DEPLOY_HA) {
                                 awareness_mw({
                                     "awareness": _self.awareness,
@@ -175,7 +176,19 @@ controller.prototype.init = function (callback) {
                                     "serviceIp": _self.serviceIp
                                 });
                             }
-
+	                        else if(parsedUrl.query && parsedUrl.query.update){
+                            	core.registry.addUpdateEnvControllers({
+		                            "ip": _self.serviceIp,
+		                            "ts": response.ts ,
+		                            "data": soajsUtils.cloneObj(response.data),
+		                            "env": process.env.SOAJS_ENV.toLowerCase()
+                            	}, function(error){
+                            		if(error){
+                            		    _self.log.error(error);
+		                            }
+	                            });
+                            }
+	                        
                             return res.end(JSON.stringify(response));
                         }
                         else if (parsedUrl.pathname === '/register') {
