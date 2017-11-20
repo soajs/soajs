@@ -396,30 +396,35 @@ controller.prototype.start = function (cb) {
                     "serviceIp": _self.serviceIp,
                     "serviceHATask": _self.serviceHATask
                 }, _self.registry, function (registered) {
-                    if (registered)
+                    if (registered){
                         _self.log.info("Host IP [" + _self.serviceIp + "] for service [" + _self.serviceName + "@" + _self.serviceVersion + "] successfully registered.");
+	
+                        //wait 2 seconds for everything to be populated
+	                    //then update the database with the awareness Response generated.
+                        setTimeout(() => {
+	                        let awarenessStatData = {
+		                        "ts": Date.now(),
+		                        "data": {}
+	                        };
+	                        var tmp = core.registry.get();
+	                        if (tmp && (tmp.services || tmp.daemons)) {
+		                        awarenessStatData['data'] = {"services": tmp.services, "daemons": tmp.daemons};
+	                        }
+	                        core.registry.addUpdateEnvControllers({
+		                        "ip": _self.serviceIp,
+		                        "ts": awarenessStatData.ts ,
+		                        "data": soajsUtils.cloneObj(awarenessStatData.data),
+		                        "env": process.env.SOAJS_ENV.toLowerCase()
+	                        }, function(error){
+		                        if(error){
+			                        _self.log.error(error);
+		                        }
+	                        });
+                        }, 2000);
+                    }
                     else
                         _self.log.warn("Unable to register host IP [" + _self.serviceIp + "] for service [" + _self.serviceName + "@" + _self.serviceVersion + "]");
                 });
-	
-                let awarenessStatData = {
-                	"ts": Date.now(),
-	                "data": {}
-                };
-	            var tmp = core.registry.get();
-	            if (tmp && (tmp.services || tmp.daemons)) {
-		            awarenessStatData['data'] = {"services": tmp.services, "daemons": tmp.daemons};
-	            }
-	            core.registry.addUpdateEnvControllers({
-		            "ip": _self.serviceIp,
-		            "ts": awarenessStatData.ts ,
-		            "data": soajsUtils.cloneObj(awarenessStatData.data),
-		            "env": process.env.SOAJS_ENV.toLowerCase()
-	            }, function(error){
-		            if(error){
-			            _self.log.error(error);
-		            }
-	            });
             }
         }
         if (cb) {
