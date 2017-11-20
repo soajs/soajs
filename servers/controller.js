@@ -401,6 +401,25 @@ controller.prototype.start = function (cb) {
                     else
                         _self.log.warn("Unable to register host IP [" + _self.serviceIp + "] for service [" + _self.serviceName + "@" + _self.serviceVersion + "]");
                 });
+	
+                let awarenessStatData = {
+                	"ts": Date.now(),
+	                "data": {}
+                };
+	            var tmp = core.registry.get();
+	            if (tmp && (tmp.services || tmp.daemons)) {
+		            awarenessStatData['data'] = {"services": tmp.services, "daemons": tmp.daemons};
+	            }
+	            core.registry.addUpdateEnvControllers({
+		            "ip": _self.serviceIp,
+		            "ts": awarenessStatData.ts ,
+		            "data": soajsUtils.cloneObj(awarenessStatData.data),
+		            "env": process.env.SOAJS_ENV.toLowerCase()
+	            }, function(error){
+		            if(error){
+			            _self.log.error(error);
+		            }
+	            });
             }
         }
         if (cb) {
