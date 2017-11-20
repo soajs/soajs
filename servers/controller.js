@@ -383,6 +383,29 @@ controller.prototype.start = function (cb) {
             _self.log.error(err);
         }
     });
+    
+    function getAwarenessInfo(){
+	    var tmp = core.registry.get();
+	    if (tmp && (tmp.services || tmp.daemons)) {
+	    	_self.log.debug("awareness updated in database")
+		    let awarenessStatData = {
+			    "ts": Date.now(),
+			    "data": {"services": tmp.services, "daemons": tmp.daemons}
+		    };
+		
+		    core.registry.addUpdateEnvControllers({
+			    "ip": _self.serviceIp,
+			    "ts": awarenessStatData.ts ,
+			    "data": soajsUtils.cloneObj(awarenessStatData.data),
+			    "env": process.env.SOAJS_ENV.toLowerCase()
+		    }, function(error){
+			    if(error){
+				    _self.log.error(error);
+			    }
+		    });
+	    }
+    }
+    
     _self.server.listen(_self.registry.services.controller.port, function (err) {
         if (err) {
             _self.log.error(err);
@@ -399,28 +422,10 @@ controller.prototype.start = function (cb) {
                     if (registered){
                         _self.log.info("Host IP [" + _self.serviceIp + "] for service [" + _self.serviceName + "@" + _self.serviceVersion + "] successfully registered.");
 	
-                        //wait 2 seconds for everything to be populated
 	                    //then update the database with the awareness Response generated.
-                        setTimeout(() => {
-	                        let awarenessStatData = {
-		                        "ts": Date.now(),
-		                        "data": {}
-	                        };
-	                        var tmp = core.registry.get();
-	                        if (tmp && (tmp.services || tmp.daemons)) {
-		                        awarenessStatData['data'] = {"services": tmp.services, "daemons": tmp.daemons};
-	                        }
-	                        core.registry.addUpdateEnvControllers({
-		                        "ip": _self.serviceIp,
-		                        "ts": awarenessStatData.ts ,
-		                        "data": soajsUtils.cloneObj(awarenessStatData.data),
-		                        "env": process.env.SOAJS_ENV.toLowerCase()
-	                        }, function(error){
-		                        if(error){
-			                        _self.log.error(error);
-		                        }
-	                        });
-                        }, 2000);
+	                    setTimeout(()=> {
+		                    getAwarenessInfo();
+	                    }, _self.registry.serviceConfig.awareness.healthCheckInterval);
                     }
                     else
                         _self.log.warn("Unable to register host IP [" + _self.serviceIp + "] for service [" + _self.serviceName + "@" + _self.serviceVersion + "]");
