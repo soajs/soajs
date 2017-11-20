@@ -387,7 +387,6 @@ controller.prototype.start = function (cb) {
     function getAwarenessInfo(){
 	    var tmp = core.registry.get();
 	    if (tmp && (tmp.services || tmp.daemons)) {
-	    	_self.log.debug("awareness updated in database")
 		    let awarenessStatData = {
 			    "ts": Date.now(),
 			    "data": {"services": tmp.services, "daemons": tmp.daemons}
