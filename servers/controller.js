@@ -434,7 +434,7 @@ controller.prototype.start = function (cb) {
                     if (registered) {
 	                    _self.log.info("Host IP [" + _self.serviceIp + "] for service [" + _self.serviceName + "@" + _self.serviceVersion + "] successfully registered.");
 	
-	                    //then update the database with the awareness Response generated.
+	                    //update the database with the awareness Response generated.
 	                    setTimeout(() => {
 		                    getAwarenessInfo(false, (error) =>{
 		                    	if(error){
@@ -443,6 +443,8 @@ controller.prototype.start = function (cb) {
 		                    });
 	                    }, _self.registry.serviceConfig.awareness.healthCheckInterval);
 	
+	                    //update the database with the awareness Response generated.
+	                    //controller has been terminated.
 	                    process.on('SIGINT', function () {
 		                    getAwarenessInfo(true, (error) => {
 			                    if(error){
