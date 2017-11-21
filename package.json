@@ -32,7 +32,7 @@
     "mocha": "^1.20.0",
     "shelljs": "0.7.5",
     "sinon": "1.17.6",
-    "soajs.mongodb.data": "1.0.*"
+    "soajs.mongodb.data": "2.0.*"
   },
   "dependencies": {
     "async": "2.1.4",
@@ -50,9 +50,9 @@
     "oauth2-server": "2.4.1",
     "path-to-regexp": "1.7.0",
     "request": "2.81.0",
-    "soajs.core.drivers": "0.0.15",
+    "soajs.core.drivers": "2.0.0",
     "soajs.core.libs": "1.0.1",
-    "soajs.core.modules": "1.0.9",
+    "soajs.core.modules": "2.0.0",
     "soajs.urac.driver": "1.0.4",
     "useragent": "2.2.1",
     "validator": "6.2.0"
