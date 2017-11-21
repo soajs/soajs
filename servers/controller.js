@@ -383,6 +383,41 @@ controller.prototype.start = function (cb) {
             _self.log.error(err);
         }
     });
+    
+    function getAwarenessInfo(terminate, cb){
+	    var tmp = core.registry.get();
+	    if (tmp && (tmp.services || tmp.daemons)) {
+		    let awarenessStatData = {
+			    "ts": Date.now(),
+			    "data": soajsUtils.cloneObj({"services": tmp.services, "daemons": tmp.daemons})
+		    };
+		    
+		    if(terminate){
+		    	for(let serviceName in awarenessStatData.data.services){
+		    		if(serviceName === 'controller'){
+					    for(let serviceIP in awarenessStatData.data.services.controller.awarenessStats){
+						    if(serviceIP === _self.serviceIp){
+							    awarenessStatData.data.services.controller.awarenessStats[serviceIP].healthy = false;
+							    awarenessStatData.data.services.controller.awarenessStats[serviceIP].lastCheck = Date.now();
+						    }
+					    }
+				    }
+				    else{
+		    			delete awarenessStatData.data.services[serviceName];
+				    }
+			    }
+			    
+			    delete awarenessStatData.data.daemons;
+		    }
+		    core.registry.addUpdateEnvControllers({
+			    "ip": _self.serviceIp,
+			    "ts": awarenessStatData.ts ,
+			    "data": awarenessStatData.data,
+			    "env": process.env.SOAJS_ENV.toLowerCase()
+		    }, cb);
+	    }
+    }
+    
     _self.server.listen(_self.registry.services.controller.port, function (err) {
         if (err) {
             _self.log.error(err);
@@ -396,8 +431,30 @@ controller.prototype.start = function (cb) {
                     "serviceIp": _self.serviceIp,
                     "serviceHATask": _self.serviceHATask
                 }, _self.registry, function (registered) {
-                    if (registered)
-                        _self.log.info("Host IP [" + _self.serviceIp + "] for service [" + _self.serviceName + "@" + _self.serviceVersion + "] successfully registered.");
+                    if (registered) {
+	                    _self.log.info("Host IP [" + _self.serviceIp + "] for service [" + _self.serviceName + "@" + _self.serviceVersion + "] successfully registered.");
+	
+	                    //update the database with the awareness Response generated.
+	                    setTimeout(() => {
+		                    getAwarenessInfo(false, (error) =>{
+		                    	if(error){
+		                    		_self.log.error(error);
+			                    }
+		                    });
+	                    }, _self.registry.serviceConfig.awareness.healthCheckInterval);
+	
+	                    //update the database with the awareness Response generated.
+	                    //controller has been terminated.
+	                    process.on('SIGINT', function () {
+		                    getAwarenessInfo(true, (error) => {
+			                    if(error){
+				                    _self.log.error(error);
+			                    }
+			                    _self.log.warn("Service Terminated via interrupt signal.");
+		                        process.exit();
+		                    });
+	                    });
+                    }
                     else
                         _self.log.warn("Unable to register host IP [" + _self.serviceIp + "] for service [" + _self.serviceName + "@" + _self.serviceVersion + "]");
                 });
