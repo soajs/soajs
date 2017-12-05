@@ -20,7 +20,6 @@ module.exports = {
         "controller": require("./servers/controller.js"),
         "daemon": require("./servers/daemon.js")
     },
-    "contentBuilder": coreModules.contentBuilder,
     "es": coreModules.es,
     "mail": coreModules.mail,
     "mongo": coreModules.mongo,
