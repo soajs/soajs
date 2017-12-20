@@ -661,7 +661,7 @@ function returnKeyAndPermissions(req, res) {
 			req.soajs.log.error(error);
 			return req.soajs.controllerResponse(core.error.getError(135));
 		}
-		
+		req.soajs.log.debug("Switching tenant to:", data);
 		findKeyPermissions(function(error, info){
 			if (error) {
 				req.soajs.log.error(error);
@@ -671,6 +671,7 @@ function returnKeyAndPermissions(req, res) {
 			for (let i in info) {
 				data[i] = info[i];
 			}
+			req.soajs.log.debug("Tenant Permitted to:", data);
 			return req.soajs.controllerResponse(data);
 		});
 	});
