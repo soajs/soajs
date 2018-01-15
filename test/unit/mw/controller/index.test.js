@@ -36,6 +36,9 @@ describe("Testing Controller index - returnKeyAndPermissions /key/permission/get
 				},
 				error: function (msg) {
 					console.log(msg);
+				},
+				debug: function (msg) {
+					console.log(msg);
 				}
 			},
 			registry: {
@@ -320,7 +323,10 @@ describe("Testing Controller index - proxy/redirect", function () {
 					protocol: "http",
 					apiPrefix: "",
 					domain: "127.0.0.1",
-					port: 80
+					port: 80,
+					deployer:{
+						type: 'manual'
+					}
 				};
 				return cb(null, reg);
 			}
