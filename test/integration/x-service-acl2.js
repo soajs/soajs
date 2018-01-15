@@ -354,7 +354,7 @@ describe("testing multi tenancy - oauth", function() {
 		}, function(err, body) {
 			assert.ifError(err);
 			assert.ok(body);
-			console.log(JSON.stringify(body, null, 2));
+			// console.log(JSON.stringify(body, null, 2));
 			done();
 		});
 	});
@@ -397,7 +397,7 @@ describe("testing multi tenancy - oauth", function() {
 		}, function(err, body) {
 			assert.ifError(err);
 			assert.ok(body);
-			console.log(JSON.stringify(body, null, 2));
+			// console.log(JSON.stringify(body, null, 2));
 			done();
 		});
 	});
@@ -440,7 +440,7 @@ describe("testing multi tenancy - oauth", function() {
 		}, function(err, body) {
 			assert.ifError(err);
 			assert.ok(body);
-			console.log(JSON.stringify(body, null, 2));
+			// console.log(JSON.stringify(body, null, 2));
 			done();
 		});
 	});
@@ -484,7 +484,7 @@ describe("testing multi tenancy - oauth", function() {
 		}, function(err, body) {
 			assert.ifError(err);
 			assert.ok(body);
-			console.log(JSON.stringify(body, null, 2));
+			// console.log(JSON.stringify(body, null, 2));
 			done();
 		});
 	});
@@ -528,7 +528,7 @@ describe("testing multi tenancy - oauth", function() {
 		}, function(err, body) {
 			assert.ifError(err);
 			assert.ok(body);
-			console.log(JSON.stringify(body, null, 2));
+			// console.log(JSON.stringify(body, null, 2));
 			done();
 		});
 	});
@@ -572,7 +572,7 @@ describe("testing multi tenancy - oauth", function() {
 		}, function(err, body) {
 			assert.ifError(err);
 			assert.ok(body);
-			console.log(JSON.stringify(body, null, 2));
+			// console.log(JSON.stringify(body, null, 2));
 			done();
 		});
 	});

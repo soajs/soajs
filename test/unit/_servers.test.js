@@ -46,6 +46,7 @@ describe("importing sample data", function () {
 			require("./utilities/utils.test");
 			
 			require("./mw/awarenessEnv/custom.test.js");
+			require("./mw/awarenessEnv/ha.test.js");
 			
 			require("./servers/controller.test.js");
 			

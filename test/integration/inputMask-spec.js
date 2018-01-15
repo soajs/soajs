@@ -571,7 +571,7 @@ describe('testing inputMask', function() {
 		//async.series([lib.startTestService2, lib.startTestService, lib.startController], function(err) {
 		async.series([lib.startController, lib.startTestService2, lib.startTestService], function(err) {
 			//lib.startTestService(function(err) {
-			console.log(err);
+			// console.log(err);
 			assert.ifError(err);
 			setTimeout(function() {
 			done();
@@ -581,7 +581,7 @@ describe('testing inputMask', function() {
 	after(function(done) {
 		async.series([lib.stopController, lib.stopTestService, lib.stopTestService2], function(err) {
 			//lib.stopTestService(function(err) {
-			console.log(err);
+			// console.log(err);
 			assert.ifError(err);
 			done();
 		});
@@ -640,7 +640,7 @@ describe('testing inputMask', function() {
 			}, function(err, body) {
 				assert.ifError(err);
 				assert.ok(body);
-				console.log (body);
+				// console.log (body);
 				assert.equal(body.result, false);
 				done();
 			});
@@ -657,7 +657,7 @@ describe('testing inputMask', function() {
 			}, function(err, body) {
 				assert.ifError(err);
 				assert.ok(body);
-				console.log (body);
+				// console.log (body);
 				assert.equal(body.result, true);
 				assert.deepEqual(body.data, {
 					name: 'john',

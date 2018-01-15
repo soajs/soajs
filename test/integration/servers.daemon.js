@@ -24,8 +24,8 @@ describe('Testing helloDaemon', function() {
         daemon.init(function() {
             daemon.job("hello", function(soajs, next) {
                 soajs.log.info ("HELLO daemon");
-                console.log ("*************************");
-                console.log(soajs.servicesConfig);
+                // console.log ("*************************");
+                // console.log(soajs.servicesConfig);
                 next();
             });
             daemon.start(function(err){

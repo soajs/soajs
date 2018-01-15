@@ -332,7 +332,7 @@ daemon.prototype.start = function (cb) {
                     "jobs": {
                         "hello": {
                             "type": "global", // "tenant" || "global"
-                            "serviceConfig": {"mike": "tormoss"}, //if global
+                            "serviceConfig": {"mike": "testing"}, //if global
                             "tenantExtKeys": [] //if tenant
                         }
                     }
