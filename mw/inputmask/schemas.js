@@ -46,10 +46,11 @@ var schemas = [
                         "group": {"type": "string", required: false},
                         "groupMain": {"type": "boolean", required: false}
                     }
-                }
+                },
+	            "_authorization": {"type": "string"}
             },
             "patternProperties": {
-                "^(?!commonFields|_apiInfo)[_a-z][_a-zA-Z0-9]*$": {"$ref": "/soajs/Field"}
+                "^(?!commonFields|_apiInfo|_authorization)[_a-z][_a-zA-Z0-9]*$": {"$ref": "/soajs/Field"}
             },
             "additionalProperties": false
         }
