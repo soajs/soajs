@@ -301,15 +301,6 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
 			//formulate request and pipe
 			var myUri = reg.protocol + '://' + reg.apiPrefix + "." + reg.domain + ':' + reg.port + requestedRoute;
 			
-			if (reg.deployer.type === 'container') {
-				let deployerInfo = reg.deployer.selected.split(".");
-				if(reg.deployer[deployerInfo[0]][deployerInfo[1]][deployerInfo[2]]){
-					if(reg.deployer[deployerInfo[0]][deployerInfo[1]][deployerInfo[2]].nodes && reg.deployer[deployerInfo[0]][deployerInfo[1]][deployerInfo[2]].nodes !== ''){
-						myUri = reg.protocol + "://" + reg.deployer[deployerInfo[0]][deployerInfo[1]][deployerInfo[2]].nodes + ':' + reg.port + requestedRoute;
-					}
-				}
-			}
-			
 			var requestConfig = {
 				'uri': myUri,
 				'method': req.method,
