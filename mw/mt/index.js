@@ -194,30 +194,32 @@ module.exports = function (configuration) {
                                             if (req.soajs.uracDriver) {
                                                 if (serviceParam.urac) {
                                                     var uracObj = req.soajs.uracDriver.getProfile();
-                                                    injectObj.urac = {
-                                                        "_id": uracObj._id,
-                                                        "username": uracObj.username,
-                                                        "firstName": uracObj.firstName,
-                                                        "lastName": uracObj.lastName,
-                                                        "email": uracObj.email,
-                                                        "groups": uracObj.groups,
-                                                        "socialLogin": uracObj.socialLogin,
-                                                        "tenant": {
-                                                            "id": uracObj.tenant.id,
-                                                            "code": uracObj.tenant.code
-                                                        }
-                                                    };
-
-                                                    injectObj.param = injectObj.param || {};
-                                                    injectObj.param.urac_Profile = serviceParam.urac_Profile;
-                                                    injectObj.param.urac_ACL = serviceParam.urac_ACL;
-
-                                                    if (serviceParam.urac_Profile)
-                                                        injectObj.urac.profile = uracObj.profile;
-                                                    if (serviceParam.urac_ACL)
-                                                        injectObj.urac.acl = req.soajs.uracDriver.getAcl();
-                                                    if (serviceParam.urac_ACL)
-                                                        injectObj.urac.acl_AllEnv = req.soajs.uracDriver.getAclAllEnv();
+                                                    if(uracObj){
+	                                                    injectObj.urac = {
+		                                                    "_id": uracObj._id,
+		                                                    "username": uracObj.username,
+		                                                    "firstName": uracObj.firstName,
+		                                                    "lastName": uracObj.lastName,
+		                                                    "email": uracObj.email,
+		                                                    "groups": uracObj.groups,
+		                                                    "socialLogin": uracObj.socialLogin,
+		                                                    "tenant": {
+			                                                    "id": uracObj.tenant.id,
+			                                                    "code": uracObj.tenant.code
+		                                                    }
+	                                                    };
+	
+	                                                    injectObj.param = injectObj.param || {};
+	                                                    injectObj.param.urac_Profile = serviceParam.urac_Profile;
+	                                                    injectObj.param.urac_ACL = serviceParam.urac_ACL;
+	
+	                                                    if (serviceParam.urac_Profile)
+		                                                    injectObj.urac.profile = uracObj.profile;
+	                                                    if (serviceParam.urac_ACL)
+		                                                    injectObj.urac.acl = req.soajs.uracDriver.getAcl();
+	                                                    if (serviceParam.urac_ACL)
+		                                                    injectObj.urac.acl_AllEnv = req.soajs.uracDriver.getAclAllEnv();
+                                                    }
                                                 }
                                             }
                                             if (!serviceParam.provision_ACL) {
