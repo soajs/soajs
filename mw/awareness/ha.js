@@ -162,7 +162,6 @@ var ha = {
 	    }
 
 	    env = regEnvironment;
-		param.log.debug(JSON.stringify (awarenessCache, null, 2));
 
         if(serviceName === 'controller') {
 	        if(process.env.SOAJS_DEPLOY_HA === 'kubernetes') {
