@@ -647,6 +647,12 @@ function isRequestAuthorized(req, requestOptions) {
  */
 function returnKeyAndPermissions(req, res) {
 	var tenant = req.soajs.uracDriver.getProfile().tenant || req.soajs.tenant;
+	
+	//if saas mode and inputs contain project value, append it to tenant object
+	if(process.env.SOAJS_SAAS && req.soajs.inputmaskData.soajs_project && req.soajs.inputmaskData.soajs_project !== ''){
+		tenant.soajs_project = req.soajs.inputmaskData.soajs_project;
+	}
+	
 	findExtKey(tenant, function (error, data) {
 		if (error) {
 			req.soajs.log.error(error);
