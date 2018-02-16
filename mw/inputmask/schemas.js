@@ -18,8 +18,9 @@ var schemas = [
             "type": "object",
             "properties": {
                 "source": {'type': 'array', 'minItems': 1, 'items': {'type': 'string'}},
-                "default": {"type": ["string", "number", "boolean", "array", "object"]},
-                "required": {"type": "boolean"},
+	            "description": {'type': 'string', 'required': false},
+	            "default": {"type": ["string", "number", "boolean", "array", "object"]},
+	            "required": {"type": "boolean"},
                 "validation": {"type": "object"}
             },
             "additionalProperties": false
@@ -46,10 +47,16 @@ var schemas = [
                         "group": {"type": "string", required: false},
                         "groupMain": {"type": "boolean", required: false}
                     }
+                },
+	            "_authorization": {"type": "string"},
+	            "responses": {
+                	"type": "object",
+		            "properties" : {},
+		            "additionalProperties": true
                 }
             },
             "patternProperties": {
-                "^(?!commonFields|_apiInfo)[_a-z][_a-zA-Z0-9]*$": {"$ref": "/soajs/Field"}
+                "^(?!commonFields|_apiInfo|_authorization|responses)[_a-z][_a-zA-Z0-9]*$": {"$ref": "/soajs/Field"}
             },
             "additionalProperties": false
         }
