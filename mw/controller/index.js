@@ -649,7 +649,8 @@ function returnKeyAndPermissions(req, res) {
 	var tenant = req.soajs.uracDriver.getProfile().tenant || req.soajs.tenant;
 	
 	//if saas mode and inputs contain project value, append it to tenant object
-	if(process.env.SOAJS_SAAS && req.soajs.inputmaskData.soajs_project && req.soajs.inputmaskData.soajs_project !== ''){
+	if(process.env.SOAJS_SAAS && req.soajs.inputmaskData && req.soajs.inputmaskData.soajs_project && req.soajs.inputmaskData.soajs_project !== ''){
+		req.soajs.log.debug("detected saas project", req.soajs.inputmaskData.soajs_project);
 		tenant.soajs_project = req.soajs.inputmaskData.soajs_project;
 	}
 	
