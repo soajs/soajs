@@ -647,9 +647,11 @@ function isRequestAuthorized(req, requestOptions) {
  */
 function returnKeyAndPermissions(req, res) {
 	var tenant = req.soajs.uracDriver.getProfile().tenant || req.soajs.tenant;
-	
+	if(req.soajs.tenant.locked){
+		tenant.locked = req.soajs.tenant.locked;
+	}
 	//if saas mode and inputs contain project value, append it to tenant object
-	if(process.env.SOAJS_SAAS && req.query && req.query.soajs_project && req.query.soajs_project !== ''){
+	if(process.env.SOAJS_SAAS && !tenant.locked && req.query && req.query.soajs_project && req.query.soajs_project !== ''){
 		req.soajs.log.debug("detected saas project", req.query.soajs_project);
 		tenant.soajs_project = req.query.soajs_project;
 	}
