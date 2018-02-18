@@ -55,6 +55,6 @@
     "soajs.core.modules": "2.0.1",
     "soajs.urac.driver": "1.0.4",
     "useragent": "2.2.1",
-    "validator": "6.2.0"
+    "validator": "9.4.1"
   }
 }
