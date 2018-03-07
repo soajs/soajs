@@ -101,7 +101,7 @@ function filterOutRegExpObj(originalAclObj) {
 		var keys = [];
 		var out = pathToRegexp(route, keys, {sensitive: true});
 		if (out && out.keys && out.keys.length > 0) {
-			out = new RegExp(out.keys[0].pattern);
+			out = new RegExp(out.toString());
 		}
 		return out;
 	}
