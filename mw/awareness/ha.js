@@ -38,7 +38,7 @@ var lib = {
 
 	"getLatestVersion" : function (serviceName, cb){
 		var options = lib.constructDriverParam(serviceName);
-		drivers.getLatestVersion(options, cb);
+		drivers.execute({"type": "container", "driver": options.strategy}, 'getLatestVersion', options, cb);
 	},
 
 	"getHostFromCache": function (serviceName, version) {
@@ -79,7 +79,7 @@ var lib = {
 
 		function getHost(version) {
 			options.params.version = version;
-			drivers.getServiceHost(options, function(error, response){
+			drivers.execute({"type": "container", "driver": options.strategy}, 'getServiceHost', options, (error, response) => {
 				if(error){
 					param.log.error(error);
 					return cb(null);
@@ -95,7 +95,7 @@ var lib = {
 	"rebuildAwarenessCache": function () {
 		var myCache = {};
 		var options = lib.constructDriverParam();
-		drivers.listServices(options, function (error, services) {
+		drivers.execute({"type": "container", "driver": options.strategy}, 'listServices', options, (error, services) => {
 			if (error) {
 				param.log.error(error);
 				return;

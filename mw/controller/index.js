@@ -443,7 +443,7 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
 								"env": process.env.SOAJS_ENV
 							}
 						};
-						drivers.getLatestVersion(options, function (error, latestVersion) {
+						drivers.execute({"type": "container", "driver": options.strategy}, 'getLatestVersion', options, (error, latestVersion) => {
 							if (error) {
 								return callback(error);
 							}
