@@ -16,8 +16,13 @@ var lib = {
 		var info = core.registry.get().deployer.selected.split('.');
 		var deployerConfig = core.registry.get().deployer.container[info[1]][info[2]];
 
+		let strategy = process.env.SOAJS_DEPLOY_HA;
+		if (strategy === 'swarm'){
+			strategy = 'docker';
+		}
+		
 		var options = {
-			"strategy": process.env.SOAJS_DEPLOY_HA,
+			"strategy": strategy,
 			"driver": info[1] + "." + info[2],
 			"deployerConfig": deployerConfig,
 			"soajs": {
