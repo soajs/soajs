@@ -636,7 +636,7 @@ describe("testing utils", function () {
 		});
 	});
 	
-	it("test uracCheck - no error", function (done) {
+	it.skip("test uracCheck - no error", function (done) {
 		provisionStub = sinon.stub(provision, 'getTenantData', (code, cb) => {
 				return cb(null, {});
 			}
@@ -675,7 +675,7 @@ describe("testing utils", function () {
 		});
 	});
 	
-	it("test uracCheck - getEnvRegistry - same env", function (done) {
+	it.skip("test uracCheck - getEnvRegistry - same env", function (done) {
 		
 		provisionStub = sinon.stub(provision, 'getTenantData', (code, cb) => {
 				return cb(null, {});
@@ -715,7 +715,7 @@ describe("testing utils", function () {
 		});
 	});
 	
-	it("test uracCheck - getEnvRegistry - different env", function (done) {
+	it.skip("test uracCheck - getEnvRegistry - different env", function (done) {
 		
 		provisionStub = sinon.stub(provision, 'getTenantData', (code, cb) => {
 				return cb(null, {});
