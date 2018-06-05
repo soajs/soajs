@@ -16,7 +16,7 @@ process.env.SOAJS_ENV = "dashboard";
 var utils = helper.requireModule('./mw/mt/utils.js');
 process.env.SOAJS_ENV = oldValueSet;
 
-describe("testing utils", function () {
+describe("testing utils dashboard", function () {
 	
 	let provisionStub;
 	
