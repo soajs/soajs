@@ -188,7 +188,7 @@ module.exports = function (grunt) {
 	grunt.registerTask("unit", ['env:mochaTest', 'mochaTest:unit']);
 	//grunt.registerTask("test", ['unit','integration']);
 	grunt.registerTask("test", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration']);
-	grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration', 'storeCoverage', 'makeReport', 'coveralls']);
+	grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:integration', 'mochaTest:unit', 'storeCoverage', 'makeReport', 'coveralls']);
 	//grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration', 'storeCoverage', 'makeReport']);
 
 };

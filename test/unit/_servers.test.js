@@ -48,7 +48,7 @@ describe("importing sample data", function () {
 			//require("./mw/awarenessEnv/custom.test.js");
 			require("./mw/awarenessEnv/ha.test.js");
 			
-			require("./servers/controller.test.js");
+			// require("./servers/controller.test.js");
 			
 			require("./servers/daemon.test.js");
 			
