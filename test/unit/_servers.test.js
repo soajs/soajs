@@ -16,7 +16,7 @@ describe("importing sample data", function () {
 		});
 	});
 	
-	after(function (done) {
+	it('running unit tests', function (done) {
 		setTimeout(function () {
 			console.log('test data imported.');
 			
@@ -24,8 +24,8 @@ describe("importing sample data", function () {
 			require("./mw-urac.test.js");
 			require("./mw-imfv.test.js");
 			
-			//require("./mw/mt/utils-dev.test.js");
-			//require("./mw/mt/utils-dashboard.test.js");
+			require("./mw/mt/utils-dev.test.js");
+			require("./mw/mt/utils-dashboard.test.js");
 			require("./mw/mt/index.test.js");
 			
 			require("./mw/enhancer/index.test.js");
@@ -45,11 +45,10 @@ describe("importing sample data", function () {
 			require("./classes/MultiTenantSession.test");
 			require("./utilities/utils.test");
 			
-			//require("./mw/awarenessEnv/custom.test.js");
+			require("./mw/awarenessEnv/custom.test.js");
 			require("./mw/awarenessEnv/ha.test.js");
 			
-			// require("./servers/controller.test.js");
-			
+			require("./servers/controller.test.js");
 			require("./servers/daemon.test.js");
 			
 			done();

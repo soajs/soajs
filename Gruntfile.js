@@ -184,12 +184,10 @@ module.exports = function (grunt) {
 
 	process.env.SHOW_LOGS = grunt.option('showLogs');
 	grunt.registerTask("default", ['jshint']);
-	grunt.registerTask("integration", ['env:mochaTest', 'mochaTest:integration']);
-	grunt.registerTask("unit", ['env:mochaTest', 'mochaTest:unit']);
-	//grunt.registerTask("test", ['unit','integration']);
+	grunt.registerTask("integration", ['clean', 'env:coverage', 'instrument', 'mochaTest:integration']);
+	grunt.registerTask("unit", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit']);
 	grunt.registerTask("test", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration']);
-	grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:integration', 'mochaTest:unit', 'storeCoverage', 'makeReport', 'coveralls']);
-	//grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration', 'storeCoverage', 'makeReport']);
+	grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration', 'storeCoverage', 'makeReport', 'coveralls']);
 
 };
 
