@@ -50,9 +50,9 @@
     "oauth2-server": "2.4.1",
     "path-to-regexp": "1.7.0",
     "request": "2.82.0",
-    "soajs.core.drivers": "3.0.0",
+    "soajs.core.drivers": "3.0.1",
     "soajs.core.libs": "1.0.2",
-    "soajs.core.modules": "2.0.4",
+    "soajs.core.modules": "2.0.5",
     "soajs.urac.driver": "1.0.5",
     "useragent": "2.2.1",
     "validator": "9.4.1"
