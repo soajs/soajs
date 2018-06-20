@@ -27,6 +27,10 @@ if (autoRegHost && typeof(autoRegHost) !== 'boolean') {
     autoRegHost = (autoRegHost === 'true');
 }
 
+var regEnvironment = (process.env.SOAJS_ENV || "dev");
+regEnvironment = regEnvironment.toLowerCase();
+
+
 /**
  *
  */
@@ -181,7 +185,7 @@ controller.prototype.init = function (callback) {
 		                            "ip": _self.serviceIp,
 		                            "ts": response.ts ,
 		                            "data": soajsUtils.cloneObj(response.data),
-		                            "env": process.env.SOAJS_ENV.toLowerCase()
+		                            "env": regEnvironment
                             	}, function(error){
                             		if(error){
                             		    _self.log.error(error);
@@ -413,7 +417,7 @@ controller.prototype.start = function (cb) {
 			    "ip": _self.serviceIp,
 			    "ts": awarenessStatData.ts ,
 			    "data": awarenessStatData.data,
-			    "env": process.env.SOAJS_ENV.toLowerCase()
+			    "env": regEnvironment
 		    }, cb);
 	    }
     }
