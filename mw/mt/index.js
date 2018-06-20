@@ -54,8 +54,8 @@ module.exports = function (configuration) {
             "oauth": oauth
         };
 
-        if (serviceInfo.hasOwnProperty("oauth"))
-            serviceParam.oauth = serviceInfo.oauth;
+        //if (serviceInfo.hasOwnProperty("oauth"))
+        //    serviceParam.oauth = serviceInfo.oauth;
 
         if (serviceInfo[regEnvironment]) {
             if (serviceInfo[regEnvironment].hasOwnProperty("extKeyRequired"))

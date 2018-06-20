@@ -337,7 +337,10 @@ controller.prototype.init = function (callback) {
 	                var mt_mw = require("./../mw/mt/index");
 	                app.use(mt_mw({"soajs": _self.soajs, "app": app, "param": _self.soajs.param}));
 	                _self.log.info("SOAJS MT middleware initialization done.");
-	
+
+                    var traffic_mw = require("./../mw/traffic/index");
+                    app.use(traffic_mw());
+
 	                app.use(function (req, res, next) {
 		                setImmediate(function () {
 			                req.soajs.controller.gotoservice(req, res, null);
