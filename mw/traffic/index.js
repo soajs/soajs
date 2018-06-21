@@ -52,7 +52,7 @@ module.exports = function (configuration) {
 
         var remainingLifetime = throttling.window - Math.floor(Date.now() - throttlingObj.firstReqTime.getTime());
 
-        console.log(remainingLifetime);
+        //console.log(remainingLifetime);
 
         if (remainingLifetime < 1) {
             throttlingObj.firstReqTime = new Date(Date.now());
@@ -63,22 +63,36 @@ module.exports = function (configuration) {
             throttlingObj.count++;
             throttlingObj.lastReqTime = new Date(Date.now());
         }
-        console.log(dataHolder);
 
         if (throttlingObj.count > throttling.limit) {
             obj.retry++;
             if (obj.retry <= throttling.retries) {
-                console.log("going to wait");
+                //console.log("going to wait");
                 setTimeout(function () {
-                    console.log("end of waiting");
+                    //console.log("end of waiting");
                     checkThrottling({'trafficKey': trafficKey, 'throttling': throttling, 'retry': obj.retry}, cb);
                 }, throttling.delay);
             }
-            else
-                return cb(false);
+            else {
+
+                console.log(dataHolder);
+                return cb({
+                    'result': false, 'headObj': {
+                        'Retry-After': remainingLifetime / 1000,
+                        'X-RateLimit-Limit': throttling.limit,
+                        'X-RateLimit-Remaining': throttling.limit - throttlingObj.count
+                    }
+                });
+            }
         }
         else {
-            return cb(true);
+            return cb({
+                'result': true, 'headObj': {
+                    'Retry-After': remainingLifetime / 1000,
+                    'X-RateLimit-Limit': throttling.limit,
+                    'X-RateLimit-Remaining': throttling.limit - throttlingObj.count
+                }
+            });
         }
     };
 
@@ -96,18 +110,14 @@ module.exports = function (configuration) {
             var throttling = req.soajs.registry.serviceConfig.throttling;
             var trafficKey = {"l1": req.soajs.tenant.id, "l2": req.getClientIP()};
 
-            checkThrottling({'trafficKey': trafficKey, 'throttling': throttling, 'retry': 0}, function (result) {
-                console.log(req.soajs.controller.serviceParams.path);
+            checkThrottling({'trafficKey': trafficKey, 'throttling': throttling, 'retry': 0}, function (response) {
+                //console.log(req.soajs.controller.serviceParams.path);
 
-                if (result) {
+                if (response.result) {
                     return next();
                 }
                 else {
-                    //res.status(429);
-                    //res.header('Retry-After', remainingLifetime/1000);
-                    //res.header('X-RateLimit-Limit', throttling.limit);
-                    //res.header('X-RateLimit-Remaining', throttling.limit-throttlingObj.count);
-                    req.soajs.controllerResponse({'status': 429, 'msg': "too many requests"});
+                    req.soajs.controllerResponse({'status': 429, 'msg': "too many requests", 'headObj': response.headObj});
                 }
             });
         }
