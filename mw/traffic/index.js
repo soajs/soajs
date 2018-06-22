@@ -11,13 +11,31 @@ module.exports = function (configuration) {
 
 
     var dataHolder = {};
-    var confSchema = {
-        'status': 1, // 0=Off, 1=On
-        'type': 1, // 0= tenant, 1= tenant -> ip
-        'window': 60000,
-        'limit': 5,
-        'retries': 2,
-        'delay': 1000
+    var registryThrottling = {
+        "default": {
+            'status': 1, // 0=Off, 1=On
+            'type': 1, // 0= tenant, 1= tenant -> ip
+            'window': 60000,
+            'limit': 50,
+            'retries': 2,
+            'delay': 1000
+        },
+        "off": {
+            'status': 0, // 0=Off, 1=On
+            'type': 1, // 0= tenant, 1= tenant -> ip
+            'window': 60000,
+            'limit': 5,
+            'retries': 2,
+            'delay': 1000
+        },
+        "heavy": {
+            'status': 1, // 0=Off, 1=On
+            'type': 1, // 0= tenant, 1= tenant -> ip
+            'window': 60000,
+            'limit': 500,
+            'retries': 2,
+            'delay': 1000
+        }
     };
 
 
@@ -52,7 +70,6 @@ module.exports = function (configuration) {
 
         var remainingLifetime = throttling.window - Math.floor(Date.now() - throttlingObj.firstReqTime.getTime());
 
-        //console.log(remainingLifetime);
 
         if (remainingLifetime < 1) {
             throttlingObj.firstReqTime = new Date(Date.now());
@@ -64,6 +81,9 @@ module.exports = function (configuration) {
             throttlingObj.lastReqTime = new Date(Date.now());
         }
 
+
+        console.log(dataHolder);
+        console.log(remainingLifetime);
         if (throttlingObj.count > throttling.limit) {
             obj.retry++;
             if (obj.retry <= throttling.retries) {
@@ -74,8 +94,6 @@ module.exports = function (configuration) {
                 }, throttling.delay);
             }
             else {
-
-                console.log(dataHolder);
                 return cb({
                     'result': false, 'headObj': {
                         'Retry-After': remainingLifetime / 1000,
@@ -97,29 +115,44 @@ module.exports = function (configuration) {
     };
 
     return function (req, res, next) {
-        req.soajs.registry.serviceConfig.throttling = confSchema;
-        if (req && req.soajs && req.soajs.registry && req.soajs.registry.serviceConfig && req.soajs.registry.serviceConfig.throttling && req.soajs.registry.serviceConfig.throttling.status && req.soajs.tenant && req.soajs.controller) {
+        req.soajs.registry.serviceConfig.throttling = registryThrottling;
+        if (req && req.soajs && req.soajs.registry && req.soajs.registry.serviceConfig && req.soajs.registry.serviceConfig.throttling && req.soajs.tenant && req.soajs.controller) {
 
             var serviceName = req.soajs.controller.serviceParams.name;
+            var throttlingStrategy = "default";
+            var throttling = req.soajs.registry.serviceConfig.throttling;
 
-            if (req.soajs.servicesConfig && req.soajs.servicesConfig[serviceName] && req.soajs.servicesConfig[serviceName].SOAJS && req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING && req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING.disabled) {
+            if (req.soajs.servicesConfig && req.soajs.servicesConfig[serviceName] && req.soajs.servicesConfig[serviceName].SOAJS && req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING) {
+                if (req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING.disabled)
+                    return next();
+                else {
+                    if (req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING.strategy && throttling[req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING.strategy])
+                        throttlingStrategy = req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING.strategy;
+                }
+            }
+
+            throttling = req.soajs.registry.serviceConfig.throttling[throttlingStrategy];
+
+            if (throttling && throttling.status) {
+                var trafficKey = {"l1": req.soajs.tenant.id, "l2": req.getClientIP()};
+
+                checkThrottling({'trafficKey': trafficKey, 'throttling': throttling, 'retry': 0}, function (response) {
+                    console.log(response)
+                    if (response.result) {
+                        return next();
+                    }
+                    else {
+                        req.soajs.controllerResponse({
+                            'status': 429,
+                            'msg': "too many requests",
+                            'headObj': response.headObj
+                        });
+                    }
+                });
+            }
+            else {
                 return next();
             }
-            //console.log (req.soajs.registry.serviceConfig);
-
-            var throttling = req.soajs.registry.serviceConfig.throttling;
-            var trafficKey = {"l1": req.soajs.tenant.id, "l2": req.getClientIP()};
-
-            checkThrottling({'trafficKey': trafficKey, 'throttling': throttling, 'retry': 0}, function (response) {
-                //console.log(req.soajs.controller.serviceParams.path);
-
-                if (response.result) {
-                    return next();
-                }
-                else {
-                    req.soajs.controllerResponse({'status': 429, 'msg': "too many requests", 'headObj': response.headObj});
-                }
-            });
         }
         else {
             return next();
