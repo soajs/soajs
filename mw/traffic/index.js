@@ -9,7 +9,6 @@ var core = coreModules.core;
  */
 module.exports = function (configuration) {
 
-
     var dataHolder = {};
     var registryThrottling = {
         "default": {
@@ -37,7 +36,6 @@ module.exports = function (configuration) {
             'delay': 1000
         }
     };
-
 
     var checkThrottling = function (obj, cb) {
         var trafficKey = obj.trafficKey;
@@ -70,7 +68,6 @@ module.exports = function (configuration) {
 
         var remainingLifetime = throttling.window - Math.floor(Date.now() - throttlingObj.firstReqTime.getTime());
 
-
         if (remainingLifetime < 1) {
             throttlingObj.firstReqTime = new Date(Date.now());
             throttlingObj.count = 0;
@@ -81,15 +78,10 @@ module.exports = function (configuration) {
             throttlingObj.lastReqTime = new Date(Date.now());
         }
 
-
-        console.log(dataHolder);
-        console.log(remainingLifetime);
         if (throttlingObj.count > throttling.limit) {
             obj.retry++;
             if (obj.retry <= throttling.retries) {
-                //console.log("going to wait");
                 setTimeout(function () {
-                    //console.log("end of waiting");
                     checkThrottling({'trafficKey': trafficKey, 'throttling': throttling, 'retry': obj.retry}, cb);
                 }, throttling.delay);
             }
@@ -115,11 +107,10 @@ module.exports = function (configuration) {
     };
 
     return function (req, res, next) {
-        req.soajs.registry.serviceConfig.throttling = registryThrottling;
         if (req && req.soajs && req.soajs.registry && req.soajs.registry.serviceConfig && req.soajs.registry.serviceConfig.throttling && req.soajs.tenant && req.soajs.controller) {
 
             var serviceName = req.soajs.controller.serviceParams.name;
-            var throttlingStrategy = "default";
+            var throttlingStrategy = req.soajs.registry.serviceConfig.throttling.defaultStrategy || "default";
             var throttling = req.soajs.registry.serviceConfig.throttling;
 
             if (req.soajs.servicesConfig && req.soajs.servicesConfig[serviceName] && req.soajs.servicesConfig[serviceName].SOAJS && req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING) {
@@ -137,7 +128,7 @@ module.exports = function (configuration) {
                 var trafficKey = {"l1": req.soajs.tenant.id, "l2": req.getClientIP()};
 
                 checkThrottling({'trafficKey': trafficKey, 'throttling': throttling, 'retry': 0}, function (response) {
-                    console.log(response)
+                    console.log(response);
                     if (response.result) {
                         return next();
                     }
