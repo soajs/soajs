@@ -38,8 +38,8 @@ module.exports = function (configuration) {
         }
     };
     var provisionThrottling = {
-        "publicAPIStrategy" : "default", // can be null means no throttling is off, if not set means inherit from registry
-        "privateAPIStrategy": "heavy", // can be null means no throttling is off, if not set means inherit from registry
+        "publicAPIStrategy" : "default", // can be null means throttling is off, if not set means inherit from registry
+        "privateAPIStrategy": null, // can be null means throttling is off, if not set means inherit from registry
     };
 
     var dataHolder = {};
