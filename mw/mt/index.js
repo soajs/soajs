@@ -108,7 +108,10 @@ module.exports = function (configuration) {
                                     serviceCheckArray.push(utils.securityDeviceCheck);
 
                                     serviceCheckArray.push(utils.aclCheck);
-                                    serviceCheckArray.push(utils.oauthCheck);
+
+                                    if (serviceParam.oauth)
+                                        serviceCheckArray.push(utils.oauthCheck);
+
                                     serviceCheckArray.push(utils.uracCheck);
                                     serviceCheckArray.push(utils.aclUrackCheck);
 
