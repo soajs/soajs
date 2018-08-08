@@ -69,6 +69,7 @@ module.exports = function (configuration) {
 
         req.soajs.awareness.getHost('controller', function (controllerHostInThisEnvironment) {
             if (serviceParam.extKeyRequired) {
+                req.soajs.controller.serviceParams.isAPIPublic = false;
                 try {
                     provision.getExternalKeyData(req.get("key"), req.soajs.registry.serviceConfig.key, function (err, keyObj) {
                         if (err)
@@ -251,6 +252,7 @@ module.exports = function (configuration) {
                 }
             }
             else {
+                req.soajs.controller.serviceParams.isAPIPublic = true;
                 if (serviceParam.oauth) {
                     var oauthExec = function () {
                         soajs.oauth(req, res, next);

@@ -9,8 +9,9 @@ var core = coreModules.core;
  */
 module.exports = function (configuration) {
 
-    var dataHolder = {};
     var registryThrottling = {
+        "publicAPIStrategy" : "default", // can be null means no throttling is off
+        "privateAPIStrategy": "heavy", // can be null means no throttling is off
         "default": {
             'status': 1, // 0=Off, 1=On
             'type': 1, // 0= tenant, 1= tenant -> ip
@@ -36,7 +37,12 @@ module.exports = function (configuration) {
             'delay': 1000
         }
     };
+    var provisionThrottling = {
+        "publicAPIStrategy" : "default", // can be null means no throttling is off, if not set means inherit from registry
+        "privateAPIStrategy": "heavy", // can be null means no throttling is off, if not set means inherit from registry
+    };
 
+    var dataHolder = {};
     var checkThrottling = function (obj, cb) {
         var trafficKey = obj.trafficKey;
         var throttling = obj.throttling;
@@ -108,23 +114,23 @@ module.exports = function (configuration) {
 
     return function (req, res, next) {
         if (req && req.soajs && req.soajs.registry && req.soajs.registry.serviceConfig && req.soajs.registry.serviceConfig.throttling && req.soajs.tenant && req.soajs.controller) {
-
             var serviceName = req.soajs.controller.serviceParams.name;
-            var throttlingStrategy = req.soajs.registry.serviceConfig.throttling.defaultStrategy || "default";
+            var strategy = (req.soajs.controller.serviceParams.isAPIPublic ? "publicAPIStrategy" : "privateAPIStrategy");
+            var throttlingStrategy = req.soajs.registry.serviceConfig.throttling[strategy];
             var throttling = req.soajs.registry.serviceConfig.throttling;
 
             if (req.soajs.servicesConfig && req.soajs.servicesConfig[serviceName] && req.soajs.servicesConfig[serviceName].SOAJS && req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING) {
-                if (req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING.disabled)
-                    return next();
-                else {
-                    if (req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING.strategy && throttling[req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING.strategy])
-                        throttlingStrategy = req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING.strategy;
-                }
+                if (req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING.hasOwnProperty(strategy))
+                    throttlingStrategy = req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING[strategy];
             }
+            console.log ("--------------- throttlingStrategy "+ throttlingStrategy)
+            if (!throttlingStrategy)
+                return next();
 
             throttling = req.soajs.registry.serviceConfig.throttling[throttlingStrategy];
 
             if (throttling && throttling.status) {
+                console.log ("--------------- throttlingStrategy ON")
                 var trafficKey = {"l1": req.soajs.tenant.id, "l2": req.getClientIP()};
 
                 checkThrottling({'trafficKey': trafficKey, 'throttling': throttling, 'retry': 0}, function (response) {
@@ -142,6 +148,7 @@ module.exports = function (configuration) {
                 });
             }
             else {
+                console.log ("--------------- throttlingStrategy OFF")
                 return next();
             }
         }
