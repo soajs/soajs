@@ -117,20 +117,20 @@ module.exports = function (configuration) {
             var serviceName = req.soajs.controller.serviceParams.name;
             var strategy = (req.soajs.controller.serviceParams.isAPIPublic ? "publicAPIStrategy" : "privateAPIStrategy");
             var throttlingStrategy = req.soajs.registry.serviceConfig.throttling[strategy];
-            var throttling = req.soajs.registry.serviceConfig.throttling;
+            //var throttling = null;
 
             if (req.soajs.servicesConfig && req.soajs.servicesConfig[serviceName] && req.soajs.servicesConfig[serviceName].SOAJS && req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING) {
                 if (req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING.hasOwnProperty(strategy))
                     throttlingStrategy = req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING[strategy];
             }
-            console.log ("--------------- throttlingStrategy "+ throttlingStrategy)
+            console.log ("--------------- throttlingStrategy "+ throttlingStrategy);
             if (!throttlingStrategy)
                 return next();
 
-            throttling = req.soajs.registry.serviceConfig.throttling[throttlingStrategy];
+            var throttling = req.soajs.registry.serviceConfig.throttling[throttlingStrategy];
 
-            if (throttling && throttling.status) {
-                console.log ("--------------- throttlingStrategy ON")
+            if (throttling) {
+                console.log ("--------------- throttlingStrategy ON");
                 var trafficKey = {"l1": req.soajs.tenant.id, "l2": req.getClientIP()};
 
                 checkThrottling({'trafficKey': trafficKey, 'throttling': throttling, 'retry': 0}, function (response) {
@@ -148,7 +148,7 @@ module.exports = function (configuration) {
                 });
             }
             else {
-                console.log ("--------------- throttlingStrategy OFF")
+                console.log ("--------------- throttlingStrategy OFF");
                 return next();
             }
         }
