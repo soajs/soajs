@@ -10,8 +10,8 @@ var core = coreModules.core;
 module.exports = function (configuration) {
 
     var registryThrottling = {
-        "publicAPIStrategy" : "default", // can be null means no throttling is off
-        "privateAPIStrategy": "heavy", // can be null means no throttling is off
+        "publicAPIStrategy" : "default", // can be null means throttling is off
+        "privateAPIStrategy": "heavy", // can be null means throttling is off
         "default": {
             'status': 1, // 0=Off, 1=On
             'type': 1, // 0= tenant, 1= tenant -> ip
