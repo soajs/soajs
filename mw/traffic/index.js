@@ -123,18 +123,15 @@ module.exports = function (configuration) {
                 if (req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING.hasOwnProperty(strategy))
                     throttlingStrategy = req.soajs.servicesConfig[serviceName].SOAJS.THROTTLING[strategy];
             }
-            console.log ("--------------- throttlingStrategy "+ throttlingStrategy);
             if (!throttlingStrategy)
                 return next();
 
             var throttling = req.soajs.registry.serviceConfig.throttling[throttlingStrategy];
 
             if (throttling) {
-                console.log ("--------------- throttlingStrategy ON");
                 var trafficKey = {"l1": req.soajs.tenant.id, "l2": req.getClientIP()};
 
                 checkThrottling({'trafficKey': trafficKey, 'throttling': throttling, 'retry': 0}, function (response) {
-                    console.log(response);
                     if (response.result) {
                         return next();
                     }
@@ -148,7 +145,6 @@ module.exports = function (configuration) {
                 });
             }
             else {
-                console.log ("--------------- throttlingStrategy OFF");
                 return next();
             }
         }
