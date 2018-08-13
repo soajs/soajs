@@ -593,6 +593,8 @@ var utils = {
 		}
 		var apiRes = null;
 		if (system && system.access) {
+            if (api && !api.access)
+                obj.req.soajs.controller.serviceParams.isAPIPublic = true;
 			if (_urac.getUser(obj.req)) {
 				if (system.access instanceof Array) {
 					var checkAPI = false;
@@ -616,7 +618,13 @@ var utils = {
 			else
 				return cb(apiRes.error);
 		}
+		else {
+            if (!api || (api && !api.access))
+                obj.req.soajs.controller.serviceParams.isAPIPublic = true;
+		}
 		if (api || (system && ('restricted' === system.apisPermission))) {
+            if (api && !api.access)
+                obj.req.soajs.controller.serviceParams.isAPIPublic = true;
 			apiRes = _api.checkPermission(system, obj.req, api);
 			if (apiRes.result)
 				return cb(null, obj);

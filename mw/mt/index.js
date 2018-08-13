@@ -54,8 +54,8 @@ module.exports = function (configuration) {
             "oauth": oauth
         };
 
-        if (serviceInfo.hasOwnProperty("oauth"))
-            serviceParam.oauth = serviceInfo.oauth;
+        //if (serviceInfo.hasOwnProperty("oauth"))
+        //    serviceParam.oauth = serviceInfo.oauth;
 
         if (serviceInfo[regEnvironment]) {
             if (serviceInfo[regEnvironment].hasOwnProperty("extKeyRequired"))
@@ -69,6 +69,7 @@ module.exports = function (configuration) {
 
         req.soajs.awareness.getHost('controller', function (controllerHostInThisEnvironment) {
             if (serviceParam.extKeyRequired) {
+                req.soajs.controller.serviceParams.isAPIPublic = false;
                 try {
                     provision.getExternalKeyData(req.get("key"), req.soajs.registry.serviceConfig.key, function (err, keyObj) {
                         if (err)
@@ -108,7 +109,10 @@ module.exports = function (configuration) {
                                     serviceCheckArray.push(utils.securityDeviceCheck);
 
                                     serviceCheckArray.push(utils.aclCheck);
-                                    serviceCheckArray.push(utils.oauthCheck);
+
+                                    if (serviceParam.oauth)
+                                        serviceCheckArray.push(utils.oauthCheck);
+
                                     serviceCheckArray.push(utils.uracCheck);
                                     serviceCheckArray.push(utils.aclUrackCheck);
 
@@ -248,6 +252,7 @@ module.exports = function (configuration) {
                 }
             }
             else {
+                req.soajs.controller.serviceParams.isAPIPublic = true;
                 if (serviceParam.oauth) {
                     var oauthExec = function () {
                         soajs.oauth(req, res, next);

@@ -37,10 +37,13 @@ module.exports = function (configuration) {
                 if (req.soajs.buildResponse && jsonObj.code && jsonObj.msg)
                     jsonObj = req.soajs.buildResponse(jsonObj);
 
+
+                var headObj = jsonObj.headObj || {};
+                headObj['Content-Type'] = 'application/json';
                 if (jsonObj.status)
-                    res.writeHead(jsonObj.status, {'Content-Type': 'application/json'});
+                    res.writeHead(jsonObj.status, headObj);
                 else
-                    res.writeHead(200, {'Content-Type': 'application/json'});
+                    res.writeHead(200, headObj);
 
                 res.end(JSON.stringify(jsonObj));
             };
