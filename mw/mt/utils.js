@@ -623,7 +623,7 @@ var utils = {
                 obj.req.soajs.controller.serviceParams.isAPIPublic = true;
 		}
 		if (api || (system && ('restricted' === system.apisPermission))) {
-            if (!api.access)
+            if (api && !api.access)
                 obj.req.soajs.controller.serviceParams.isAPIPublic = true;
 			apiRes = _api.checkPermission(system, obj.req, api);
 			if (apiRes.result)

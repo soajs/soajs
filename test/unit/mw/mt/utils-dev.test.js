@@ -765,6 +765,11 @@ describe("testing utils", function () {
 		var obj = {
 			req: {
 				soajs: {
+					controller: {
+						serviceParams: {
+							name: "test"
+						}
+					},
 					uracDriver: {
 						getProfile: function () {
 							return {};
