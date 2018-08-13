@@ -9,38 +9,38 @@ var core = coreModules.core;
  */
 module.exports = function (configuration) {
 
-    var registryThrottling = {
-        "publicAPIStrategy" : "default", // can be null means throttling is off
-        "privateAPIStrategy": "heavy", // can be null means throttling is off
-        "default": {
-            'status': 1, // 0=Off, 1=On
-            'type': 1, // 0= tenant, 1= tenant -> ip
-            'window': 60000,
-            'limit': 50,
-            'retries': 2,
-            'delay': 1000
-        },
-        "off": {
-            'status': 0, // 0=Off, 1=On
-            'type': 1, // 0= tenant, 1= tenant -> ip
-            'window': 60000,
-            'limit': 5,
-            'retries': 2,
-            'delay': 1000
-        },
-        "heavy": {
-            'status': 1, // 0=Off, 1=On
-            'type': 1, // 0= tenant, 1= tenant -> ip
-            'window': 60000,
-            'limit': 500,
-            'retries': 2,
-            'delay': 1000
-        }
-    };
-    var provisionThrottling = {
-        "publicAPIStrategy" : "default", // can be null means throttling is off, if not set means inherit from registry
-        "privateAPIStrategy": null, // can be null means throttling is off, if not set means inherit from registry
-    };
+    // var registryThrottling = {
+    //     "publicAPIStrategy" : "default", // can be null means throttling is off
+    //     "privateAPIStrategy": "heavy", // can be null means throttling is off
+    //     "default": {
+    //         'status': 1, // 0=Off, 1=On
+    //         'type': 1, // 0= tenant, 1= tenant -> ip
+    //         'window': 60000,
+    //         'limit': 50,
+    //         'retries': 2,
+    //         'delay': 1000
+    //     },
+    //     "off": {
+    //         'status': 0, // 0=Off, 1=On
+    //         'type': 1, // 0= tenant, 1= tenant -> ip
+    //         'window': 60000,
+    //         'limit': 5,
+    //         'retries': 2,
+    //         'delay': 1000
+    //     },
+    //     "heavy": {
+    //         'status': 1, // 0=Off, 1=On
+    //         'type': 1, // 0= tenant, 1= tenant -> ip
+    //         'window': 60000,
+    //         'limit': 500,
+    //         'retries': 2,
+    //         'delay': 1000
+    //     }
+    // };
+    // var provisionThrottling = {
+    //     "publicAPIStrategy" : "default", // can be null means throttling is off, if not set means inherit from registry
+    //     "privateAPIStrategy": null, // can be null means throttling is off, if not set means inherit from registry
+    // };
 
     var dataHolder = {};
     var checkThrottling = function (obj, cb) {
