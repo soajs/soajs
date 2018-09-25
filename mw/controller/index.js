@@ -650,7 +650,12 @@ function isRequestAuthorized(req, requestOptions) {
  * @param res
  */
 function returnKeyAndPermissions(req, res) {
-	var tenant = req.soajs.uracDriver.getProfile().tenant || req.soajs.tenant;
+	var tenant = req.soajs.tenant;
+	
+	if(req.soajs.uracDriver && req.soajs.uracDriver.getProfile() && req.soajs.uracDriver.getProfile().tenant){
+		tenant = req.soajs.uracDriver.getProfile().tenant;
+	}
+	
 	if(req.soajs.tenant.locked){
 		tenant.locked = req.soajs.tenant.locked;
 	}
