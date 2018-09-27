@@ -28,7 +28,7 @@
     "grunt-env": "0.4.4",
     "grunt-istanbul": "0.7.2",
     "grunt-coveralls": "1.0.1",
-    "lodash": "4.17.4",
+    "lodash": "4.17.5",
     "mocha": "3.2.0",
     "shelljs": "0.7.5",
     "sinon": "1.17.6",
