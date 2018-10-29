@@ -412,7 +412,7 @@ service.prototype.start = function (cb) {
 			        throw new Error("Invalid port value detected in SOAJS_SRVPORT environment variable, port value is not a number!");
 		        }
 	        }
-	        else{
+	        else if(process.env.SOAJS_ENV.toUpperCase() !== 'DASHBOARD'){
         	    finalDataPort += _self.app.soajs.serviceConf._conf.ports.controller;
 	        }
         }
@@ -489,7 +489,7 @@ service.prototype.start = function (cb) {
 			    }
 			    maintenancePort = envPort + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
 		    }
-		    else{
+		    else if(process.env.SOAJS_ENV.toUpperCase() !== 'DASHBOARD'){
 			    maintenancePort += _self.app.soajs.serviceConf._conf.ports.controller;
 		    }
 	    }

@@ -243,7 +243,7 @@ daemon.prototype.start = function (cb) {
 			            }
 			            maintenancePort = envPort + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
 		            }
-		            else{
+		            else if(process.env.SOAJS_ENV.toUpperCase() !== 'DASHBOARD'){
 			            maintenancePort += _self.app.soajs.serviceConf._conf.ports.controller;
 		            }
 	            }
