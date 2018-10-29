@@ -237,7 +237,11 @@ daemon.prototype.start = function (cb) {
                 var maintenancePort = _self.soajs.daemonServiceConf.info.port + _self.soajs.daemonServiceConf._conf.ports.maintenanceInc;
 	            if(!process.env.SOAJS_DEPLOY_HA){
 		            if(process.env.SOAJS_SRVPORT){
-			            maintenancePort = process.env.SOAJS_SRVPORT + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
+			            let envPort = parseInt(process.env.SOAJS_SRVPORT);
+			            if(isNaN(envPort)){
+				            throw new Error("Invalid port value detected in SOAJS_SRVPORT environment variable, port value is not a number!");
+			            }
+			            maintenancePort = envPort + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
 		            }
 		            else{
 			            maintenancePort += _self.app.soajs.serviceConf._conf.ports.controller;
