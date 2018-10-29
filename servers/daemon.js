@@ -232,7 +232,18 @@ daemon.prototype.start = function (cb) {
 
                 //MAINTENANCE Service Routes
                 _self.soajs.log.info("Adding Daemon Service Maintenance Routes ...");
+	
+	            //calculate the maintenance port value
                 var maintenancePort = _self.soajs.daemonServiceConf.info.port + _self.soajs.daemonServiceConf._conf.ports.maintenanceInc;
+	            if(!process.env.SOAJS_DEPLOY_HA){
+		            if(process.env.SOAJS_SRVPORT){
+			            maintenancePort = process.env.SOAJS_SRVPORT + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
+		            }
+		            else{
+			            maintenancePort += _self.app.soajs.serviceConf._conf.ports.controller;
+		            }
+	            }
+	            
                 var maintenanceResponse = function (req, route) {
                     var response = {
                         'result': false,

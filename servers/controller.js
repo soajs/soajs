@@ -439,6 +439,7 @@ controller.prototype.start = function (cb) {
                 core.registry.registerHost({
                     "serviceName": _self.serviceName,
                     "serviceVersion": _self.serviceVersion,
+	                "servicePort": _self.registry.services.controller.port,
                     "serviceIp": _self.serviceIp,
                     "serviceHATask": _self.serviceHATask
                 }, _self.registry, function (registered) {
