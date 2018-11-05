@@ -52,7 +52,7 @@
     "request": "2.84.0",
     "soajs.core.drivers": "3.0.14",
     "soajs.core.libs": "1.0.2",
-    "soajs.core.modules": "2.0.6",
+    "soajs.core.modules": "2.0.7",
     "soajs.urac.driver": "1.0.7",
     "useragent": "2.2.1",
     "validator": "9.4.1"
