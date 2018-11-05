@@ -43,7 +43,7 @@
     "express": "4.16.0",
     "express-session": "1.15.6",
     "http-proxy": "1.16.2",
-    "merge": "1.2.0",
+    "merge": "1.2.1",
     "method-override": "2.3.10",
     "morgan": "1.9.0",
     "netmask": "1.0.6",
