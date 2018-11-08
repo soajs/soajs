@@ -402,7 +402,22 @@ service.prototype.start = function (cb) {
         _self.app.use(utils.serviceErrorHandler);
 
         _self.log.info("Starting Service ...");
-        _self.app.httpServer = _self.app.listen(_self.app.soajs.serviceConf.info.port, function (err) {
+	
+	    //calculate the data port value
+        let finalDataPort = _self.app.soajs.serviceConf.info.port;
+        if(!process.env.SOAJS_DEPLOY_HA){
+        	if(process.env.SOAJS_SRVPORT){
+		        finalDataPort = parseInt(process.env.SOAJS_SRVPORT);
+		        if(isNaN(finalDataPort)){
+			        throw new Error("Invalid port value detected in SOAJS_SRVPORT environment variable, port value is not a number!");
+		        }
+	        }
+	        else if(process.env.SOAJS_ENV.toUpperCase() !== 'DASHBOARD'){
+        	    finalDataPort += _self.app.soajs.serviceConf._conf.ports.controller;
+	        }
+        }
+        
+        _self.app.httpServer = _self.app.listen(finalDataPort, function (err) {
             if (err) {
                 _self.log.error(core.error.generate(141));
                 _self.log.error(err);
@@ -410,6 +425,7 @@ service.prototype.start = function (cb) {
             else if (!process.env.SOAJS_DEPLOY_HA) {
                 core.registry.registerHost({
                     "serviceName": _self.app.soajs.param.serviceName,
+                    "servicePort": _self.app.soajs.param.servicePort,
                     "serviceVersion": _self.app.soajs.param.serviceVersion,
                     "serviceIp": _self.app.soajs.param.serviceIp,
                     "serviceHATask": _self.app.soajs.param.serviceHATask
@@ -419,7 +435,7 @@ service.prototype.start = function (cb) {
                     else
                         _self.log.warn("Unable to register host IP [" + _self.app.soajs.param.serviceIp + "] for service [" + _self.app.soajs.param.serviceName + "@" + _self.app.soajs.param.serviceVersion + "]");
 
-                    _self.log.info(_self.app.soajs.param.serviceName + " service started on port: " + _self.app.soajs.serviceConf.info.port);
+                    _self.log.info(_self.app.soajs.param.serviceName + " service started on port: " + finalDataPort);
 
                     if (autoRegHost) {
                         _self.log.info("Initiating service auto register for awareness ...");
@@ -463,7 +479,21 @@ service.prototype.start = function (cb) {
             }
             return version;
         }
+        //calculate the maintenance port value
         var maintenancePort = _self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
+	    if(!process.env.SOAJS_DEPLOY_HA){
+		    if(process.env.SOAJS_SRVPORT){
+		    	let envPort = parseInt(process.env.SOAJS_SRVPORT);
+		    	if(isNaN(envPort)){
+		    		throw new Error("Invalid port value detected in SOAJS_SRVPORT environment variable, port value is not a number!");
+			    }
+			    maintenancePort = envPort + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
+		    }
+		    else if(process.env.SOAJS_ENV.toUpperCase() !== 'DASHBOARD'){
+			    maintenancePort += _self.app.soajs.serviceConf._conf.ports.controller;
+		    }
+	    }
+        
         _self.appMaintenance.get("/heartbeat", function (req, res) {
             var response = _self.maintenanceResponse(req);
             response['result'] = true;
