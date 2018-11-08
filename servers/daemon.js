@@ -241,10 +241,10 @@ daemon.prototype.start = function (cb) {
 			            if(isNaN(envPort)){
 				            throw new Error("Invalid port value detected in SOAJS_SRVPORT environment variable, port value is not a number!");
 			            }
-			            maintenancePort = envPort + _self.app.soajs.daemonServiceConf._conf.ports.maintenanceInc;
+			            maintenancePort = envPort + _self.soajs.daemonServiceConf._conf.ports.maintenanceInc;
 		            }
 		            else if(process.env.SOAJS_ENV && process.env.SOAJS_ENV.toUpperCase() !== 'DASHBOARD'){
-			            maintenancePort += _self.app.soajs.daemonServiceConf._conf.ports.controller;
+			            maintenancePort += _self.soajs.daemonServiceConf._conf.ports.controller;
 		            }
 	            }
 	            
