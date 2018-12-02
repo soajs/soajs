@@ -56,8 +56,8 @@ controller.prototype.init = function (callback) {
     if (!autoRegHost && !process.env.SOAJS_DEPLOY_HA) {
         _self.serviceIp = '127.0.0.1';
     }
-	
-    if (!_self.serviceIp && !(process.env.SOAJS_DEPLOY_HA==='true')) {
+
+    if (!_self.serviceIp && !(process.env.SOAJS_DEPLOY_HA === 'true')) {
         core.getHostIp(function (getHostIpResponse) {
             fetchedHostIp = getHostIpResponse;
             if (fetchedHostIp && fetchedHostIp.result) {
@@ -75,8 +75,9 @@ controller.prototype.init = function (callback) {
     else {
         resume();
     }
+
     function resume() {
-	    core.registry.load({
+        core.registry.load({
             "serviceName": _self.serviceName,
             "serviceVersion": _self.serviceVersion,
             "apiList": null,
@@ -96,7 +97,7 @@ controller.prototype.init = function (callback) {
                     _self.log.info("The IP registered for service [" + _self.serviceName + "] awareness : ", fetchedHostIp.ip);
                 }
             }
-            
+
             var app = connect();
             app.use(favicon_mw());
             app.use(soajs_mw({
@@ -131,7 +132,7 @@ controller.prototype.init = function (callback) {
                             };
                             return response;
                         };
-	                    var reloadRegistry = function () {
+                        var reloadRegistry = function () {
                             core.registry.reload({
                                 "serviceName": _self.serviceName,
                                 "serviceVersion": null,
@@ -171,7 +172,7 @@ controller.prototype.init = function (callback) {
                                 response['result'] = true;
                                 response['data'] = {"services": tmp.services, "daemons": tmp.daemons};
                             }
-                            
+
                             if (process.env.SOAJS_DEPLOY_HA) {
                                 awareness_mw.getMw({
                                     "awareness": _self.awareness,
@@ -180,19 +181,19 @@ controller.prototype.init = function (callback) {
                                     "serviceIp": _self.serviceIp
                                 });
                             }
-	                        else if(parsedUrl.query && parsedUrl.query.update){
-                            	core.registry.addUpdateEnvControllers({
-		                            "ip": _self.serviceIp,
-		                            "ts": response.ts ,
-		                            "data": soajsUtils.cloneObj(response.data),
-		                            "env": regEnvironment
-                            	}, function(error){
-                            		if(error){
-                            		    _self.log.error(error);
-		                            }
-	                            });
+                            else if (parsedUrl.query && parsedUrl.query.update) {
+                                core.registry.addUpdateEnvControllers({
+                                    "ip": _self.serviceIp,
+                                    "ts": response.ts,
+                                    "data": soajsUtils.cloneObj(response.data),
+                                    "env": regEnvironment
+                                }, function (error) {
+                                    if (error) {
+                                        _self.log.error(error);
+                                    }
+                                });
                             }
-	                        
+
                             return res.end(JSON.stringify(response));
                         }
                         else if (parsedUrl.pathname === '/register') {
@@ -256,17 +257,21 @@ controller.prototype.init = function (callback) {
                                 return res.end(JSON.stringify(response));
                             });
                         }
-                        else if (parsedUrl.pathname === '/getRegistry'){
+                        else if (parsedUrl.pathname === '/getRegistry') {
                             var reqEnv = parsedUrl.query.env;
                             var reqServiceName = parsedUrl.query.serviceName;
 
-                            if(!reqEnv) {
+                            if (!reqEnv) {
                                 reqEnv = regEnvironment;
                             }
-                            core.registry.loadByEnv({"envCode": reqEnv, "serviceName": "controller", "donotBbuildSpecificRegistry": false},function (err, reg){
+                            core.registry.loadByEnv({
+                                "envCode": reqEnv,
+                                "serviceName": "controller",
+                                "donotBbuildSpecificRegistry": false
+                            }, function (err, reg) {
                                 var response = maintenanceResponse(req);
-                                if (err){
-	                                _self.log.error(reqServiceName, err);
+                                if (err) {
+                                    _self.log.error(reqServiceName, err);
                                 }
                                 else {
                                     response['result'] = true;
@@ -289,91 +294,124 @@ controller.prototype.init = function (callback) {
                             return heartbeat(res);
                         }
                     });
-	                app.use(awareness_mw.getMw({
-		                "awareness": _self.awareness,
-		                "serviceName": _self.serviceName,
-		                "log": _self.log,
-		                "serviceIp": _self.serviceIp
-	                }));
-	                _self.log.info("Awareness middleware initialization done.");
-	
-	                //added mw awarenessEnv so that proxy can use req.soajs.awarenessEnv.getHost('dev', cb)
-	                app.use(awarenessEnv_mw.getMw({
-		                "awarenessEnv": true,
-		                "log": _self.log
-	                }));
-	                _self.log.info("AwarenessEnv middleware initialization done.");
-	
-	                if (_self.soajs.param.bodyParser) {
-		                var bodyParser = require('body-parser');
-		                var options = (_self.soajs.param.bodyParser.limit) ? {limit: _self.soajs.param.bodyParser.limit} : null;
-		                app.use(bodyParser.json(options));
-		                app.use(bodyParser.urlencoded({extended: true}));
-		                _self.log.info("Body-Parse middleware initialization done.");
-	                }
-	                else {
-		                _self.log.info("Body-Parser middleware initialization skipped.");
-	                }
-	
-	                app.use(controller_mw());
-	
-	                app.use(enhancer_mw({}));
-	
-	                var oauthserver = require('oauth2-server');
-	                _self.oauth = oauthserver({
-		                model: provision.oauthModel,
-		                grants: _self.registry.serviceConfig.oauth.grants,
-		                debug: _self.registry.serviceConfig.oauth.debug,
-		                accessTokenLifetime: _self.registry.serviceConfig.oauth.accessTokenLifetime,
-		                refreshTokenLifetime: _self.registry.serviceConfig.oauth.refreshTokenLifetime
-	                });
-	                _self.soajs.oauthService = _self.soajs.param.oauthService || {
-			                "name": "oauth",
-			                "tokenApi": "/token",
-			                "authorizationApi": "/authorization"
-		                };
-	                _self.soajs.oauthService.name = _self.soajs.oauthService.name || "oauth";
-	                _self.soajs.oauthService.tokenApi = _self.soajs.oauthService.tokenApi || "/token";
-	                _self.soajs.oauthService.authorizationApi = _self.soajs.oauthService.authorizationApi || "/authorization";
-	                _self.soajs.oauth = _self.oauth.authorise();
-	                _self.log.info("oAuth middleware initialization done.");
+                    app.use(awareness_mw.getMw({
+                        "awareness": _self.awareness,
+                        "serviceName": _self.serviceName,
+                        "log": _self.log,
+                        "serviceIp": _self.serviceIp
+                    }));
+                    _self.log.info("Awareness middleware initialization done.");
 
-	                var mt_mw = require("./../mw/mt/index");
-	                app.use(mt_mw({"soajs": _self.soajs, "app": app, "param": _self.soajs.param}));
-	                _self.log.info("SOAJS MT middleware initialization done.");
+                    //added mw awarenessEnv so that proxy can use req.soajs.awarenessEnv.getHost('dev', cb)
+                    app.use(awarenessEnv_mw.getMw({
+                        "awarenessEnv": true,
+                        "log": _self.log
+                    }));
+                    _self.log.info("AwarenessEnv middleware initialization done.");
+
+                    if (_self.soajs.param.bodyParser) {
+                        var bodyParser = require('body-parser');
+                        var options = (_self.soajs.param.bodyParser.limit) ? {limit: _self.soajs.param.bodyParser.limit} : null;
+                        app.use(bodyParser.json(options));
+                        app.use(bodyParser.urlencoded({extended: true}));
+                        _self.log.info("Body-Parse middleware initialization done.");
+                    }
+                    else {
+                        _self.log.info("Body-Parser middleware initialization skipped.");
+                    }
+
+                    app.use(controller_mw());
+
+                    app.use(enhancer_mw({}));
+
+                    if (_self.registry.serviceConfig.oauth) {
+
+                        let oauth_mw = require("./../mw/oauth/index");
+                        _self.soajs.oauth = oauth_mw({
+                            "soajs": _self.soajs,
+                            "serviceConfig": _self.registry.serviceConfig,
+                            "model": provision.oauthModel
+                        });
+
+                        _self.log.info("oAuth middleware initialization done.");
+
+                        /*
+                        let oauthType = 2; //1=oauth0, 2=oauth2
+                        if (_self.registry.serviceConfig.oauth.type && "oauth0" === _self.registry.serviceConfig.oauth.type) {
+                            oauthType = 1;
+                        }
+
+                        _self.soajs.oauthService = _self.soajs.param.oauthService || {
+                            "name": "oauth",
+                            "tokenApi": "/token",
+                            "authorizationApi": "/authorization"
+                        };
+                        _self.soajs.oauthService.name = _self.soajs.oauthService.name || "oauth";
+                        _self.soajs.oauthService.tokenApi = _self.soajs.oauthService.tokenApi || "/token";
+                        _self.soajs.oauthService.authorizationApi = _self.soajs.oauthService.authorizationApi || "/authorization";
+
+                        if (2 === oauthType) {
+                            let oauthserver = require('oauth2-server');
+                            let oauthObj = oauthserver({
+                                model: provision.oauthModel,
+                                grants: _self.registry.serviceConfig.oauth.grants,
+                                debug: _self.registry.serviceConfig.oauth.debug,
+                                accessTokenLifetime: _self.registry.serviceConfig.oauth.accessTokenLifetime,
+                                refreshTokenLifetime: _self.registry.serviceConfig.oauth.refreshTokenLifetime
+                            });
+                            _self.soajs.oauth = oauthObj.authorise();
+                            _self.log.info("oAuth2.0 middleware initialization done.");
+                        }
+                        else {
+                            let jsontoken = require("./../mw/jsontoken/index");
+                            let oauthObj = jsontoken({
+                                secret: _self.registry.serviceConfig.oauth.secret,
+                                algorithms: _self.registry.serviceConfig.oauth.algorithms,
+                                audience: _self.registry.serviceConfig.oauth.audience
+                            });
+
+                            _self.soajs.oauth = oauthObj;
+                            _self.log.info("oAuth0 middleware initialization done.");
+                        }
+                        */
+                    }
+
+                    var mt_mw = require("./../mw/mt/index");
+                    app.use(mt_mw({"soajs": _self.soajs, "app": app, "param": _self.soajs.param}));
+                    _self.log.info("SOAJS MT middleware initialization done.");
 
                     var traffic_mw = require("./../mw/traffic/index");
                     app.use(traffic_mw());
 
-	                app.use(function (req, res, next) {
-		                setImmediate(function () {
-			                req.soajs.controller.gotoservice(req, res, null);
-		                });
-		
-		                req.on("error", function (error) {
-			                req.soajs.log.error("Error @ controller:", error);
-			                if (req.soajs.controller.redirectedRequest) {
-				                req.soajs.controller.redirectedRequest.abort();
-			                }
-		                });
-		
-		                req.on("close", function () {
-			                if (req.soajs.controller.redirectedRequest) {
-				                req.soajs.log.info("Request aborted:", req.url);
-				                req.soajs.controller.redirectedRequest.abort();
-			                }
-		                });
-	                });
-	
-	                app.use(utils.logErrors);
-	                app.use(utils.controllerClientErrorHandler);
-	                app.use(utils.controllerErrorHandler);
-	                
+                    app.use(function (req, res, next) {
+                        setImmediate(function () {
+                            req.soajs.controller.gotoservice(req, res, null);
+                        });
+
+                        req.on("error", function (error) {
+                            req.soajs.log.error("Error @ controller:", error);
+                            if (req.soajs.controller.redirectedRequest) {
+                                req.soajs.controller.redirectedRequest.abort();
+                            }
+                        });
+
+                        req.on("close", function () {
+                            if (req.soajs.controller.redirectedRequest) {
+                                req.soajs.log.info("Request aborted:", req.url);
+                                req.soajs.controller.redirectedRequest.abort();
+                            }
+                        });
+                    });
+
+                    app.use(utils.logErrors);
+                    app.use(utils.controllerClientErrorHandler);
+                    app.use(utils.controllerErrorHandler);
+
                     callback();
                 }
-                else{
-	                _self.log.error('Unable to load provision. controller will not start :(');
-	                callback();
+                else {
+                    _self.log.error('Unable to load provision. controller will not start :(');
+                    callback();
                 }
             });
         });
@@ -394,41 +432,41 @@ controller.prototype.start = function (cb) {
             _self.log.error(err);
         }
     });
-    
-    function getAwarenessInfo(terminate, cb){
-	    var tmp = core.registry.get();
-	    if (tmp && (tmp.services || tmp.daemons)) {
-		    let awarenessStatData = {
-			    "ts": Date.now(),
-			    "data": soajsUtils.cloneObj({"services": tmp.services, "daemons": tmp.daemons})
-		    };
-		    
-		    if(terminate){
-		    	for(let serviceName in awarenessStatData.data.services){
-		    		if(serviceName === 'controller'){
-					    for(let serviceIP in awarenessStatData.data.services.controller.awarenessStats){
-						    if(serviceIP === _self.serviceIp){
-							    awarenessStatData.data.services.controller.awarenessStats[serviceIP].healthy = false;
-							    awarenessStatData.data.services.controller.awarenessStats[serviceIP].lastCheck = Date.now();
-						    }
-					    }
-				    }
-				    else{
-		    			delete awarenessStatData.data.services[serviceName];
-				    }
-			    }
-			    
-			    delete awarenessStatData.data.daemons;
-		    }
-		    core.registry.addUpdateEnvControllers({
-			    "ip": _self.serviceIp,
-			    "ts": awarenessStatData.ts ,
-			    "data": awarenessStatData.data,
-			    "env": regEnvironment
-		    }, cb);
-	    }
+
+    function getAwarenessInfo(terminate, cb) {
+        var tmp = core.registry.get();
+        if (tmp && (tmp.services || tmp.daemons)) {
+            let awarenessStatData = {
+                "ts": Date.now(),
+                "data": soajsUtils.cloneObj({"services": tmp.services, "daemons": tmp.daemons})
+            };
+
+            if (terminate) {
+                for (let serviceName in awarenessStatData.data.services) {
+                    if (serviceName === 'controller') {
+                        for (let serviceIP in awarenessStatData.data.services.controller.awarenessStats) {
+                            if (serviceIP === _self.serviceIp) {
+                                awarenessStatData.data.services.controller.awarenessStats[serviceIP].healthy = false;
+                                awarenessStatData.data.services.controller.awarenessStats[serviceIP].lastCheck = Date.now();
+                            }
+                        }
+                    }
+                    else {
+                        delete awarenessStatData.data.services[serviceName];
+                    }
+                }
+
+                delete awarenessStatData.data.daemons;
+            }
+            core.registry.addUpdateEnvControllers({
+                "ip": _self.serviceIp,
+                "ts": awarenessStatData.ts,
+                "data": awarenessStatData.data,
+                "env": regEnvironment
+            }, cb);
+        }
     }
-    
+
     _self.server.listen(_self.registry.services.controller.port, function (err) {
         if (err) {
             _self.log.error(err);
@@ -439,33 +477,33 @@ controller.prototype.start = function (cb) {
                 core.registry.registerHost({
                     "serviceName": _self.serviceName,
                     "serviceVersion": _self.serviceVersion,
-	                "servicePort": _self.registry.services.controller.port,
+                    "servicePort": _self.registry.services.controller.port,
                     "serviceIp": _self.serviceIp,
                     "serviceHATask": _self.serviceHATask
                 }, _self.registry, function (registered) {
                     if (registered) {
-	                    _self.log.info("Host IP [" + _self.serviceIp + "] for service [" + _self.serviceName + "@" + _self.serviceVersion + "] successfully registered.");
-	
-	                    //update the database with the awareness Response generated.
-	                    setTimeout(() => {
-		                    getAwarenessInfo(false, (error) =>{
-		                    	if(error){
-		                    		_self.log.error(error);
-			                    }
-		                    });
-	                    }, _self.registry.serviceConfig.awareness.healthCheckInterval);
-	
-	                    //update the database with the awareness Response generated.
-	                    //controller has been terminated.
-	                    process.on('SIGINT', function () {
-		                    getAwarenessInfo(true, (error) => {
-			                    if(error){
-				                    _self.log.error(error);
-			                    }
-			                    _self.log.warn("Service Terminated via interrupt signal.");
-		                        process.exit();
-		                    });
-	                    });
+                        _self.log.info("Host IP [" + _self.serviceIp + "] for service [" + _self.serviceName + "@" + _self.serviceVersion + "] successfully registered.");
+
+                        //update the database with the awareness Response generated.
+                        setTimeout(() => {
+                            getAwarenessInfo(false, (error) => {
+                                if (error) {
+                                    _self.log.error(error);
+                                }
+                            });
+                        }, _self.registry.serviceConfig.awareness.healthCheckInterval);
+
+                        //update the database with the awareness Response generated.
+                        //controller has been terminated.
+                        process.on('SIGINT', function () {
+                            getAwarenessInfo(true, (error) => {
+                                if (error) {
+                                    _self.log.error(error);
+                                }
+                                _self.log.warn("Service Terminated via interrupt signal.");
+                                process.exit();
+                            });
+                        });
                     }
                     else
                         _self.log.warn("Unable to register host IP [" + _self.serviceIp + "] for service [" + _self.serviceName + "@" + _self.serviceVersion + "]");

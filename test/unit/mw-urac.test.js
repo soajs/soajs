@@ -323,7 +323,7 @@ describe("testing urac", function () {
 			assert.ifError(error);
 			assert.ok(response);
 			var profile = urac.getProfile();
-			assert.ok(!profile);
+			assert.ok(profile);
 			done();
 		});
 	});

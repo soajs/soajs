@@ -39,7 +39,7 @@ module.exports = function (configuration) {
         //if there is a proxy no need to do any of the below, return next
         var proxyInfo = req.soajs.controller.serviceParams.serviceInfo;
         var proxy = (proxyInfo[1] === 'proxy' && proxyInfo[2] === 'redirect');
-	    var keyPermissionGet = (proxyInfo[1] === 'key' && proxyInfo[2] === 'permission' && proxyInfo[3] === 'get');
+        var keyPermissionGet = (proxyInfo[1] === 'key' && proxyInfo[2] === 'permission' && proxyInfo[3] === 'get');
 
         var oauth = true;
         if (Object.hasOwnProperty.call(serviceInfo, 'oauth')) {
@@ -63,8 +63,8 @@ module.exports = function (configuration) {
             if (serviceInfo[regEnvironment].hasOwnProperty("oauth"))
                 serviceParam.oauth = serviceInfo[regEnvironment].oauth;
         }
-        
-        if (proxyInfo[2] === "swagger" && proxyInfo[proxyInfo.length-1] === proxyInfo[2])
+
+        if (proxyInfo[2] === "swagger" && proxyInfo[proxyInfo.length - 1] === proxyInfo[2])
             return next();
 
         req.soajs.awareness.getHost('controller', function (controllerHostInThisEnvironment) {
@@ -110,8 +110,9 @@ module.exports = function (configuration) {
 
                                     serviceCheckArray.push(utils.aclCheck);
 
-                                    if (serviceParam.oauth)
+                                    if (serviceParam.oauth) {
                                         serviceCheckArray.push(utils.oauthCheck);
+                                    }
 
                                     serviceCheckArray.push(utils.uracCheck);
                                     serviceCheckArray.push(utils.aclUrackCheck);
@@ -120,19 +121,19 @@ module.exports = function (configuration) {
                                     serviceCheckArray.push(utils.apiCheck);
 
                                     async.waterfall(serviceCheckArray, function (err, data) {
-	                                    
-                                    	//if this is controller route: /key/permission/get, ignore async waterfall response
-                                    	if (keyPermissionGet) {
-		                                    if(!req.soajs.uracDriver){
-		                                        //doesn't work if you are not logged in
-			                                    return next(158);
-		                                    }
-		                                    else{
-			                                    req.soajs.log.debug("Detected return get key permission request, bypassing MT ACL checks...");
-			                                    return next();
-		                                    }
-	                                    }
-	                                    
+
+                                        //if this is controller route: /key/permission/get, ignore async waterfall response
+                                        if (keyPermissionGet) {
+                                            if (!req.soajs.uracDriver) {
+                                                //doesn't work if you are not logged in
+                                                return next(158);
+                                            }
+                                            else {
+                                                req.soajs.log.debug("Detected return get key permission request, bypassing MT ACL checks...");
+                                                return next();
+                                            }
+                                        }
+
                                         if (err)
                                             return next(err);
                                         else {
@@ -194,35 +195,34 @@ module.exports = function (configuration) {
                                                     "port": req.soajs.registry.serviceConfig.ports.controller
                                                 };
                                             }
-
                                             if (req.soajs.uracDriver) {
                                                 if (serviceParam.urac) {
                                                     var uracObj = req.soajs.uracDriver.getProfile();
-                                                    if(uracObj){
-	                                                    injectObj.urac = {
-		                                                    "_id": uracObj._id,
-		                                                    "username": uracObj.username,
-		                                                    "firstName": uracObj.firstName,
-		                                                    "lastName": uracObj.lastName,
-		                                                    "email": uracObj.email,
-		                                                    "groups": uracObj.groups,
-		                                                    "socialLogin": uracObj.socialLogin,
-		                                                    "tenant": {
-			                                                    "id": uracObj.tenant.id,
-			                                                    "code": uracObj.tenant.code
-		                                                    }
-	                                                    };
-	
-	                                                    injectObj.param = injectObj.param || {};
-	                                                    injectObj.param.urac_Profile = serviceParam.urac_Profile;
-	                                                    injectObj.param.urac_ACL = serviceParam.urac_ACL;
-	
-	                                                    if (serviceParam.urac_Profile)
-		                                                    injectObj.urac.profile = uracObj.profile;
-	                                                    if (serviceParam.urac_ACL)
-		                                                    injectObj.urac.acl = req.soajs.uracDriver.getAcl();
-	                                                    if (serviceParam.urac_ACL)
-		                                                    injectObj.urac.acl_AllEnv = req.soajs.uracDriver.getAclAllEnv();
+                                                    if (uracObj) {
+                                                        injectObj.urac = {
+                                                            "_id": uracObj._id,
+                                                            "username": uracObj.username,
+                                                            "firstName": uracObj.firstName,
+                                                            "lastName": uracObj.lastName,
+                                                            "email": uracObj.email,
+                                                            "groups": uracObj.groups,
+                                                            "socialLogin": uracObj.socialLogin,
+                                                            "tenant": {
+                                                                "id": uracObj.tenant.id,
+                                                                "code": uracObj.tenant.code
+                                                            }
+                                                        };
+
+                                                        injectObj.param = injectObj.param || {};
+                                                        injectObj.param.urac_Profile = serviceParam.urac_Profile;
+                                                        injectObj.param.urac_ACL = serviceParam.urac_ACL;
+
+                                                        if (serviceParam.urac_Profile)
+                                                            injectObj.urac.profile = uracObj.profile;
+                                                        if (serviceParam.urac_ACL)
+                                                            injectObj.urac.acl = req.soajs.uracDriver.getAcl();
+                                                        if (serviceParam.urac_ACL)
+                                                            injectObj.urac.acl_AllEnv = req.soajs.uracDriver.getAclAllEnv();
                                                     }
                                                 }
                                             }
@@ -234,7 +234,6 @@ module.exports = function (configuration) {
                                             }
 
                                             req.headers['soajsinjectobj'] = JSON.stringify(injectObj);
-
                                             return next();
                                         }
                                     });

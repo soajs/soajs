@@ -5,16 +5,21 @@ function urac(param) {
     var _self = this;
 
     _self.soajs = param.soajs;
-
     _self.userRecord = null;
     _self.id = null;
-    if (param.oauth && param.oauth.bearerToken && param.oauth.bearerToken.user){
-        _self.id = param.oauth.bearerToken.user.id;
-        if (param.oauth.bearerToken.user.loginMode === "oauth")
-            _self.userRecord = param.oauth.bearerToken.user;
-    }
-    else if (param._id) {
-        _self.id = param._id;
+
+
+    if (param.oauth && 0 === param.oauth.type)
+        _self.userRecord = param.oauth.bearerToken;
+    else {
+        if (param.oauth && param.oauth.bearerToken && param.oauth.bearerToken.user) {
+            _self.id = param.oauth.bearerToken.user.id;
+            if (param.oauth.bearerToken.user.loginMode === "oauth")
+                _self.userRecord = param.oauth.bearerToken.user;
+        }
+        else if (param._id) {
+            _self.id = param._id;
+        }
     }
 }
 
@@ -26,12 +31,12 @@ urac.prototype.init = function (cb) {
     var _self = this;
     if (_self.userRecord)
         return cb(null, _self.userRecord);
-    
+
     if (_self.id) {
         uracDriver.getRecord(_self.soajs, {id: _self.id.toString()}, function (err, record) {
-	        if(record){
-        	    _self.userRecord = record;
-	        }
+            if (record) {
+                _self.userRecord = record;
+            }
             cb(err, record);
         });
     }
@@ -63,7 +68,7 @@ urac.prototype.getProfile = function (_ALL) {
             "profile": _self.userRecord.profile,
             "tenant": _self.userRecord.tenant
         };
-        
+
         if (_self.userRecord.socialLogin) {
             urac.socialLogin = {
                 "strategy": _self.userRecord.socialLogin.strategy,
@@ -79,11 +84,19 @@ urac.prototype.getProfile = function (_ALL) {
             urac.config = _self.userRecord.config;
         }
     }
-    else if (_self.userRecord.userId){
+    else if (_self.userRecord.userId) {
         urac = {
             "_id": _self.userRecord._id,
             "username": _self.userRecord.userId,
-            "tenant": _self.userRecord.tId
+            "tenant": {"id": _self.userRecord.tId}
+        };
+    }
+    else if (_self.userRecord) {
+        urac = {
+            "_id": _self.userRecord.id || _self.userRecord.user,
+            "username": _self.userRecord.user,
+            "tenant": {},
+            "profile": _self.userRecord
         };
     }
     return urac;
@@ -103,11 +116,11 @@ urac.prototype.getAcl = function () {
     if (!_self.userRecord) {
         return acl;
     }
-    
-	if (_self.userRecord.acl) {
-		return _self.userRecord.acl;
-	}
-	
+
+    if (_self.userRecord.acl) {
+        return _self.userRecord.acl;
+    }
+
     if (_self.userRecord.config) {
         if (_self.userRecord.config.keys && _self.userRecord.config.keys[key] && _self.userRecord.config.keys[key].acl) {
             acl = _self.userRecord.config.keys[key].acl;
@@ -132,40 +145,40 @@ urac.prototype.getAcl = function () {
 /**
  * Get user Acl in all environments
  */
-urac.prototype.getAclAllEnv = function(){
-	var _self = this;
-	var key = _self.soajs.tenant.key.iKey;
-	var packageCode = _self.soajs.tenant.application.package;
-	
-	var acl = null;
-	
-	if (!_self.userRecord) {
-		return acl;
-	}
-	
-	if (_self.userRecord.acl_AllEnv) {
-		return _self.userRecord.acl_AllEnv;
-	}
-	
-	if (_self.userRecord.config) {
-		if (_self.userRecord.config.keys && _self.userRecord.config.keys[key] && _self.userRecord.config.keys[key].acl_all_env) {
-			acl = _self.userRecord.config.keys[key].acl_all_env;
-		}
-		if (!acl && _self.userRecord.config.packages && _self.userRecord.config.packages[packageCode] && _self.userRecord.config.packages[packageCode].acl_all_env) {
-			acl = _self.userRecord.config.packages[packageCode].acl_all_env;
-		}
-	}
-	
-	if (!acl && _self.userRecord.groupsConfig) {
-		if (_self.userRecord.groupsConfig.keys && _self.userRecord.groupsConfig.keys[key] && _self.userRecord.groupsConfig.keys[key].acl_all_env) {
-			acl = _self.userRecord.groupsConfig.keys[key].acl_all_env;
-		}
-		if (_self.userRecord.groupsConfig.packages && _self.userRecord.groupsConfig.packages[packageCode] && _self.userRecord.groupsConfig.packages[packageCode].acl_all_env) {
-			acl = _self.userRecord.groupsConfig.packages[packageCode].acl_all_env;
-		}
-	}
-	
-	return acl;
+urac.prototype.getAclAllEnv = function () {
+    var _self = this;
+    var key = _self.soajs.tenant.key.iKey;
+    var packageCode = _self.soajs.tenant.application.package;
+
+    var acl = null;
+
+    if (!_self.userRecord) {
+        return acl;
+    }
+
+    if (_self.userRecord.acl_AllEnv) {
+        return _self.userRecord.acl_AllEnv;
+    }
+
+    if (_self.userRecord.config) {
+        if (_self.userRecord.config.keys && _self.userRecord.config.keys[key] && _self.userRecord.config.keys[key].acl_all_env) {
+            acl = _self.userRecord.config.keys[key].acl_all_env;
+        }
+        if (!acl && _self.userRecord.config.packages && _self.userRecord.config.packages[packageCode] && _self.userRecord.config.packages[packageCode].acl_all_env) {
+            acl = _self.userRecord.config.packages[packageCode].acl_all_env;
+        }
+    }
+
+    if (!acl && _self.userRecord.groupsConfig) {
+        if (_self.userRecord.groupsConfig.keys && _self.userRecord.groupsConfig.keys[key] && _self.userRecord.groupsConfig.keys[key].acl_all_env) {
+            acl = _self.userRecord.groupsConfig.keys[key].acl_all_env;
+        }
+        if (_self.userRecord.groupsConfig.packages && _self.userRecord.groupsConfig.packages[packageCode] && _self.userRecord.groupsConfig.packages[packageCode].acl_all_env) {
+            acl = _self.userRecord.groupsConfig.packages[packageCode].acl_all_env;
+        }
+    }
+
+    return acl;
 };
 
 /**
@@ -179,7 +192,7 @@ urac.prototype.getConfig = function () {
         return null;
     }
     var config = null;
-    
+
     if (_self.userRecord.config && _self.userRecord.config.keys) {
         if (_self.userRecord.config.keys[key] && _self.userRecord.config.keys[key].config) {
             config = _self.userRecord.config.keys[key].config;

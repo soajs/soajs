@@ -38,9 +38,10 @@ module.exports = function () {
 		var service_v = null;
 		
 		//check if there is /v1 in the url
-		var matches = req.url.match(/\/v[0-9]+/);
+		let matches = req.url.match(/\/v[0-9]+/);
+		//let matches = req.url.match(/\/v([0-9]+)([.][0-9]+)?([.][0-9]+)?/);
 		if (matches && matches.length > 0) {
-			var hit = matches[0].replace("/", '');
+			let hit = matches[0].replace("/", '');
 			if (serviceInfo[2] === hit && serviceInfo.length > 3) {
 				service_v = parseInt(hit.replace("v", ''));
 				serviceInfo.splice(2, 1);

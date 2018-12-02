@@ -108,12 +108,75 @@ var awareness_healthCheck = function () {
     }
     async.each(awarenessHosts.servicesArr,
         function (sObj, callback) {
+
+            let checkForHeartBeat = function (host, port, callback) {
+                request({
+                    'uri': 'http://' + host + ':' + port + '/heartbeat'
+                }, function (error, response, body) {
+                    if (!error && response.statusCode === 200) {
+                        callback(true);
+                    }
+                    else
+                        callback(false);
+                });
+            };
+
+            checkForHeartBeat(sObj.host, sObj.port + registry.serviceConfig.ports.maintenanceInc, function (found) {
+                if (found) {
+                    nextStep(found);
+                }
+                else {
+                    checkForHeartBeat(sObj.host, sObj.port, function (found) {
+                        nextStep(found);
+                    });
+                }
+            });
+
+            let nextStep = function (found) {
+                if (registry[sObj.what][sObj.name] && !registry[sObj.what][sObj.name].awarenessStats)
+                    registry[sObj.what][sObj.name].awarenessStats = {};
+                let statusObj = {"lastCheck": new Date().getTime(), "healthy": false, "version": sObj.version};
+                if (found) {
+                    statusObj.healthy = true;
+                    if (serviceAwarenessObj[sObj.name].healthy[sObj.version].indexOf(sObj.host) === -1)
+                        serviceAwarenessObj[sObj.name].healthy[sObj.version].push(sObj.host);
+                }
+                else {
+                    if (registry[sObj.what][sObj.name] && registry[sObj.what][sObj.name].awarenessStats[sObj.host] && registry[sObj.what][sObj.name].awarenessStats[sObj.host].healthy === false) {
+                        statusObj.downCount = registry[sObj.what][sObj.name].awarenessStats[sObj.host].downCount + 1;
+                        statusObj.downSince = registry[sObj.what][sObj.name].awarenessStats[sObj.host].downSince;
+                    }
+                    else {
+                        statusObj.downSince = statusObj.lastCheck;
+                        statusObj.downCount = 0;
+                    }
+
+                    var stopLoggingAfter = registry.serviceConfig.awareness.maxLogCount;
+                    if (statusObj.downCount <= stopLoggingAfter)
+                        param.log.warn("Self Awareness health check for service [" + sObj.name + "] for host [" + sObj.host + "] is NOT healthy");
+                    if (serviceAwarenessObj[sObj.name].healthy[sObj.version].indexOf(sObj.host) !== -1) {
+                        //TODO: if we guarantee uniqueness we will not need the for loop
+                        for (var ii = 0; ii < serviceAwarenessObj[sObj.name].healthy[sObj.version].length; ii++) {
+                            if (serviceAwarenessObj[sObj.name].healthy[sObj.version][ii] === sObj.host)
+                                serviceAwarenessObj[sObj.name].healthy[sObj.version].splice(ii, 1);
+                        }
+                    }
+                }
+
+                if (registry[sObj.what][sObj.name] && registry[sObj.what][sObj.name].awarenessStats)
+                    registry[sObj.what][sObj.name].awarenessStats[sObj.host] = statusObj;
+
+                callback();
+            };
+            /*
             request({
                 'uri': 'http://' + sObj.host + ':' + (sObj.port + registry.serviceConfig.ports.maintenanceInc) + '/heartbeat'
             }, function (error, response, body) {
+
                 if (registry[sObj.what][sObj.name] && !registry[sObj.what][sObj.name].awarenessStats)
                     registry[sObj.what][sObj.name].awarenessStats = {};
                 var statusObj = {"lastCheck": new Date().getTime(), "healthy": false, "version": sObj.version};
+
                 if (!error && response.statusCode === 200) {
                     statusObj.healthy = true;
                     if (serviceAwarenessObj[sObj.name].healthy[sObj.version].indexOf(sObj.host) === -1)
@@ -146,6 +209,7 @@ var awareness_healthCheck = function () {
 
                 callback();
             });
+            */
         }, function (err) {
             if (err)
                 param.log.warn('Unable to build awareness structure for services: ' + err);
@@ -195,13 +259,14 @@ var roundRobin = function (s, v, env, cb) {
     else
         return cb(null);
 };
+
 function init(_param) {
     param = _param;
 
     if (registry.serviceConfig.awareness.healthCheckInterval)
         awareness_healthCheck();
     //if (registry.serviceConfig.awareness.autoRelaodRegistry)
-       // setTimeout(awareness_reloadRegistry, registry.serviceConfig.awareness.autoRelaodRegistry);
+    // setTimeout(awareness_reloadRegistry, registry.serviceConfig.awareness.autoRelaodRegistry);
 }
 
 module.exports = {
