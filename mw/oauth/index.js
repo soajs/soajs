@@ -26,14 +26,14 @@ module.exports = function (configuration) {
 
     return function (req, res, next) {
 
-        let oauthServiceConfig = req.soajs.servicesConfig[configuration.soajs.oauthService.name];
+        let oauthServiceConfig = req.soajs.servicesConfig[configuration.soajs.oauthService.name] || {};
 
         let oauthType = 2;
         if (Object.hasOwnProperty.call(oauthServiceConfig, 'type')) {
             oauthType = oauthServiceConfig.type;
         }
-        else if (Object.hasOwnProperty.call(configuration.serviceConfig.oauth, 'type')) {
-            oauthType = configuration.serviceConfig.oauth.type
+        else if (Object.hasOwnProperty.call(req.soajs.registry.serviceConfig.oauth, 'type')) {
+            oauthType = req.soajs.registry.serviceConfig.oauth.type
         }
 
         //0=oauth0, 2=oauth2
@@ -41,9 +41,9 @@ module.exports = function (configuration) {
             oauthObj.authorise()(req, res, next);
         }
         else {
-            let algorithms = oauthServiceConfig.algorithms || configuration.serviceConfig.oauth.algorithms;
-            let audience = oauthServiceConfig.audience || configuration.serviceConfig.oauth.audience;
-            let secret = oauthServiceConfig.secret || configuration.serviceConfig.oauth.secret;
+            let algorithms = oauthServiceConfig.algorithms || req.soajs.registry.serviceConfig.oauth.algorithms;
+            let audience = oauthServiceConfig.audience || req.soajs.registry.serviceConfig.oauth.audience;
+            let secret = oauthServiceConfig.secret || req.soajs.registry.serviceConfig.oauth.secret;
 
             let headerToken = req.get('Authorization');
             if (headerToken) {
