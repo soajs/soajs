@@ -202,54 +202,55 @@ controller.prototype.init = function (callback) {
                         else if (parsedUrl.pathname === '/register') {
 
                             let body = "";
-                            req.on('data', function(chunk) {
+                            req.on('data', function (chunk) {
                                 body += chunk;
                             });
-                            req.on('end', function() {
+                            req.on('end', function () {
                                 if (body)
                                     body = JSON.parse(body);
-                            });
 
-                            if (parsedUrl.query.serviceHATask) {
-                                response = reloadRegistry(parsedUrl);
-                                res.writeHead(200, {'Content-Type': 'application/json'});
-                                return res.end(JSON.stringify(response));
-                            }
-                            else {
-                                res.writeHead(200, {'Content-Type': 'application/json'});
-                                response = maintenanceResponse(parsedUrl);
-                                let regOptions = {
-                                    "name": parsedUrl.query.name,
-                                    "group": parsedUrl.query.group,
-                                    "port": parseInt(parsedUrl.query.port),
-                                    "ip": parsedUrl.query.ip,
-                                    "type": parsedUrl.query.type,
-                                    "version": parseInt(parsedUrl.query.version)
-                                };
-                                if (regOptions.type === "service") {
-                                    regOptions["oauth"] = (parsedUrl.query.oauth === "false" ? false : true);
-                                    regOptions["urac"] = (parsedUrl.query.urac === "false" ? false : true);
-                                    regOptions["urac_Profile"] = (parsedUrl.query.urac_Profile === "false" ? false : true);
-                                    regOptions["urac_ACL"] = (parsedUrl.query.urac_ACL === "false" ? false : true);
-                                    regOptions["provision_ACL"] = (parsedUrl.query.provision_ACL === "false" ? false : true);
-                                    regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
-                                    regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
-                                    regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);
+                                if (parsedUrl.query.serviceHATask) {
+                                    response = reloadRegistry(parsedUrl);
+                                    res.writeHead(200, {'Content-Type': 'application/json'});
+                                    return res.end(JSON.stringify(response));
                                 }
+                                else {
+                                    res.writeHead(200, {'Content-Type': 'application/json'});
+                                    response = maintenanceResponse(parsedUrl);
+                                    let regOptions = {
+                                        "name": parsedUrl.query.name,
+                                        "group": parsedUrl.query.group,
+                                        "port": parseInt(parsedUrl.query.port),
+                                        "ip": parsedUrl.query.ip,
+                                        "type": parsedUrl.query.type,
+                                        "version": parseInt(parsedUrl.query.version)
+                                    };
+                                    if (regOptions.type === "service") {
+                                        regOptions["swagger"] = (parsedUrl.query.swagger === "true" ? true : false);
+                                        regOptions["oauth"] = (parsedUrl.query.oauth === "false" ? false : true);
+                                        regOptions["urac"] = (parsedUrl.query.urac === "false" ? false : true);
+                                        regOptions["urac_Profile"] = (parsedUrl.query.urac_Profile === "false" ? false : true);
+                                        regOptions["urac_ACL"] = (parsedUrl.query.urac_ACL === "false" ? false : true);
+                                        regOptions["provision_ACL"] = (parsedUrl.query.provision_ACL === "false" ? false : true);
+                                        regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
+                                        regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
+                                        regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);
+                                    }
 
-                                core.registry.register(
-                                    regOptions,
-                                    function (err, data) {
-                                        if (!err) {
-                                            response['result'] = true;
-                                            response['data'] = data;
-                                        }
-                                        else {
-                                            _self.log.warn("Failed to register service for [" + parsedUrl.query.name + "] " + err.message);
-                                        }
-                                        return res.end(JSON.stringify(response));
-                                    });
-                            }
+                                    core.registry.register(
+                                        regOptions,
+                                        function (err, data) {
+                                            if (!err) {
+                                                response['result'] = true;
+                                                response['data'] = data;
+                                            }
+                                            else {
+                                                _self.log.warn("Failed to register service for [" + parsedUrl.query.name + "] " + err.message);
+                                            }
+                                            return res.end(JSON.stringify(response));
+                                        });
+                                }
+                            });
                         }
                         else if (parsedUrl.pathname.match('/proxySocket/.*')) {
 
