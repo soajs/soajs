@@ -2,7 +2,7 @@
 
 var connect = require('connect');
 var http = require('http');
-var request = require('request');
+//var request = require('request');
 var httpProxy = require('http-proxy');
 var url = require('url');
 
@@ -114,7 +114,6 @@ controller.prototype.init = function (callback) {
                     _self.log.info("Service provision loaded.");
                     _self.server = http.createServer(app);
 
-                    let response;
                     let maintenanceResponse = function (parsedUrl, route) {
                         let response = {
                             'result': false,
@@ -134,7 +133,7 @@ controller.prototype.init = function (callback) {
                             "apiList": null,
                             "serviceIp": _self.serviceIp
                         }, function (err, reg) {
-                            response = maintenanceResponse(parsedUrl);
+                            let response = maintenanceResponse(parsedUrl);
                             if (err) {
                                 _self.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
                             } else {
@@ -151,7 +150,7 @@ controller.prototype.init = function (callback) {
 
                         res.writeHead(200, {'Content-Type': 'application/json'});
                         let parsedUrl = url.parse(req.url, true);
-                        response = maintenanceResponse(parsedUrl, '/proxySocket');
+                        let response = maintenanceResponse(parsedUrl, '/proxySocket');
                         return res.end(JSON.stringify(response));
                     });
 
@@ -163,14 +162,14 @@ controller.prototype.init = function (callback) {
                         var parsedUrl = url.parse(req.url, true);
 
                         if (parsedUrl.pathname === '/reloadRegistry') {
-                            response = reloadRegistry(parsedUrl);
+                            let response = reloadRegistry(parsedUrl);
                             res.writeHead(200, {'Content-Type': 'application/json'});
                             return res.end(JSON.stringify(response));
                         }
                         else if (parsedUrl.pathname === '/awarenessStat') {
                             res.writeHead(200, {'Content-Type': 'application/json'});
                             let tmp = core.registry.get();
-                            response = maintenanceResponse(parsedUrl);
+                            let response = maintenanceResponse(parsedUrl);
                             if (tmp && (tmp.services || tmp.daemons)) {
                                 response['result'] = true;
                                 response['data'] = {"services": tmp.services, "daemons": tmp.daemons};
@@ -200,57 +199,65 @@ controller.prototype.init = function (callback) {
                             return res.end(JSON.stringify(response));
                         }
                         else if (parsedUrl.pathname === '/register') {
+                            if (!process.env.SOAJS_DEPLOY_HA) {
+                                let body = "";
+                                req.on('data', function (chunk) {
+                                    body += chunk;
+                                });
+                                req.on('end', function () {
+                                    if (body)
+                                        body = JSON.parse(body);
 
-                            let body = "";
-                            req.on('data', function (chunk) {
-                                body += chunk;
-                            });
-                            req.on('end', function () {
-                                if (body)
-                                    body = JSON.parse(body);
-
-                                if (parsedUrl.query.serviceHATask) {
-                                    response = reloadRegistry(parsedUrl);
-                                    res.writeHead(200, {'Content-Type': 'application/json'});
-                                    return res.end(JSON.stringify(response));
-                                }
-                                else {
-                                    res.writeHead(200, {'Content-Type': 'application/json'});
-                                    response = maintenanceResponse(parsedUrl);
-                                    let regOptions = {
-                                        "name": parsedUrl.query.name,
-                                        "group": parsedUrl.query.group,
-                                        "port": parseInt(parsedUrl.query.port),
-                                        "ip": parsedUrl.query.ip,
-                                        "type": parsedUrl.query.type,
-                                        "version": parseInt(parsedUrl.query.version)
-                                    };
-                                    if (regOptions.type === "service") {
-                                        regOptions["swagger"] = (parsedUrl.query.swagger === "true" ? true : false);
-                                        regOptions["oauth"] = (parsedUrl.query.oauth === "false" ? false : true);
-                                        regOptions["urac"] = (parsedUrl.query.urac === "false" ? false : true);
-                                        regOptions["urac_Profile"] = (parsedUrl.query.urac_Profile === "false" ? false : true);
-                                        regOptions["urac_ACL"] = (parsedUrl.query.urac_ACL === "false" ? false : true);
-                                        regOptions["provision_ACL"] = (parsedUrl.query.provision_ACL === "false" ? false : true);
-                                        regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
-                                        regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
-                                        regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);
+                                    if (parsedUrl.query.serviceHATask) {
+                                        let response = reloadRegistry(parsedUrl);
+                                        res.writeHead(200, {'Content-Type': 'application/json'});
+                                        return res.end(JSON.stringify(response));
                                     }
+                                    else {
+                                        res.writeHead(200, {'Content-Type': 'application/json'});
+                                        let response = maintenanceResponse(parsedUrl);
+                                        let regOptions = {
+                                            "name": parsedUrl.query.name,
+                                            "group": parsedUrl.query.group,
+                                            "port": parseInt(parsedUrl.query.port),
+                                            "ip": parsedUrl.query.ip,
+                                            "type": parsedUrl.query.type,
+                                            "version": parseInt(parsedUrl.query.version)
+                                        };
+                                        if (regOptions.type === "service") {
+                                            regOptions["swagger"] = (parsedUrl.query.swagger === "true" ? true : false);
+                                            regOptions["oauth"] = (parsedUrl.query.oauth === "false" ? false : true);
+                                            regOptions["urac"] = (parsedUrl.query.urac === "false" ? false : true);
+                                            regOptions["urac_Profile"] = (parsedUrl.query.urac_Profile === "false" ? false : true);
+                                            regOptions["urac_ACL"] = (parsedUrl.query.urac_ACL === "false" ? false : true);
+                                            regOptions["provision_ACL"] = (parsedUrl.query.provision_ACL === "false" ? false : true);
+                                            regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
+                                            regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
+                                            regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);
+                                        }
 
-                                    core.registry.register(
-                                        regOptions,
-                                        function (err, data) {
-                                            if (!err) {
-                                                response['result'] = true;
-                                                response['data'] = data;
-                                            }
-                                            else {
-                                                _self.log.warn("Failed to register service for [" + parsedUrl.query.name + "] " + err.message);
-                                            }
-                                            return res.end(JSON.stringify(response));
-                                        });
-                                }
-                            });
+                                        regOptions["mw"] = (parsedUrl.query.mw === "true" ? true : false);
+
+                                        core.registry.register(
+                                            regOptions,
+                                            function (err, data) {
+                                                if (!err) {
+                                                    response['result'] = true;
+                                                    response['data'] = data;
+                                                }
+                                                else {
+                                                    _self.log.warn("Failed to register service for [" + parsedUrl.query.name + "] " + err.message);
+                                                }
+                                                return res.end(JSON.stringify(response));
+                                            });
+                                    }
+                                });
+                            }
+                            else {
+                                res.writeHead(200, {'Content-Type': 'application/json'});
+                                let response = maintenanceResponse(parsedUrl);
+                                return res.end(JSON.stringify(response));
+                            }
                         }
                         else if (parsedUrl.pathname.match('/proxySocket/.*')) {
 
@@ -285,7 +292,7 @@ controller.prototype.init = function (callback) {
                                 "serviceName": "controller",
                                 "donotBbuildSpecificRegistry": false
                             }, function (err, reg) {
-                                response = maintenanceResponse(parsedUrl);
+                                let response = maintenanceResponse(parsedUrl);
                                 if (err) {
                                     _self.log.error(reqServiceName, err);
                                 }
@@ -300,7 +307,7 @@ controller.prototype.init = function (callback) {
                         else {
                             let heartbeat = function (res) {
                                 res.writeHead(200, {'Content-Type': 'application/json'});
-                                response = maintenanceResponse(parsedUrl);
+                                let response = maintenanceResponse(parsedUrl);
                                 response['result'] = true;
                                 res.end(JSON.stringify(response));
                             };
@@ -358,7 +365,7 @@ controller.prototype.init = function (callback) {
                     _self.log.info("SOAJS MT middleware initialization done.");
 
                     var traffic_mw = require("./../mw/traffic/index");
-                    app.use(traffic_mw());
+                    app.use(traffic_mw({}));
 
                     app.use(function (req, res, next) {
                         setImmediate(function () {
