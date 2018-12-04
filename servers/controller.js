@@ -113,61 +113,64 @@ controller.prototype.init = function (callback) {
                 if (loaded) {
                     _self.log.info("Service provision loaded.");
                     _self.server = http.createServer(app);
+
+                    let response;
+                    let maintenanceResponse = function (parsedUrl, route) {
+                        let response = {
+                            'result': false,
+                            'ts': Date.now(),
+                            'service': {
+                                'service': _self.serviceName.toUpperCase(),
+                                'type': 'rest',
+                                'route': route || parsedUrl.pathname
+                            }
+                        };
+                        return response;
+                    };
+                    let reloadRegistry = function (parsedUrl) {
+                        core.registry.reload({
+                            "serviceName": _self.serviceName,
+                            "serviceVersion": null,
+                            "apiList": null,
+                            "serviceIp": _self.serviceIp
+                        }, function (err, reg) {
+                            response = maintenanceResponse(parsedUrl);
+                            if (err) {
+                                _self.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
+                            } else {
+                                response['result'] = true;
+                                response['data'] = reg;
+                            }
+                            return (response);
+                        });
+                    };
+                    let proxy = httpProxy.createProxyServer({});
+                    proxy.on('error', function (error, req, res) {
+                        _self.log.error('Failed to proxy ' + req.url);
+                        _self.log.error('Internal proxy error: ' + error);
+
+                        res.writeHead(200, {'Content-Type': 'application/json'});
+                        let parsedUrl = url.parse(req.url, true);
+                        response = maintenanceResponse(parsedUrl, '/proxySocket');
+                        return res.end(JSON.stringify(response));
+                    });
+
                     _self.serverMaintenance = http.createServer(function (req, res) {
                         if (req.url === '/favicon.ico') {
                             res.writeHead(200, {'Content-Type': 'image/x-icon'});
                             return res.end();
                         }
                         var parsedUrl = url.parse(req.url, true);
-                        var response;
-                        var maintenanceResponse = function (req, route) {
-                            var response = {
-                                'result': false,
-                                'ts': Date.now(),
-                                'service': {
-                                    'service': _self.serviceName.toUpperCase(),
-                                    'type': 'rest',
-                                    'route': route || parsedUrl.pathname
-                                }
-                            };
-                            return response;
-                        };
-                        var reloadRegistry = function () {
-                            core.registry.reload({
-                                "serviceName": _self.serviceName,
-                                "serviceVersion": null,
-                                "apiList": null,
-                                "serviceIp": _self.serviceIp
-                            }, function (err, reg) {
-                                res.writeHead(200, {'Content-Type': 'application/json'});
-                                response = maintenanceResponse(req);
-                                if (err) {
-                                    _self.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
-                                } else {
-                                    response['result'] = true;
-                                    response['data'] = reg;
-                                }
-                                return res.end(JSON.stringify(response));
-                            });
-                        };
-
-                        var proxy = httpProxy.createProxyServer({});
-                        proxy.on('error', function (error, req, res) {
-                            _self.log.error('Failed to proxy ' + req.url);
-                            _self.log.error('Internal proxy error: ' + error);
-
-                            res.writeHead(200, {'Content-Type': 'application/json'});
-                            response = maintenanceResponse(req, '/proxySocket');
-                            return res.end(JSON.stringify(response));
-                        });
 
                         if (parsedUrl.pathname === '/reloadRegistry') {
-                            reloadRegistry();
+                            response = reloadRegistry(parsedUrl);
+                            res.writeHead(200, {'Content-Type': 'application/json'});
+                            return res.end(JSON.stringify(response));
                         }
                         else if (parsedUrl.pathname === '/awarenessStat') {
                             res.writeHead(200, {'Content-Type': 'application/json'});
-                            var tmp = core.registry.get();
-                            response = maintenanceResponse(req);
+                            let tmp = core.registry.get();
+                            response = maintenanceResponse(parsedUrl);
                             if (tmp && (tmp.services || tmp.daemons)) {
                                 response['result'] = true;
                                 response['data'] = {"services": tmp.services, "daemons": tmp.daemons};
@@ -197,13 +200,25 @@ controller.prototype.init = function (callback) {
                             return res.end(JSON.stringify(response));
                         }
                         else if (parsedUrl.pathname === '/register') {
+
+                            let body = "";
+                            req.on('data', function(chunk) {
+                                body += chunk;
+                            });
+                            req.on('end', function() {
+                                if (body)
+                                    body = JSON.parse(body);
+                            });
+
                             if (parsedUrl.query.serviceHATask) {
-                                reloadRegistry();
+                                response = reloadRegistry(parsedUrl);
+                                res.writeHead(200, {'Content-Type': 'application/json'});
+                                return res.end(JSON.stringify(response));
                             }
                             else {
                                 res.writeHead(200, {'Content-Type': 'application/json'});
-                                response = maintenanceResponse(req);
-                                var regOptions = {
+                                response = maintenanceResponse(parsedUrl);
+                                let regOptions = {
                                     "name": parsedUrl.query.name,
                                     "group": parsedUrl.query.group,
                                     "port": parseInt(parsedUrl.query.port),
@@ -243,7 +258,7 @@ controller.prototype.init = function (callback) {
 
                             _self.log.info('Incoming proxy request for ' + req.url);
 
-                            var haTarget;
+                            let haTarget;
 
                             haTarget = {
                                 socketPath: process.env.SOAJS_SWARM_UNIX_PORT || '/var/run/docker.sock'
@@ -252,14 +267,14 @@ controller.prototype.init = function (callback) {
                         }
                         else if (parsedUrl.pathname === '/loadProvision') {
                             provision.loadProvision(function (loaded) {
-                                var response = maintenanceResponse(req);
+                                let response = maintenanceResponse(parsedUrl);
                                 response['result'] = loaded;
                                 return res.end(JSON.stringify(response));
                             });
                         }
                         else if (parsedUrl.pathname === '/getRegistry') {
-                            var reqEnv = parsedUrl.query.env;
-                            var reqServiceName = parsedUrl.query.serviceName;
+                            let reqEnv = parsedUrl.query.env;
+                            let reqServiceName = parsedUrl.query.serviceName;
 
                             if (!reqEnv) {
                                 reqEnv = regEnvironment;
@@ -269,7 +284,7 @@ controller.prototype.init = function (callback) {
                                 "serviceName": "controller",
                                 "donotBbuildSpecificRegistry": false
                             }, function (err, reg) {
-                                var response = maintenanceResponse(req);
+                                response = maintenanceResponse(parsedUrl);
                                 if (err) {
                                     _self.log.error(reqServiceName, err);
                                 }
@@ -282,9 +297,9 @@ controller.prototype.init = function (callback) {
                             });
                         }
                         else {
-                            var heartbeat = function (res) {
+                            let heartbeat = function (res) {
                                 res.writeHead(200, {'Content-Type': 'application/json'});
-                                response = maintenanceResponse(req);
+                                response = maintenanceResponse(parsedUrl);
                                 response['result'] = true;
                                 res.end(JSON.stringify(response));
                             };
@@ -294,6 +309,7 @@ controller.prototype.init = function (callback) {
                             return heartbeat(res);
                         }
                     });
+
                     app.use(awareness_mw.getMw({
                         "awareness": _self.awareness,
                         "serviceName": _self.serviceName,
