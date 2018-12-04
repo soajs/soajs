@@ -132,6 +132,17 @@ service.prototype.init = function (callback) {
     else
         soajs.param.oauth = true;
 
+    //automatically add maintenance to service
+    if (!soajs.param.maintenance)
+        soajs.param.maintenance = {};
+    soajs.param.maintenance.port = {"type": "maintenance"};
+    soajs.param.maintenance.readiness = "/heartbeat";
+    if (!soajs.param.maintenance.commands)
+        soajs.param.maintenance.commands = [];
+    soajs.param.maintenance.commands.push ({"label":"Releoad Registry","path":"/reloadRegistry","icon":"registry"});
+    soajs.param.maintenance.commands.push ({"label":"Resource Info","path":"/resourceInfo","icon":"info"});
+
+
     var fetchedHostIp = null;
     var serviceIpNotDetected = false;
     if (!autoRegHost && !process.env.SOAJS_DEPLOY_HA) {
@@ -198,7 +209,8 @@ service.prototype.init = function (callback) {
             "urac_ACL": soajs.param.urac_ACL,
             "provision_ACL": soajs.param.provision_ACL,
             "oauth": soajs.param.oauth,
-            "apiList": soajs.apiList
+            "apiList": soajs.apiList,
+            "maintenance": soajs.param.maintenance
         }, function (reg) {
             registry = reg;
 

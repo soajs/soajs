@@ -43,6 +43,17 @@ function controller(param) {
     _self.serviceIp = process.env.SOAJS_SRVIP || null;
     _self.serviceHATask = null;
 
+    //automatically add maintenance to service
+    if (!_self.maintenance)
+        _self.maintenance = {};
+    _self.maintenance.port = {"type": "maintenance"};
+    _self.maintenance.readiness = "/heartbeat";
+    if (!_self.maintenance.commands)
+        _self.maintenance.commands = [];
+    _self.maintenance.commands.push ({"label":"Releoad Registry","path":"/reloadRegistry","icon":"registry"});
+    _self.maintenance.commands.push ({"label":"Statistics Info","path":"/awarenessStat","icon":"statistic"});
+    _self.maintenance.commands.push ({"label":"Releoad Provision Info","path":"/loadProvision","icon":"provision"});
+
     //TODO: we might not need bodyParser
     param.bodyParser = false;
 
@@ -81,7 +92,8 @@ controller.prototype.init = function (callback) {
             "serviceName": _self.serviceName,
             "serviceVersion": _self.serviceVersion,
             "apiList": null,
-            "serviceIp": _self.serviceIp
+            "serviceIp": _self.serviceIp,
+            "maintenance" : _self.maintenance
         }, function (reg) {
             _self.registry = reg;
             _self.log = core.getLogger(_self.serviceName, _self.registry.serviceConfig.logger);
@@ -234,9 +246,15 @@ controller.prototype.init = function (callback) {
                                             regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
                                             regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
                                             regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);
+
+                                            if (body && body.apiList)
+                                                regOptions["apiList"] = body.apiList;
                                         }
 
                                         regOptions["mw"] = (parsedUrl.query.mw === "true" ? true : false);
+
+                                        if (body && body.maintenance)
+                                            regOptions["maintenance"] = body.maintenance;
 
                                         core.registry.register(
                                             regOptions,

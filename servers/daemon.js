@@ -83,6 +83,19 @@ daemon.prototype.init = function (callback) {
     _self.soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
     _self.soajs.param.serviceHATask = null;
 
+
+    //automatically add maintenance to service
+    if (!_self.soajs.param.maintenance)
+        _self.soajs.param.maintenance = {};
+    _self.soajs.param.maintenance.port = {"type": "maintenance"};
+    _self.soajs.param.maintenance.readiness = "/heartbeat";
+    if (!_self.soajs.param.maintenance.commands)
+        _self.soajs.param.maintenance.commands = [];
+    _self.soajs.param.maintenance.commands.push ({"label":"Releoad Registry","path":"/reloadRegistry","icon":"registry"});
+    _self.soajs.param.maintenance.commands.push ({"label":"Releoad Provision","path":"/loadProvision","icon":"provision"});
+    _self.soajs.param.maintenance.commands.push ({"label":"Statistic","path":"/daemonStats","icon":"statistic"});
+    _self.soajs.param.maintenance.commands.push ({"label":"Releoad Configuration","path":"/reloadDaemonConf","icon":"Configuration"});
+
     var fetchedHostIp = null;
     var serviceIpNotDetected = false;
     if (!autoRegHost && !process.env.SOAJS_DEPLOY_HA) {
@@ -116,7 +129,8 @@ daemon.prototype.init = function (callback) {
             "serviceVersion": _self.soajs.param.serviceVersion,
             "designatedPort": _self.soajs.param.servicePort,
             "serviceIp": _self.soajs.param.serviceIp,
-            "jobList": _self.soajs.jobList
+            "jobList": _self.soajs.jobList,
+            "maintenance": _self.soajs.param.maintenance,
         }, function (reg) {
             registry = reg;
             _self.soajs.daemonServiceConf = lib.registry.getDaemonServiceConf(_self.soajs.param.serviceName, registry);
