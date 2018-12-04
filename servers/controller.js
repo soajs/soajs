@@ -351,46 +351,6 @@ controller.prototype.init = function (callback) {
                         });
 
                         _self.log.info("oAuth middleware initialization done.");
-
-                        /*
-                        let oauthType = 2; //1=oauth0, 2=oauth2
-                        if (_self.registry.serviceConfig.oauth.type && "oauth0" === _self.registry.serviceConfig.oauth.type) {
-                            oauthType = 1;
-                        }
-
-                        _self.soajs.oauthService = _self.soajs.param.oauthService || {
-                            "name": "oauth",
-                            "tokenApi": "/token",
-                            "authorizationApi": "/authorization"
-                        };
-                        _self.soajs.oauthService.name = _self.soajs.oauthService.name || "oauth";
-                        _self.soajs.oauthService.tokenApi = _self.soajs.oauthService.tokenApi || "/token";
-                        _self.soajs.oauthService.authorizationApi = _self.soajs.oauthService.authorizationApi || "/authorization";
-
-                        if (2 === oauthType) {
-                            let oauthserver = require('oauth2-server');
-                            let oauthObj = oauthserver({
-                                model: provision.oauthModel,
-                                grants: _self.registry.serviceConfig.oauth.grants,
-                                debug: _self.registry.serviceConfig.oauth.debug,
-                                accessTokenLifetime: _self.registry.serviceConfig.oauth.accessTokenLifetime,
-                                refreshTokenLifetime: _self.registry.serviceConfig.oauth.refreshTokenLifetime
-                            });
-                            _self.soajs.oauth = oauthObj.authorise();
-                            _self.log.info("oAuth2.0 middleware initialization done.");
-                        }
-                        else {
-                            let jsontoken = require("./../mw/jsontoken/index");
-                            let oauthObj = jsontoken({
-                                secret: _self.registry.serviceConfig.oauth.secret,
-                                algorithms: _self.registry.serviceConfig.oauth.algorithms,
-                                audience: _self.registry.serviceConfig.oauth.audience
-                            });
-
-                            _self.soajs.oauth = oauthObj;
-                            _self.log.info("oAuth0 middleware initialization done.");
-                        }
-                        */
                     }
 
                     var mt_mw = require("./../mw/mt/index");

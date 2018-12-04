@@ -27,7 +27,9 @@ describe("importing sample data", function () {
 			require("./mw/mt/utils-dev.test.js");
 			require("./mw/mt/utils-dashboard.test.js");
 			require("./mw/mt/index.test.js");
-			
+
+            require("./mw/oauth/index.test.js");
+
 			require("./mw/enhancer/index.test.js");
 			
 			require("./mw/favicon/index.test.js");
