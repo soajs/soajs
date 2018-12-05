@@ -437,7 +437,7 @@ service.prototype.start = function (cb) {
             else if (!process.env.SOAJS_DEPLOY_HA) {
                 core.registry.registerHost({
                     "serviceName": _self.app.soajs.param.serviceName,
-                    "servicePort": _self.app.soajs.param.servicePort,
+                    "servicePort": finalDataPort,//_self.app.soajs.param.servicePort,
                     "serviceVersion": _self.app.soajs.param.serviceVersion,
                     "serviceIp": _self.app.soajs.param.serviceIp,
                     "serviceHATask": _self.app.soajs.param.serviceHATask

@@ -109,9 +109,9 @@ var awareness_healthCheck = function () {
     async.each(awarenessHosts.servicesArr,
         function (sObj, callback) {
 
-            let checkForHeartBeat = function (host, port, callback) {
+            let checkForHeartBeat = function (host, port, path, callback) {
                 request({
-                    'uri': 'http://' + host + ':' + port + '/heartbeat'
+                    'uri': 'http://' + host + ':' + port + path
                 }, function (error, response, body) {
                     if (!error && response.statusCode === 200) {
                         callback(true);
@@ -120,18 +120,35 @@ var awareness_healthCheck = function () {
                         callback(false);
                 });
             };
-
-            checkForHeartBeat(sObj.host, sObj.port + registry.serviceConfig.ports.maintenanceInc, function (found) {
-                if (found) {
-                    nextStep(found);
-                }
+            if (registry.services[sObj.name] && registry.services[sObj.name].maintenance && registry.services[sObj.name].maintenance.readiness && registry.services[sObj.name].maintenance.port) {
+                let port = sObj.port;
+                let path = registry.services[sObj.name].maintenance.readiness;
+                if ("maintenance" === registry.services[sObj.name].maintenance.port.type)
+                    port = port + registry.serviceConfig.ports.maintenanceInc;
+                else if ("inherit" === registry.services[sObj.name].maintenance.port.type)
+                    port = port;
                 else {
-                    checkForHeartBeat(sObj.host, sObj.port, function (found) {
-                        nextStep(found);
-                    });
+                    let tempPort = parseInt(registry.services[sObj.name].maintenance.port.value);
+                    if(!isNaN(tempPort)){
+                        port = registry.services[sObj.name].maintenance.port.value;
+                    }
                 }
-            });
-
+                checkForHeartBeat(sObj.host, port, path, function (found) {
+                    nextStep(found);
+                });
+            }
+            else {
+                checkForHeartBeat(sObj.host, sObj.port + registry.serviceConfig.ports.maintenanceInc, '/heartbeat', function (found) {
+                    if (found) {
+                        nextStep(found);
+                    }
+                    else {
+                        checkForHeartBeat(sObj.host, sObj.port, '/heartbeat', function (found) {
+                            nextStep(found);
+                        });
+                    }
+                });
+            }
             let nextStep = function (found) {
                 if (registry[sObj.what][sObj.name] && !registry[sObj.what][sObj.name].awarenessStats)
                     registry[sObj.what][sObj.name].awarenessStats = {};
