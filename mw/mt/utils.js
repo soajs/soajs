@@ -393,6 +393,12 @@ var utils = {
      * If the API is public, the request moves forward
      * If the API is private, the oauth is then used along with system to determine if the API is accessible or not
      *
+     * oAuth Conf exists in 2 locations:
+     *  - registry under: obj.req.soajs.registry.serviceConfig.oauth
+     *       type, grants, algorithms, audience, accessTokenLifetime, refreshTokenLifetime, debug
+     *  - tenant under: provision.getTenantOauth(obj.req.soajs.tenant.id, (err, tenantOauth))
+     *       type, secret, loginMode, disabled
+     *
      * @param {Object} obj
      * @param {Function} cb
      * @returns {Callback}
