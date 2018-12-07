@@ -16,6 +16,7 @@ var req = mockedDataRequest.request1;
 var res = {};
 var configuration = mockedDataStandards.configuration;
 var getExternalKeyDataKeyObj = mockedDataStandards.getExternalKeyDataKeyObj;
+var getTenantOauthObj = mockedDataStandards.getTenantOauthObj;
 var utilsData = {
 	req: {
 		soajs: {
@@ -35,6 +36,7 @@ describe("testing Multitenant index", function () {
 	
 	let serviceStub;
 	let serviceStub2;
+    let serviceStub3;
 	let serviceStubUtils1;
 	let serviceStubUtils2;
 	let serviceStubUtils3;
@@ -98,6 +100,10 @@ describe("testing Multitenant index", function () {
 				return cb(null, getExternalKeyDataKeyObj);
 			}
 		);
+        serviceStub3 = sinon.stub(provision, 'getTenantOauth', (id, cb) => {
+                return cb(null, getTenantOauthObj);
+            }
+        );
 		
 		serviceStub2 = sinon.stub(provision, 'getPackageData', (code, cb) => {
 				return cb({

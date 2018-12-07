@@ -67,6 +67,18 @@ var getExternalKeyDataKeyObj = {
 	"config": {}
 };
 
+var getTenantOauthObj = {
+		//"type" : 0,
+		//"disabled": 0,
+		"loginMode": "oauth",
+        "secret" : "shhh this is a secret",
+        "redirectUri" : "",
+        "grants" : [
+            "password",
+            "refresh_token"
+        ]
+};
+
 var objectWithAclData = {
 	keyObj : {
 		application : {
@@ -386,5 +398,6 @@ module.exports = {
 	configuration,
 	configuration2,
 	getExternalKeyDataKeyObj,
+    getTenantOauthObj,
 	objectWithAclData
 };

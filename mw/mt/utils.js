@@ -412,7 +412,8 @@ var utils = {
 
         if (oAuthTurnedOn) {
             var oauthExec = function () {
-                if (obj.req.soajs.servicesConfig && obj.req.soajs.servicesConfig[obj.soajs.oauthService.name] && obj.req.soajs.servicesConfig[obj.soajs.oauthService.name].disabled)
+                if(obj.req.soajs.tenantOauth && obj.req.soajs.tenantOauth.disabled)
+                //if (obj.req.soajs.servicesConfig && obj.req.soajs.servicesConfig[obj.soajs.oauthService.name] && obj.req.soajs.servicesConfig[obj.soajs.oauthService.name].disabled)
                     return cb(null, obj);
 
                 return obj.soajs.oauth(obj.req, obj.res, function (error) {
