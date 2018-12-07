@@ -80,166 +80,174 @@ module.exports = function (configuration) {
                                 "iKey": keyObj.key,
                                 "eKey": keyObj.extKey
                             };
-                            req.soajs.tenant.application = keyObj.application;
-                            provision.getPackageData(keyObj.application.package, function (err, packObj) {
-                                if (err)
-                                    req.soajs.log.warn(err);
-                                if (packObj) {
-                                    req.soajs.tenant.application.package_acl = packObj.acl;
-                                    req.soajs.tenant.application.package_acl_all_env = packObj.acl_all_env;
-                                    req.soajs.servicesConfig = keyObj.config;
 
-                                    if (proxy) {
-                                        req.soajs.log.debug("Detected proxy request, bypassing MT ACL checks...");
-                                        return next();
-                                    }
+                            provision.getTenantOauth(req.soajs.tenant.id, (err, tenantOauth) => {
+                                if (tenantOauth)
+                                    req.soajs.tenantOauth = tenantOauth;
+                                else
+                                    req.soajs.tenantOauth = null;
 
-                                    var serviceCheckArray = [function (cb) {
-                                        cb(null, {
-                                            "app": app,
-                                            "soajs": soajs,
-                                            "res": res,
-                                            "req": req,
-                                            "keyObj": keyObj,
-                                            "packObj": packObj
-                                        });
-                                    }];
+                                req.soajs.tenant.application = keyObj.application;
+                                provision.getPackageData(keyObj.application.package, function (err, packObj) {
+                                    if (err)
+                                        req.soajs.log.warn(err);
+                                    if (packObj) {
+                                        req.soajs.tenant.application.package_acl = packObj.acl;
+                                        req.soajs.tenant.application.package_acl_all_env = packObj.acl_all_env;
+                                        req.soajs.servicesConfig = keyObj.config;
 
-                                    serviceCheckArray.push(utils.securityGeoCheck);
-                                    serviceCheckArray.push(utils.securityDeviceCheck);
-
-                                    serviceCheckArray.push(utils.aclCheck);
-
-                                    if (serviceParam.oauth) {
-                                        serviceCheckArray.push(utils.oauthCheck);
-                                    }
-
-                                    serviceCheckArray.push(utils.uracCheck);
-                                    serviceCheckArray.push(utils.aclUrackCheck);
-
-                                    serviceCheckArray.push(utils.serviceCheck);
-                                    serviceCheckArray.push(utils.apiCheck);
-
-                                    async.waterfall(serviceCheckArray, function (err, data) {
-
-                                        //if this is controller route: /key/permission/get, ignore async waterfall response
-                                        if (keyPermissionGet) {
-                                            if (!req.soajs.uracDriver) {
-                                                //doesn't work if you are not logged in
-                                                return next(158);
-                                            }
-                                            else {
-                                                req.soajs.log.debug("Detected return get key permission request, bypassing MT ACL checks...");
-                                                return next();
-                                            }
-                                        }
-
-                                        if (err)
-                                            return next(err);
-                                        else {
-                                            var serviceName = data.req.soajs.controller.serviceParams.name;
-                                            var dataServiceConfig = data.servicesConfig || keyObj.config;
-                                            var serviceConfig = {};
-
-                                            if (dataServiceConfig.commonFields) {
-                                                for (var i in dataServiceConfig.commonFields) {
-                                                    //if servicesConfig already has an entry, entry overrides commonFields
-                                                    if (!serviceConfig[i]) {
-                                                        serviceConfig[i] = dataServiceConfig.commonFields[i];
-                                                    }
-                                                }
-                                            }
-
-                                            if (dataServiceConfig[serviceName]) {
-                                                serviceConfig[serviceName] = dataServiceConfig[serviceName];
-                                            }
-
-                                            var injectObj = {
-                                                "tenant": {
-                                                    "id": keyObj.tenant.id,
-                                                    "code": keyObj.tenant.code,
-                                                    "locked": keyObj.tenant.locked,
-                                                    "roaming": data.req.soajs.tenant.roaming
-                                                },
-                                                "key": {
-                                                    /*
-                                                     do not send the servicesConfig as it is, it should only send the service and commonFields
-                                                     ex:
-                                                     serviceConfig = {
-                                                     commonFields : { .... },
-                                                     [serviceName] : { .... }
-                                                     }
-                                                     */
-                                                    "config": serviceConfig,
-                                                    "iKey": keyObj.key,
-                                                    "eKey": keyObj.extKey
-                                                },
-                                                "application": {
-                                                    "product": keyObj.application.product,
-                                                    "package": keyObj.application.package,
-                                                    "appId": keyObj.application.appId,
-                                                    "acl": keyObj.application.acl,
-                                                    "acl_all_env": keyObj.application.acl_all_env
-                                                },
-                                                "package": {
-                                                    "acl": packObj.acl,
-                                                    "acl_all_env": packObj.acl_all_env
-                                                },
-                                                "device": data.device,
-                                                "geo": data.geo
-                                            };
-
-                                            if (controllerHostInThisEnvironment) {
-                                                injectObj.awareness = {
-                                                    "host": controllerHostInThisEnvironment,
-                                                    "port": req.soajs.registry.serviceConfig.ports.controller
-                                                };
-                                            }
-                                            if (req.soajs.uracDriver) {
-                                                if (serviceParam.urac) {
-                                                    var uracObj = req.soajs.uracDriver.getProfile();
-                                                    if (uracObj) {
-                                                        injectObj.urac = {
-                                                            "_id": uracObj._id,
-                                                            "username": uracObj.username,
-                                                            "firstName": uracObj.firstName,
-                                                            "lastName": uracObj.lastName,
-                                                            "email": uracObj.email,
-                                                            "groups": uracObj.groups,
-                                                            "socialLogin": uracObj.socialLogin,
-                                                            "tenant": {
-                                                                "id": uracObj.tenant.id,
-                                                                "code": uracObj.tenant.code
-                                                            }
-                                                        };
-
-                                                        injectObj.param = injectObj.param || {};
-                                                        injectObj.param.urac_Profile = serviceParam.urac_Profile;
-                                                        injectObj.param.urac_ACL = serviceParam.urac_ACL;
-
-                                                        if (serviceParam.urac_Profile)
-                                                            injectObj.urac.profile = uracObj.profile;
-                                                        if (serviceParam.urac_ACL)
-                                                            injectObj.urac.acl = req.soajs.uracDriver.getAcl();
-                                                        if (serviceParam.urac_ACL)
-                                                            injectObj.urac.acl_AllEnv = req.soajs.uracDriver.getAclAllEnv();
-                                                    }
-                                                }
-                                            }
-                                            if (!serviceParam.provision_ACL) {
-                                                delete injectObj.application.acl;
-                                                delete injectObj.application.acl_all_env;
-                                                delete injectObj.package.acl_all_env;
-                                                delete injectObj.package.acl;
-                                            }
-
-                                            req.headers['soajsinjectobj'] = JSON.stringify(injectObj);
+                                        if (proxy) {
+                                            req.soajs.log.debug("Detected proxy request, bypassing MT ACL checks...");
                                             return next();
                                         }
-                                    });
-                                }
-                                else
-                                    return next(152);
+
+                                        var serviceCheckArray = [function (cb) {
+                                            cb(null, {
+                                                "app": app,
+                                                "soajs": soajs,
+                                                "res": res,
+                                                "req": req,
+                                                "keyObj": keyObj,
+                                                "packObj": packObj
+                                            });
+                                        }];
+
+                                        serviceCheckArray.push(utils.securityGeoCheck);
+                                        serviceCheckArray.push(utils.securityDeviceCheck);
+
+                                        serviceCheckArray.push(utils.aclCheck);
+
+                                        if (serviceParam.oauth) {
+                                            serviceCheckArray.push(utils.oauthCheck);
+                                        }
+
+                                        serviceCheckArray.push(utils.uracCheck);
+                                        serviceCheckArray.push(utils.aclUrackCheck);
+
+                                        serviceCheckArray.push(utils.serviceCheck);
+                                        serviceCheckArray.push(utils.apiCheck);
+
+                                        async.waterfall(serviceCheckArray, function (err, data) {
+
+                                            //if this is controller route: /key/permission/get, ignore async waterfall response
+                                            if (keyPermissionGet) {
+                                                if (!req.soajs.uracDriver) {
+                                                    //doesn't work if you are not logged in
+                                                    return next(158);
+                                                }
+                                                else {
+                                                    req.soajs.log.debug("Detected return get key permission request, bypassing MT ACL checks...");
+                                                    return next();
+                                                }
+                                            }
+
+                                            if (err)
+                                                return next(err);
+                                            else {
+                                                var serviceName = data.req.soajs.controller.serviceParams.name;
+                                                var dataServiceConfig = data.servicesConfig || keyObj.config;
+                                                var serviceConfig = {};
+
+                                                if (dataServiceConfig.commonFields) {
+                                                    for (var i in dataServiceConfig.commonFields) {
+                                                        //if servicesConfig already has an entry, entry overrides commonFields
+                                                        if (!serviceConfig[i]) {
+                                                            serviceConfig[i] = dataServiceConfig.commonFields[i];
+                                                        }
+                                                    }
+                                                }
+
+                                                if (dataServiceConfig[serviceName]) {
+                                                    serviceConfig[serviceName] = dataServiceConfig[serviceName];
+                                                }
+
+                                                var injectObj = {
+                                                    "tenant": {
+                                                        "id": keyObj.tenant.id,
+                                                        "code": keyObj.tenant.code,
+                                                        "locked": keyObj.tenant.locked,
+                                                        "roaming": data.req.soajs.tenant.roaming
+                                                    },
+                                                    "key": {
+                                                        /*
+                                                         do not send the servicesConfig as it is, it should only send the service and commonFields
+                                                         ex:
+                                                         serviceConfig = {
+                                                         commonFields : { .... },
+                                                         [serviceName] : { .... }
+                                                         }
+                                                         */
+                                                        "config": serviceConfig,
+                                                        "iKey": keyObj.key,
+                                                        "eKey": keyObj.extKey
+                                                    },
+                                                    "application": {
+                                                        "product": keyObj.application.product,
+                                                        "package": keyObj.application.package,
+                                                        "appId": keyObj.application.appId,
+                                                        "acl": keyObj.application.acl,
+                                                        "acl_all_env": keyObj.application.acl_all_env
+                                                    },
+                                                    "package": {
+                                                        "acl": packObj.acl,
+                                                        "acl_all_env": packObj.acl_all_env
+                                                    },
+                                                    "device": data.device,
+                                                    "geo": data.geo
+                                                };
+
+                                                if (controllerHostInThisEnvironment) {
+                                                    injectObj.awareness = {
+                                                        "host": controllerHostInThisEnvironment,
+                                                        "port": req.soajs.registry.serviceConfig.ports.controller
+                                                    };
+                                                }
+                                                if (req.soajs.uracDriver) {
+                                                    if (serviceParam.urac) {
+                                                        var uracObj = req.soajs.uracDriver.getProfile();
+                                                        if (uracObj) {
+                                                            injectObj.urac = {
+                                                                "_id": uracObj._id,
+                                                                "username": uracObj.username,
+                                                                "firstName": uracObj.firstName,
+                                                                "lastName": uracObj.lastName,
+                                                                "email": uracObj.email,
+                                                                "groups": uracObj.groups,
+                                                                "socialLogin": uracObj.socialLogin,
+                                                                "tenant": {
+                                                                    "id": uracObj.tenant.id,
+                                                                    "code": uracObj.tenant.code
+                                                                }
+                                                            };
+
+                                                            injectObj.param = injectObj.param || {};
+                                                            injectObj.param.urac_Profile = serviceParam.urac_Profile;
+                                                            injectObj.param.urac_ACL = serviceParam.urac_ACL;
+
+                                                            if (serviceParam.urac_Profile)
+                                                                injectObj.urac.profile = uracObj.profile;
+                                                            if (serviceParam.urac_ACL)
+                                                                injectObj.urac.acl = req.soajs.uracDriver.getAcl();
+                                                            if (serviceParam.urac_ACL)
+                                                                injectObj.urac.acl_AllEnv = req.soajs.uracDriver.getAclAllEnv();
+                                                        }
+                                                    }
+                                                }
+                                                if (!serviceParam.provision_ACL) {
+                                                    delete injectObj.application.acl;
+                                                    delete injectObj.application.acl_all_env;
+                                                    delete injectObj.package.acl_all_env;
+                                                    delete injectObj.package.acl;
+                                                }
+
+                                                req.headers['soajsinjectobj'] = JSON.stringify(injectObj);
+                                                return next();
+                                            }
+                                        });
+                                    }
+                                    else
+                                        return next(152);
+                                });
                             });
                         }
                         else

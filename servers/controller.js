@@ -50,9 +50,9 @@ function controller(param) {
     _self.maintenance.readiness = "/heartbeat";
     if (!_self.maintenance.commands)
         _self.maintenance.commands = [];
-    _self.maintenance.commands.push ({"label":"Releoad Registry","path":"/reloadRegistry","icon":"registry"});
-    _self.maintenance.commands.push ({"label":"Statistics Info","path":"/awarenessStat","icon":"statistic"});
-    _self.maintenance.commands.push ({"label":"Releoad Provision Info","path":"/loadProvision","icon":"provision"});
+    _self.maintenance.commands.push({"label": "Releoad Registry", "path": "/reloadRegistry", "icon": "registry"});
+    _self.maintenance.commands.push({"label": "Statistics Info", "path": "/awarenessStat", "icon": "statistic"});
+    _self.maintenance.commands.push({"label": "Releoad Provision Info", "path": "/loadProvision", "icon": "provision"});
 
     //TODO: we might not need bodyParser
     param.bodyParser = false;
@@ -93,7 +93,7 @@ controller.prototype.init = function (callback) {
             "serviceVersion": _self.serviceVersion,
             "apiList": null,
             "serviceIp": _self.serviceIp,
-            "maintenance" : _self.maintenance
+            "maintenance": _self.maintenance
         }, function (reg) {
             _self.registry = reg;
             _self.log = core.getLogger(_self.serviceName, _self.registry.serviceConfig.logger);
@@ -138,7 +138,7 @@ controller.prototype.init = function (callback) {
                         };
                         return response;
                     };
-                    let reloadRegistry = function (parsedUrl) {
+                    let reloadRegistry = function (parsedUrl, cb) {
                         core.registry.reload({
                             "serviceName": _self.serviceName,
                             "serviceVersion": null,
@@ -152,7 +152,7 @@ controller.prototype.init = function (callback) {
                                 response['result'] = true;
                                 response['data'] = reg;
                             }
-                            return (response);
+                            return cb(response);
                         });
                     };
                     let proxy = httpProxy.createProxyServer({});
@@ -174,9 +174,10 @@ controller.prototype.init = function (callback) {
                         var parsedUrl = url.parse(req.url, true);
 
                         if (parsedUrl.pathname === '/reloadRegistry') {
-                            let response = reloadRegistry(parsedUrl);
-                            res.writeHead(200, {'Content-Type': 'application/json'});
-                            return res.end(JSON.stringify(response));
+                            reloadRegistry(parsedUrl, (response) => {
+                                res.writeHead(200, {'Content-Type': 'application/json'});
+                                return res.end(JSON.stringify(response));
+                            });
                         }
                         else if (parsedUrl.pathname === '/awarenessStat') {
                             res.writeHead(200, {'Content-Type': 'application/json'});
@@ -221,9 +222,10 @@ controller.prototype.init = function (callback) {
                                         body = JSON.parse(body);
 
                                     if (parsedUrl.query.serviceHATask) {
-                                        let response = reloadRegistry(parsedUrl);
-                                        res.writeHead(200, {'Content-Type': 'application/json'});
-                                        return res.end(JSON.stringify(response));
+                                        reloadRegistry(parsedUrl, (response) => {
+                                            res.writeHead(200, {'Content-Type': 'application/json'});
+                                            return res.end(JSON.stringify(response));
+                                        });
                                     }
                                     else {
                                         res.writeHead(200, {'Content-Type': 'application/json'});
@@ -369,6 +371,7 @@ controller.prototype.init = function (callback) {
                     if (_self.registry.serviceConfig.oauth) {
 
                         let oauth_mw = require("./../mw/oauth/index");
+                        // NOTE: oauth_mw is set on soajs.oauth and is triggered from inside mt_mw
                         _self.soajs.oauth = oauth_mw({
                             "soajs": _self.soajs,
                             "serviceConfig": _self.registry.serviceConfig,

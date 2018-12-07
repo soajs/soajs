@@ -395,7 +395,7 @@ var utils = {
      *
      * oAuth Conf exists in 2 locations:
      *  - registry under: obj.req.soajs.registry.serviceConfig.oauth
-     *       type, grants, algorithms, audience, accessTokenLifetime, refreshTokenLifetime, debug
+     *       type, secret, grants, algorithms, audience, accessTokenLifetime, refreshTokenLifetime, debug
      *  - tenant under: provision.getTenantOauth(obj.req.soajs.tenant.id, (err, tenantOauth))
      *       type, secret, loginMode, disabled
      *

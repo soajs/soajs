@@ -28,6 +28,10 @@ describe("Testing oauth MW", function () {
     };
     let req = {
         "soajs": {
+            "tenantOauth": {
+                "type": 0,
+                "secret" : "shhh this is a secret"
+            },
             "servicesConfig": {},
             "registry": {
                 "serviceConfig": {
@@ -64,7 +68,7 @@ describe("Testing oauth MW", function () {
     it("test  oauth MW - with wrong Authorization syntax", function (done) {
         req.get = (what) => {
             if ('Authorization' === what)
-                return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiZ2FicmllbEByb2Nrc3Bvb24uY29tIn0.wrcN9K6sLGHjigGHo1nw6tBWA5HOWTLTmB_ywTf2quM";
+                return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpYXQiOjE1NDQxMzg5NjV9.gOCtYwG2QdamGbFe-33ffBz9dkoRn_nEiGf0BAuRAz8";
         };
         let functionMw = index(configuration);
         functionMw(req, res, (error) =>{
@@ -76,7 +80,7 @@ describe("Testing oauth MW", function () {
     it("test  oauth MW - with wrong Authorization", function (done) {
         req.get = (what) => {
             if ('Authorization' === what)
-                return "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiZ2FicmllbEByb2Nrc3Bvb24uY29tIn0.wrcN9K6sLGHjigGHo1nw6tBWA5HOWTLTmB_ywTf2wed";
+                return "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpYXQiOjE1NDQxMzg5NjV9.gOCtYwG2QdamGbFe-33ffBz9dkoRn_nEiGf0BAuRAz0";
         };
         let functionMw = index(configuration);
         functionMw(req, res, (error) =>{
@@ -89,7 +93,7 @@ describe("Testing oauth MW", function () {
     it("test  oauth MW - good Authorization", function (done) {
         req.get = (what) => {
             if ('Authorization' === what)
-                return "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiZ2FicmllbEByb2Nrc3Bvb24uY29tIn0.wrcN9K6sLGHjigGHo1nw6tBWA5HOWTLTmB_ywTf2quM";
+                return "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpYXQiOjE1NDQxMzg5NjV9.gOCtYwG2QdamGbFe-33ffBz9dkoRn_nEiGf0BAuRAz8";
         };
         let functionMw = index(configuration);
         functionMw(req, res, (error) =>{
