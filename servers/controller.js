@@ -230,30 +230,36 @@ controller.prototype.init = function (callback) {
                                     else {
                                         res.writeHead(200, {'Content-Type': 'application/json'});
                                         let response = maintenanceResponse(parsedUrl);
+
+                                        let infoObj = parsedUrl.query;
+                                        if ('POST'===req.method && body){
+                                            infoObj = body;
+                                        }
+
                                         let regOptions = {
-                                            "name": parsedUrl.query.name,
-                                            "group": parsedUrl.query.group,
-                                            "port": parseInt(parsedUrl.query.port),
-                                            "ip": parsedUrl.query.ip,
-                                            "type": parsedUrl.query.type,
-                                            "version": parseInt(parsedUrl.query.version)
+                                            "name": infoObj.name,
+                                            "group": infoObj.group,
+                                            "port": parseInt(infoObj.port),
+                                            "ip": infoObj.ip,
+                                            "type": infoObj.type,
+                                            "version": parseInt(infoObj.version)
                                         };
                                         if (regOptions.type === "service") {
-                                            regOptions["swagger"] = (parsedUrl.query.swagger === "true" ? true : false);
-                                            regOptions["oauth"] = (parsedUrl.query.oauth === "false" ? false : true);
-                                            regOptions["urac"] = (parsedUrl.query.urac === "false" ? false : true);
-                                            regOptions["urac_Profile"] = (parsedUrl.query.urac_Profile === "false" ? false : true);
-                                            regOptions["urac_ACL"] = (parsedUrl.query.urac_ACL === "false" ? false : true);
-                                            regOptions["provision_ACL"] = (parsedUrl.query.provision_ACL === "false" ? false : true);
-                                            regOptions["extKeyRequired"] = (parsedUrl.query.extKeyRequired === "true" ? true : false);
-                                            regOptions["requestTimeout"] = parseInt(parsedUrl.query.requestTimeout);
-                                            regOptions["requestTimeoutRenewal"] = parseInt(parsedUrl.query.requestTimeoutRenewal);
+                                            regOptions["swagger"] = (infoObj.swagger === "true" ? true : false);
+                                            regOptions["oauth"] = (infoObj.oauth === "false" ? false : true);
+                                            regOptions["urac"] = (infoObj.urac === "false" ? false : true);
+                                            regOptions["urac_Profile"] = (infoObj.urac_Profile === "false" ? false : true);
+                                            regOptions["urac_ACL"] = (infoObj.urac_ACL === "false" ? false : true);
+                                            regOptions["provision_ACL"] = (infoObj.provision_ACL === "false" ? false : true);
+                                            regOptions["extKeyRequired"] = (infoObj.extKeyRequired === "true" ? true : false);
+                                            regOptions["requestTimeout"] = parseInt(infoObj.requestTimeout);
+                                            regOptions["requestTimeoutRenewal"] = parseInt(infoObj.requestTimeoutRenewal);
 
                                             if (body && body.apiList)
                                                 regOptions["apiList"] = body.apiList;
                                         }
 
-                                        regOptions["mw"] = (parsedUrl.query.mw === "true" ? true : false);
+                                        regOptions["mw"] = (infoObj.mw === "true" ? true : false);
 
                                         if (body && body.maintenance)
                                             regOptions["maintenance"] = body.maintenance;
