@@ -259,7 +259,7 @@ controller.prototype.init = function (callback) {
                                                 regOptions["apiList"] = body.apiList;
                                         }
 
-                                        regOptions["mw"] = (infoObj.mw === "true" ? true : false);
+                                        regOptions["mw"] = ((infoObj.mw === "true" || infoObj.mw === true) ? true : false);
 
                                         if (body && body.maintenance)
                                             regOptions["maintenance"] = body.maintenance;
