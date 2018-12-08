@@ -245,13 +245,13 @@ controller.prototype.init = function (callback) {
                                             "version": parseInt(infoObj.version)
                                         };
                                         if (regOptions.type === "service") {
-                                            regOptions["swagger"] = (infoObj.swagger === "true" ? true : false);
-                                            regOptions["oauth"] = (infoObj.oauth === "false" ? false : true);
-                                            regOptions["urac"] = (infoObj.urac === "false" ? false : true);
-                                            regOptions["urac_Profile"] = (infoObj.urac_Profile === "false" ? false : true);
-                                            regOptions["urac_ACL"] = (infoObj.urac_ACL === "false" ? false : true);
-                                            regOptions["provision_ACL"] = (infoObj.provision_ACL === "false" ? false : true);
-                                            regOptions["extKeyRequired"] = (infoObj.extKeyRequired === "true" ? true : false);
+                                            regOptions["swagger"] = infoObj.swagger;
+                                            regOptions["oauth"] = infoObj.oauth;
+                                            regOptions["urac"] = infoObj.urac;
+                                            regOptions["urac_Profile"] = infoObj.urac_Profile;
+                                            regOptions["urac_ACL"] = infoObj.urac_ACL;
+                                            regOptions["provision_ACL"] = infoObj.provision_ACL;
+                                            regOptions["extKeyRequired"] = infoObj.extKeyRequired;
                                             regOptions["requestTimeout"] = parseInt(infoObj.requestTimeout);
                                             regOptions["requestTimeoutRenewal"] = parseInt(infoObj.requestTimeoutRenewal);
 
@@ -259,7 +259,7 @@ controller.prototype.init = function (callback) {
                                                 regOptions["apiList"] = body.apiList;
                                         }
 
-                                        regOptions["mw"] = ((infoObj.mw === "true" || infoObj.mw === true) ? true : false);
+                                        regOptions["mw"] = infoObj.mw;
 
                                         if (body && body.maintenance)
                                             regOptions["maintenance"] = body.maintenance;
