@@ -1,7 +1,7 @@
 {
   "name": "soajs",
   "description": "soajs framework",
-  "version": "2.0.17",
+  "version": "2.1.0",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -32,7 +32,7 @@
     "mocha": "3.2.0",
     "shelljs": "0.7.5",
     "sinon": "1.17.6",
-    "soajs.mongodb.data": "2.0.*"
+    "soajs.mongodb.data": "2.1.*"
   },
   "dependencies": {
     "async": "2.1.4",
@@ -44,17 +44,17 @@
     "express-session": "1.15.6",
     "http-proxy": "1.16.2",
     "jsonwebtoken": "8.4.0",
-    "merge": "1.2.0",
+    "merge": "1.2.1",
     "method-override": "2.3.10",
     "morgan": "1.9.1",
     "netmask": "1.0.6",
     "oauth2-server": "2.4.1",
     "path-to-regexp": "1.7.0",
     "request": "2.84.0",
-    "soajs.core.drivers": "3.0.16",
+    "soajs.core.drivers": "3.1.0",
     "soajs.core.libs": "1.0.2",
-    "soajs.core.modules": "2.0.7",
-    "soajs.urac.driver": "1.0.8",
+    "soajs.core.modules": "2.1.0",
+    "soajs.urac.driver": "1.1.0",
     "useragent": "2.2.1",
     "validator": "9.4.1"
   }
