@@ -51,7 +51,7 @@ function controller(param) {
     if (!_self.maintenance.commands)
         _self.maintenance.commands = [];
     _self.maintenance.commands.push({"label": "Releoad Registry", "path": "/reloadRegistry", "icon": "registry"});
-    _self.maintenance.commands.push({"label": "Statistics Info", "path": "/awarenessStat", "icon": "statistic"});
+    _self.maintenance.commands.push({"label": "Statistics Info", "path": "/awarenessStat", "icon": "awareness"});
     _self.maintenance.commands.push({"label": "Releoad Provision Info", "path": "/loadProvision", "icon": "provision"});
 
     //TODO: we might not need bodyParser
