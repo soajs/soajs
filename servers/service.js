@@ -453,6 +453,7 @@ service.prototype.start = function (cb) {
                         _self.log.info("Initiating service auto register for awareness ...");
                         core.registry.autoRegisterService({
                             "name": _self.app.soajs.param.serviceName,
+                            "port" : finalDataPort,
                             "oauth": _self.app.soajs.param.oauth,
                             "urac": _self.app.soajs.param.urac,
                             "urac_Profile": _self.app.soajs.param.urac_Profile,
