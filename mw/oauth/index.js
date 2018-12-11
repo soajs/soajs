@@ -56,7 +56,7 @@ module.exports = function (configuration) {
                         audience: audience
                     }, (error, decoded) => {
                         if (error) {
-                            next(error);
+                            next(143);
                         }
                         else {
                             req.oauth = {
