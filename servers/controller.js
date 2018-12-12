@@ -232,7 +232,7 @@ controller.prototype.init = function (callback) {
                                         let response = maintenanceResponse(parsedUrl);
 
                                         let infoObj = parsedUrl.query;
-                                        if ('POST'===req.method && body){
+                                        if ('POST' === req.method && body) {
                                             infoObj = body;
                                         }
 
@@ -324,8 +324,36 @@ controller.prototype.init = function (callback) {
                                 }
                                 else {
                                     response['result'] = true;
-                                    response['data'] = reg;
+                                    response['data'] = {}; //soajsUtils.cloneObj(reg);
                                 }
+
+                                if (reg.timeLoaded)
+                                    response['data'].timeLoaded = reg.timeLoaded;
+                                if (reg.name)
+                                    response['data'].name = reg.name;
+                                if (reg.environment)
+                                    response['data'].environment = reg.environment;
+                                if (reg.coreDB)
+                                    response['data'].coreDB = reg.coreDB;
+                                if (reg.tenantMetaDB)
+                                    response['data'].tenantMetaDB = reg.tenantMetaDB;
+                                if (reg.serviceConfig) {
+                                    response['data'].serviceConfig = soajsUtils.cloneObj(reg.serviceConfig);
+                                    delete response['data'].serviceConfig.oauth;
+                                    delete response['data'].serviceConfig.cors;
+                                }
+                                if (reg.custom)
+                                    response['data'].custom = reg.custom;
+                                if (reg.resources)
+                                    response['data'].resources = reg.resources;
+                                response['data'].services = {};
+                                if (reg.services.controller)
+                                    response['data'].services.controller = reg.services.controller;
+                                if (reg.services[reqServiceName]) {
+                                    response['data'].services[reqServiceName] = soajsUtils.cloneObj(reg.services[reqServiceName]);
+                                    delete response['data'].services[reqServiceName].versions;
+                                }
+
                                 res.writeHead(200, {'Content-Type': 'application/json'});
                                 return res.end(JSON.stringify(response));
                             });
