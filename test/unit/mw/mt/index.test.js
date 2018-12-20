@@ -77,7 +77,7 @@ describe("testing Multitenant index", function () {
 		}
 		done();
 	});
-	
+	/*
 	it("Fail test - getExternalKeyData wrong key object - 153", function (done) {
 		
 		//serviceStub = sinon.stub(provision, 'getExternalKeyData', (extKey, keyConfig, cb) => {
@@ -122,7 +122,7 @@ describe("testing Multitenant index", function () {
 		});
 		
 	});
-	
+	*/
 	it("Success test", function (done) {
 		
 		
@@ -136,7 +136,11 @@ describe("testing Multitenant index", function () {
 		//		return cb(null, pack);
 		//	}
 		//);
-		
+
+        serviceStub3 = sinon.stub(provision, 'getTenantOauth', (id, cb) => {
+                return cb(null, getTenantOauthObj);
+            }
+        );
 		// utils stubs
 		serviceStubUtils1 = sinon.stub(utils, 'securityGeoCheck', (obj, cb) => {
 				return cb(null, utilsData);
