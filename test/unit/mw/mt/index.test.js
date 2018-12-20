@@ -17,8 +17,6 @@ var res = {};
 var configuration = mockedDataStandards.configuration;
 var getExternalKeyDataKeyObj = mockedDataStandards.getExternalKeyDataKeyObj;
 var getTenantOauthObj = mockedDataStandards.getTenantOauthObj;
-req.soajs.controller.serviceParams.keyObj = getExternalKeyDataKeyObj;
-req.soajs.controller.serviceParams.packObj = {};
 var utilsData = {
 	req: {
 		soajs: {
@@ -77,15 +75,8 @@ describe("testing Multitenant index", function () {
 		}
 		done();
 	});
-	/*
+
 	it("Fail test - getExternalKeyData wrong key object - 153", function (done) {
-		
-		//serviceStub = sinon.stub(provision, 'getExternalKeyData', (extKey, keyConfig, cb) => {
-		//		return cb({
-		//			error : true
-		//		});
-		//	}
-		//);
 		
 		var functionMw = index(configuration);
 		
@@ -97,22 +88,15 @@ describe("testing Multitenant index", function () {
 	});
 	
 	it("Fail test - getPackageData wrong pack - 152", function (done) {
-		
-		//serviceStub = sinon.stub(provision, 'getExternalKeyData', (extKey, keyConfig, cb) => {
-		//		return cb(null, getExternalKeyDataKeyObj);
-		//	}
-		//);
+
+
+        req.soajs.controller.serviceParams.keyObj = getExternalKeyDataKeyObj;
+
         serviceStub3 = sinon.stub(provision, 'getTenantOauth', (id, cb) => {
                 return cb(null, getTenantOauthObj);
             }
         );
-		
-		//serviceStub2 = sinon.stub(provision, 'getPackageData', (code, cb) => {
-		//		return cb({
-		//			error: true
-		//		});
-		//	}
-		//);
+
 		
 		var functionMw = index(configuration);
 		
@@ -122,20 +106,12 @@ describe("testing Multitenant index", function () {
 		});
 		
 	});
-	*/
+
 	it("Success test", function (done) {
-		
-		
-		//serviceStub = sinon.stub(provision, 'getExternalKeyData', (extKey, keyConfig, cb) => {
-		//		return cb(null, getExternalKeyDataKeyObj);
-		//	}
-		//);
-		
-		//serviceStub2 = sinon.stub(provision, 'getPackageData', (code, cb) => {
-		//		var pack = {};
-		//		return cb(null, pack);
-		//	}
-		//);
+
+
+
+        req.soajs.controller.serviceParams.packObj = {};
 
         serviceStub3 = sinon.stub(provision, 'getTenantOauth', (id, cb) => {
                 return cb(null, getTenantOauthObj);

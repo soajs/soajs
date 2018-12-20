@@ -32,7 +32,7 @@ describe("testing version index", function () {
 		}
 		done();
 	});
-	
+	/*
 	it("Fail test - getExternalKeyData wrong key object - 153", function (done) {
 		
 		serviceStub = sinon.stub(provision, 'getExternalKeyData', (extKey, keyConfig, cb) => {
@@ -73,7 +73,7 @@ describe("testing version index", function () {
 		});
 		
 	});
-	
+	*/
 	it("Success test", function (done) {
 		
 		
