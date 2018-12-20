@@ -173,6 +173,28 @@ describe("Testing Controller index - proxy/redirect", function () {
 	
 	var req = {
 		soajs: {
+
+            controller : {
+                serviceParams: {
+                    serviceInfo:[ '', 'proxy', 'redirect', 'test' ],
+                    parsedUrl: {
+                        protocol: 'http:',
+                        slashes: true,
+                        auth: null,
+                        host: '127.0.0.1:4000',
+                        port: '4000',
+                        hostname: '127.0.0.1',
+                        hash: null,
+                        search: '?__env=ENV&proxyRoute=/test',
+                        query: { __env: 'ENV', proxyRoute: '/test' },
+                        pathname: '/proxy/redirect/test',
+                        path: '/proxy/redirect/test?__env=ENV&proxyRoute=/test',
+                        href: 'http://127.0.0.1:4000/proxy/redirect/test?__env=ENV&proxyRoute=/test' },
+                    service_nv:'proxy',
+                    service_n:'proxy',
+                    service_v:null
+                }
+            },
 			tenant: {
 				application: {}
 			},
