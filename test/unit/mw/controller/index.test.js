@@ -16,6 +16,27 @@ describe("Testing Controller index - returnKeyAndPermissions /key/permission/get
 	
 	var req = {
 		soajs: {
+            controller : {
+                serviceParams: {
+                    serviceInfo:[ '', 'key', 'permission', 'get' ],
+                    parsedUrl: {
+                        protocol: 'http:',
+                        slashes: true,
+                        auth: null,
+                        host: '127.0.0.1:4000',
+                        port: '4000',
+                        hostname: '127.0.0.1',
+                        hash: null,
+                        search: '',
+                        query: {},
+                        pathname: '/key/permission/get',
+                        path: '/key/permission/get',
+                        href: 'http://127.0.0.1:4000/key/permission/get' },
+                    service_nv:'key',
+                    service_n:'key',
+                    service_v:null
+                }
+            },
 			tenant: {
 				application: {}
 			},
