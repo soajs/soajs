@@ -64,6 +64,7 @@ var getExternalKeyDataKeyObj = {
 	},
 	"device": null,
 	"geo": null,
+	"env": "DASHBOARD",
 	"config": {}
 };
 

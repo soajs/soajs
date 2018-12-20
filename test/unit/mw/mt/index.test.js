@@ -113,10 +113,7 @@ describe("testing Multitenant index", function () {
 
         req.soajs.controller.serviceParams.packObj = {};
 
-        serviceStub3 = sinon.stub(provision, 'getTenantOauth', (id, cb) => {
-                return cb(null, getTenantOauthObj);
-            }
-        );
+
 		// utils stubs
 		serviceStubUtils1 = sinon.stub(utils, 'securityGeoCheck', (obj, cb) => {
 				return cb(null, utilsData);
