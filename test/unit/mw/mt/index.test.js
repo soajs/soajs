@@ -17,6 +17,8 @@ var res = {};
 var configuration = mockedDataStandards.configuration;
 var getExternalKeyDataKeyObj = mockedDataStandards.getExternalKeyDataKeyObj;
 var getTenantOauthObj = mockedDataStandards.getTenantOauthObj;
+req.soajs.controller.serviceParams.keyObj = getExternalKeyDataKeyObj;
+req.soajs.controller.serviceParams.packObj = {};
 var utilsData = {
 	req: {
 		soajs: {
