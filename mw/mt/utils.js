@@ -84,99 +84,6 @@ var _api = {
     }
 };
 
-/**
- * loops inside ACL object and moves routes that contain path params from api to apiRegExp
- * @param {Objec} aclObj
- */
-function filterOutRegExpObj(originalAclObj) {
-    var aclObj = coreLibs.utils.cloneObj(originalAclObj);
-
-    /**
-     * changes all tokens found in url with a regular expression
-     * @param {String} route
-     * @returns {Regular Expression}
-     */
-    function constructRegExp(route) {
-        var pathToRegexp = require('path-to-regexp');
-        var keys = [];
-        var out = pathToRegexp(route, keys, {sensitive: true});
-        if (out && out.keys && out.keys.length > 0) {
-            out = new RegExp(out.toString());
-        }
-        return out;
-    }
-
-    /**
-     * check if the given route contains the path param attribute "/:"
-     * @param {String} route
-     * @returns {boolean}
-     */
-    function isAttributeRoute(route) {
-        return route.includes("/:");
-    }
-
-    /**
-     * recursively loop in acl object,
-     * fetch each entry and its sub entries
-     * detected matched and replace their apis entreis with regexp entries
-     *
-     * @param {object} ancestor
-     * @param {object} object
-     * @param {string} currentSub
-     */
-    function fetchSubObjectsAndReplace(ancestor, object, currentSub) {
-
-        var current = (currentSub) ? object[currentSub] : object;
-
-        /**
-         * if current entry is an object and object has properties and property neither the first nor the last child in object
-         * recursively loop on this child
-         */
-        var siblings = Object.keys(object);
-        if (currentSub && siblings.indexOf(currentSub) !== (siblings.length - 1)) {
-            fetchSubObjectsAndReplace(ancestor, object, siblings[siblings.indexOf(currentSub) + 1]);
-        }
-
-        /**
-         * if current entry is an object and object has properties
-         * recursively loop on first child in object
-         */
-        if (typeof current === 'object') {
-            var subObjects = Object.keys(current);
-            if (subObjects.length > 0) {
-                fetchSubObjectsAndReplace(object, current, subObjects[0]);
-            }
-        }
-
-        /**
-         * if the the route has an attribute
-         * copy all the info of apis[route]
-         * create a new entry from copied information and push it to apisRegExp
-         */
-        if (currentSub && isAttributeRoute(currentSub)) {
-
-            var oldCurrentSub = currentSub;
-
-            if (!ancestor.apisRegExp) {
-                ancestor.apisRegExp = [];
-            }
-
-            var regExp = constructRegExp(currentSub);
-            var obj = object[oldCurrentSub];
-            obj.regExp = regExp;
-            ancestor.apisRegExp.push(obj);
-
-            delete object[oldCurrentSub];
-        }
-    }
-
-    if (aclObj && typeof aclObj === 'object' && Object.keys(aclObj).length > 0) {
-        fetchSubObjectsAndReplace(null, aclObj);
-    }
-
-    return aclObj;
-}
-
 var utils = {
     "aclUrackCheck": function (obj, cb) {
         if (obj.req.soajs.uracDriver) {
@@ -184,50 +91,16 @@ var utils = {
             if (uracACL) {
                 obj.req.soajs.log.debug("Found ACL at URAC level, overriding default ACL configuration.");
                 obj.finalAcl = uracACL[obj.req.soajs.controller.serviceParams.name];
+                obj.finalAcl = obj.finalAcl[obj.req.soajs.controller.serviceParams.version] || obj.finalAcl;
             }
         }
         return cb(null, obj);
     },
 
     "aclCheck": function (obj, cb) {
-        var aclObj = null;
-        if (!aclObj && obj.keyObj.application.acl) {
-            obj.req.soajs.log.debug("Found ACL at Tenant Application level, overriding default ACL configuration.");
-            aclObj = obj.keyObj.application.acl[obj.req.soajs.controller.serviceParams.name];
-        }
-        if (!aclObj && obj.packObj.acl) {
-            obj.req.soajs.log.debug("Found Default ACL at Package level, setting default ACL configuration.");
-            aclObj = obj.packObj.acl[obj.req.soajs.controller.serviceParams.name];
-        }
-
-        if (aclObj && (aclObj.apis || aclObj.apisRegExp)) {
-            obj.req.soajs.log.debug("Detected old schema ACL Configuration ...");
-            obj.finalAcl = filterOutRegExpObj(aclObj);
-        }
-        else {
-            obj.req.soajs.log.debug("Detected new schema ACL Configuration using http methods ...");
-
-            //ACL with method support restful
-            var method = obj.req.method.toLocaleLowerCase();
-            if (aclObj && aclObj[method] && typeof aclObj[method] === "object") {
-                var newAclObj = {};
-                if (aclObj.hasOwnProperty('access'))
-                    newAclObj.access = aclObj.access;
-                if (aclObj[method].hasOwnProperty('apis'))
-                    newAclObj.apis = aclObj[method].apis;
-                if (aclObj[method].hasOwnProperty('apisRegExp'))
-                    newAclObj.apisRegExp = aclObj[method].apisRegExp;
-                if (aclObj[method].hasOwnProperty('apisPermission'))
-                    newAclObj.apisPermission = aclObj[method].apisPermission;
-                else if (aclObj.hasOwnProperty('apisPermission'))
-                    newAclObj.apisPermission = aclObj.apisPermission;
-
-                obj.finalAcl = filterOutRegExpObj(newAclObj);
-            }
-            else {
-                obj.finalAcl = filterOutRegExpObj(aclObj);
-            }
-        }
+        obj.finalAcl = null;
+        if (obj.req.soajs.controller.serviceParams.finalAcl)
+            obj.finalAcl = obj.req.soajs.controller.serviceParams.finalAcl[obj.req.soajs.controller.serviceParams.version] || obj.req.soajs.controller.serviceParams.finalAcl;
 
         return cb(null, obj);
     },

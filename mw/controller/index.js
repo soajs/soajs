@@ -16,52 +16,12 @@ var drivers = require('soajs.core.drivers');
  */
 module.exports = function () {
     return function (req, res, next) {
-        if (!req.soajs) {
-            throw new TypeError('soajs mw is not started');
-        }
 
-        if (!req.soajs.controller) {
-            req.soajs.controller = {};
-        }
-
-        var parsedUrl = url.parse(req.url, true);
-        if (!req.query && parsedUrl.query && parsedUrl.query.access_token) {
-            req.query = parsedUrl.query;
-        }
-        if (!req.query) {
-            req.query = {};
-        }
-
-        var serviceInfo = parsedUrl.pathname.split('/');
-        var service_nv = serviceInfo[1];
-        var service_n = service_nv;
-        var service_v = null;
-
-        //check if there is /v1 in the url
-        let matches = req.url.match(/\/v[0-9]+/);
-        //let matches = req.url.match(/\/v([0-9]+)([.][0-9]+)?([.][0-9]+)?/);
-        if (matches && matches.length > 0) {
-            let hit = matches[0].replace("/", '');
-            if (serviceInfo[2] === hit && serviceInfo.length > 3) {
-                service_v = parseInt(hit.replace("v", ''));
-                serviceInfo.splice(2, 1);
-                req.url = req.url.replace(matches[0], "");
-                parsedUrl = url.parse(req.url, true);
-            }
-        }
-
-        //check if there is service:1 in the url
-        if (!service_v) {
-            var index = service_nv.indexOf(":");
-            if (index !== -1) {
-                service_v = parseInt(service_nv.substr(index + 1));
-                if (isNaN(service_v)) {
-                    service_v = null;
-                    req.soajs.log.warn('Service version must be integer: [' + service_nv + ']');
-                }
-                service_n = service_nv.substr(0, index);
-            }
-        }
+        let serviceInfo = req.soajs.controller.serviceParams.serviceInfo;
+        let parsedUrl = req.soajs.controller.serviceParams.parsedUrl;
+        let service_nv = req.soajs.controller.serviceParams.service_nv;
+        let service_n = req.soajs.controller.serviceParams.service_n;
+        let service_v = req.soajs.controller.serviceParams.service_v;
 
         //check if route is key/permission/get then you also need to bypass the exctract Build Param BL
         var keyPermissionGet = (serviceInfo[1] === 'key' && serviceInfo[2] === 'permission' && serviceInfo[3] === 'get');
@@ -74,7 +34,7 @@ module.exports = function () {
 
             //mimic a service named controller with route /key/permission/get
             var serviceName = "controller";
-            req.soajs.controller.serviceParams = {
+            let parameters = {
                 "serviceInfo": serviceInfo,
                 "registry": req.soajs.registry.services[serviceName],
                 "name": serviceName,
@@ -82,6 +42,13 @@ module.exports = function () {
                 "version": 1,
                 "extKeyRequired": true
             };
+
+            //Make sure the below param are always available on serviceParams because they are needed by MW.MT
+            parameters.keyObj = req.soajs.controller.serviceParams.keyObj;
+            parameters.packObj = req.soajs.controller.serviceParams.packObj;
+            parameters.finalAcl = req.soajs.controller.serviceParams.finalAcl;
+
+            req.soajs.controller.serviceParams = parameters;
 
             req.soajs.controller.serviceParams.registry.versions = {
                 "1": {
@@ -130,6 +97,12 @@ module.exports = function () {
 
             parameters.parsedUrl = parsedUrl;
             parameters.serviceInfo = serviceInfo;
+
+            //Make sure the below param are always available on serviceParams because they are needed by MW.MT
+            parameters.keyObj = req.soajs.controller.serviceParams.keyObj;
+            parameters.packObj = req.soajs.controller.serviceParams.packObj;
+            parameters.finalAcl = req.soajs.controller.serviceParams.finalAcl;
+
             req.soajs.controller.serviceParams = parameters;
 
             var d = domain.create();

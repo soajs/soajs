@@ -107,9 +107,10 @@ urac.prototype.getProfile = function (_ALL) {
  * @returns {*}
  */
 urac.prototype.getAcl = function () {
-    var _self = this;
-    var key = _self.soajs.tenant.key.iKey;
-    var packageCode = _self.soajs.tenant.application.package;
+    let _self = this;
+    let key = _self.soajs.tenant.key.iKey;
+    let packageCode = _self.soajs.tenant.application.package;
+    let productCode = _self.soajs.tenant.application.product;
 
     var acl = null;
 
@@ -130,13 +131,17 @@ urac.prototype.getAcl = function () {
         }
     }
 
-    if (!acl && _self.userRecord.groupsConfig) {
+    if (!acl && _self.userRecord.groupsConfig && _self.userRecord.groupsConfig.allowedPackages) {
+        if (_self.userRecord.groupsConfig.allowedPackages[productCode])
+            acl = _self.userRecord.groupsConfig.allowedPackages[productCode];
+/*
         if (_self.userRecord.groupsConfig.keys && _self.userRecord.groupsConfig.keys[key] && _self.userRecord.groupsConfig.keys[key].acl) {
             acl = _self.userRecord.groupsConfig.keys[key].acl;
         }
         if (_self.userRecord.groupsConfig.packages && _self.userRecord.groupsConfig.packages[packageCode] && _self.userRecord.groupsConfig.packages[packageCode].acl) {
             acl = _self.userRecord.groupsConfig.packages[packageCode].acl;
         }
+        */
     }
 
     return acl;

@@ -19,6 +19,7 @@ var enhancer_mw = require('./../mw/enhancer/index');
 var awareness_mw = require('./../mw/awareness/index');
 var awarenessEnv_mw = require("./../mw/awarenessEnv/index");
 var controller_mw = require('./../mw/controller/index');
+var version_mw = require('./../mw/version/index');
 
 var utils = require("./../utilities/utils");
 
@@ -400,9 +401,12 @@ controller.prototype.init = function (callback) {
                         _self.log.info("Body-Parser middleware initialization skipped.");
                     }
 
+                    app.use(enhancer_mw({}));
+
+                    app.use(version_mw());
+
                     app.use(controller_mw());
 
-                    app.use(enhancer_mw({}));
 
                     if (_self.registry.serviceConfig.oauth) {
 
