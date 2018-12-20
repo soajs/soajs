@@ -44,7 +44,9 @@ describe("importing sample data", function () {
 			
 			require("./mw/service/index.test.js");
 			require("./mw/traffic/index.test.js");
-			
+
+            require("./mw/version/index.test.js");
+
 			require("./classes/MultiTenantSession.test");
 			require("./utilities/utils.test");
 			
