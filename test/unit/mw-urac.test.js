@@ -487,6 +487,17 @@ describe("testing urac", function () {
 			
 			delete urac.userRecord.config;
 			urac.userRecord.groupsConfig = {
+                allowedPackages : {
+                	"TPROD": {
+                        "TPROD_BASIC": {
+                            acl: {
+                                "urac": {},
+                                "oauth": {},
+                                "dashboard": {}
+                            }
+						}
+                    }
+				},
 				keys: {
 					"d1eaaf5fdc35c11119330a8a0273fee9": {
 						acl: {
@@ -524,6 +535,17 @@ describe("testing urac", function () {
 			
 			delete urac.userRecord.config;
 			urac.userRecord.groupsConfig = {
+                allowedPackages : {
+                    "TPROD": {
+                        "TPROD_BASIC": {
+                            acl: {
+                                "urac": {},
+                                "oauth": {},
+                                "dashboard": {}
+                            }
+                        }
+                    }
+                },
 				packages: {
 					"TPROD_BASIC": {
 						acl: {

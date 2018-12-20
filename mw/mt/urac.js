@@ -132,8 +132,8 @@ urac.prototype.getAcl = function () {
     }
 
     if (!acl && _self.userRecord.groupsConfig && _self.userRecord.groupsConfig.allowedPackages) {
-        if (_self.userRecord.groupsConfig.allowedPackages[productCode])
-            acl = _self.userRecord.groupsConfig.allowedPackages[productCode];
+        if (_self.userRecord.groupsConfig.allowedPackages[productCode] && _self.userRecord.groupsConfig.allowedPackages[productCode][packageCode])
+            acl = _self.userRecord.groupsConfig.allowedPackages[productCode][packageCode];
 /*
         if (_self.userRecord.groupsConfig.keys && _self.userRecord.groupsConfig.keys[key] && _self.userRecord.groupsConfig.keys[key].acl) {
             acl = _self.userRecord.groupsConfig.keys[key].acl;
