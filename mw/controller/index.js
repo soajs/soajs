@@ -17,6 +17,10 @@ var drivers = require('soajs.core.drivers');
 module.exports = function () {
     return function (req, res, next) {
 
+        if (!req.soajs) {
+            throw new TypeError('soajs mw is not started');
+        }
+
         let serviceInfo = req.soajs.controller.serviceParams.serviceInfo;
         let parsedUrl = req.soajs.controller.serviceParams.parsedUrl;
         let service_nv = req.soajs.controller.serviceParams.service_nv;
