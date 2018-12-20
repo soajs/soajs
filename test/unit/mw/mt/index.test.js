@@ -78,12 +78,12 @@ describe("testing Multitenant index", function () {
 	
 	it("Fail test - getExternalKeyData wrong key object - 153", function (done) {
 		
-		serviceStub = sinon.stub(provision, 'getExternalKeyData', (extKey, keyConfig, cb) => {
-				return cb({
-					error : true
-				});
-			}
-		);
+		//serviceStub = sinon.stub(provision, 'getExternalKeyData', (extKey, keyConfig, cb) => {
+		//		return cb({
+		//			error : true
+		//		});
+		//	}
+		//);
 		
 		var functionMw = index(configuration);
 		
@@ -96,21 +96,21 @@ describe("testing Multitenant index", function () {
 	
 	it("Fail test - getPackageData wrong pack - 152", function (done) {
 		
-		serviceStub = sinon.stub(provision, 'getExternalKeyData', (extKey, keyConfig, cb) => {
-				return cb(null, getExternalKeyDataKeyObj);
-			}
-		);
+		//serviceStub = sinon.stub(provision, 'getExternalKeyData', (extKey, keyConfig, cb) => {
+		//		return cb(null, getExternalKeyDataKeyObj);
+		//	}
+		//);
         serviceStub3 = sinon.stub(provision, 'getTenantOauth', (id, cb) => {
                 return cb(null, getTenantOauthObj);
             }
         );
 		
-		serviceStub2 = sinon.stub(provision, 'getPackageData', (code, cb) => {
-				return cb({
-					error: true
-				});
-			}
-		);
+		//serviceStub2 = sinon.stub(provision, 'getPackageData', (code, cb) => {
+		//		return cb({
+		//			error: true
+		//		});
+		//	}
+		//);
 		
 		var functionMw = index(configuration);
 		
@@ -124,16 +124,16 @@ describe("testing Multitenant index", function () {
 	it("Success test", function (done) {
 		
 		
-		serviceStub = sinon.stub(provision, 'getExternalKeyData', (extKey, keyConfig, cb) => {
-				return cb(null, getExternalKeyDataKeyObj);
-			}
-		);
+		//serviceStub = sinon.stub(provision, 'getExternalKeyData', (extKey, keyConfig, cb) => {
+		//		return cb(null, getExternalKeyDataKeyObj);
+		//	}
+		//);
 		
-		serviceStub2 = sinon.stub(provision, 'getPackageData', (code, cb) => {
-				var pack = {};
-				return cb(null, pack);
-			}
-		);
+		//serviceStub2 = sinon.stub(provision, 'getPackageData', (code, cb) => {
+		//		var pack = {};
+		//		return cb(null, pack);
+		//	}
+		//);
 		
 		// utils stubs
 		serviceStubUtils1 = sinon.stub(utils, 'securityGeoCheck', (obj, cb) => {
