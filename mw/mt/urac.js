@@ -1,5 +1,6 @@
 "use strict";
 var uracDriver = require('soajs.urac.driver');
+var coreModules = require("soajs.core.modules");
 
 function urac(param) {
     var _self = this;
@@ -108,8 +109,6 @@ urac.prototype.getProfile = function (_ALL) {
  */
 urac.prototype.getAcl = function () {
     let _self = this;
-    let key = _self.soajs.tenant.key.iKey;
-    let packageCode = _self.soajs.tenant.application.package;
     let productCode = _self.soajs.tenant.application.product;
 
     var acl = null;
@@ -118,30 +117,11 @@ urac.prototype.getAcl = function () {
         return acl;
     }
 
-    if (_self.userRecord.acl) {
-        return _self.userRecord.acl;
-    }
-
-    if (_self.userRecord.config) {
-        if (_self.userRecord.config.keys && _self.userRecord.config.keys[key] && _self.userRecord.config.keys[key].acl) {
-            acl = _self.userRecord.config.keys[key].acl;
-        }
-        if (!acl && _self.userRecord.config.packages && _self.userRecord.config.packages[packageCode] && _self.userRecord.config.packages[packageCode].acl) {
-            acl = _self.userRecord.config.packages[packageCode].acl;
-        }
-    }
-
+    //for now we will only support 1 package per product
     if (!acl && _self.userRecord.groupsConfig && _self.userRecord.groupsConfig.allowedPackages) {
-        if (_self.userRecord.groupsConfig.allowedPackages[productCode] && _self.userRecord.groupsConfig.allowedPackages[productCode][packageCode])
-            acl = _self.userRecord.groupsConfig.allowedPackages[productCode][packageCode];
-/*
-        if (_self.userRecord.groupsConfig.keys && _self.userRecord.groupsConfig.keys[key] && _self.userRecord.groupsConfig.keys[key].acl) {
-            acl = _self.userRecord.groupsConfig.keys[key].acl;
+        if (_self.userRecord.groupsConfig.allowedPackages[productCode]) {
+            acl = _self.userRecord.groupsConfig.allowedPackages[productCode][0];
         }
-        if (_self.userRecord.groupsConfig.packages && _self.userRecord.groupsConfig.packages[packageCode] && _self.userRecord.groupsConfig.packages[packageCode].acl) {
-            acl = _self.userRecord.groupsConfig.packages[packageCode].acl;
-        }
-        */
     }
 
     return acl;
@@ -152,8 +132,7 @@ urac.prototype.getAcl = function () {
  */
 urac.prototype.getAclAllEnv = function () {
     var _self = this;
-    var key = _self.soajs.tenant.key.iKey;
-    var packageCode = _self.soajs.tenant.application.package;
+    let productCode = _self.soajs.tenant.application.product;
 
     var acl = null;
 
@@ -161,26 +140,10 @@ urac.prototype.getAclAllEnv = function () {
         return acl;
     }
 
-    if (_self.userRecord.acl_AllEnv) {
-        return _self.userRecord.acl_AllEnv;
-    }
-
-    if (_self.userRecord.config) {
-        if (_self.userRecord.config.keys && _self.userRecord.config.keys[key] && _self.userRecord.config.keys[key].acl_all_env) {
-            acl = _self.userRecord.config.keys[key].acl_all_env;
-        }
-        if (!acl && _self.userRecord.config.packages && _self.userRecord.config.packages[packageCode] && _self.userRecord.config.packages[packageCode].acl_all_env) {
-            acl = _self.userRecord.config.packages[packageCode].acl_all_env;
-        }
-    }
-
-    if (!acl && _self.userRecord.groupsConfig) {
-        if (_self.userRecord.groupsConfig.keys && _self.userRecord.groupsConfig.keys[key] && _self.userRecord.groupsConfig.keys[key].acl_all_env) {
-            acl = _self.userRecord.groupsConfig.keys[key].acl_all_env;
-        }
-        if (_self.userRecord.groupsConfig.packages && _self.userRecord.groupsConfig.packages[packageCode] && _self.userRecord.groupsConfig.packages[packageCode].acl_all_env) {
-            acl = _self.userRecord.groupsConfig.packages[packageCode].acl_all_env;
-        }
+    //for now we will only support 1 package per product
+    if (!acl && _self.userRecord.groupsConfig && _self.userRecord.groupsConfig.allowedPackages) {
+        if (_self.userRecord.groupsConfig.allowedPackages[productCode])
+            acl = _self.userRecord.groupsConfig.allowedPackages[productCode][0];
     }
 
     return acl;

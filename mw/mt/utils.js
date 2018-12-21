@@ -86,16 +86,21 @@ var _api = {
 
 var utils = {
     "aclUrackCheck": function (obj, cb) {
-        if (obj.req.soajs.uracDriver) {
-            var uracACL = obj.req.soajs.uracDriver.getAcl();
-            if (uracACL) {
-                obj.req.soajs.log.debug("Found ACL at URAC level, overriding default ACL configuration.");
-                obj.finalAcl = uracACL[obj.req.soajs.controller.serviceParams.name];
+        if (!obj.req.soajs.uracDriver)
+            return cb(null, obj);
+        var uracACL = obj.req.soajs.uracDriver.getAcl();
+        if (!uracACL)
+            return cb(null, obj);
+
+        obj.req.soajs.log.debug("Found ACL at URAC level, overriding default ACL configuration.");
+        provision.getPackageData(uracACL, (error, pack) => {
+            if (pack && pack.acl) {
+                obj.finalAcl = pack.acl;
                 if (obj.finalAcl)
                     obj.finalAcl = obj.finalAcl[obj.req.soajs.controller.serviceParams.version] || obj.finalAcl;
             }
-        }
-        return cb(null, obj);
+            return cb(null, obj);
+        });
     },
 
     "aclCheck": function (obj, cb) {
@@ -286,7 +291,7 @@ var utils = {
 
         if (oAuthTurnedOn) {
             var oauthExec = function () {
-                if(obj.req.soajs.tenantOauth && obj.req.soajs.tenantOauth.disabled)
+                if (obj.req.soajs.tenantOauth && obj.req.soajs.tenantOauth.disabled)
                 //if (obj.req.soajs.servicesConfig && obj.req.soajs.servicesConfig[obj.soajs.oauthService.name] && obj.req.soajs.servicesConfig[obj.soajs.oauthService.name].disabled)
                     return cb(null, obj);
 

@@ -7,6 +7,7 @@ var http = require('http');
 
 var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
+var provision = coreModules.provision;
 
 var drivers = require('soajs.core.drivers');
 
@@ -78,7 +79,6 @@ module.exports = function () {
 
         //check if proxy/redirect
         //create proxy info object before calling extractbuildparams
-        //reason on line: 307
         var proxy = (serviceInfo[1] === 'proxy' && serviceInfo[2] === 'redirect');
         var proxyInfo;
         if (proxy) {
@@ -691,24 +691,38 @@ function returnKeyAndPermissions(req, res) {
     }
 
     function findKeyPermissions(cb) {
-        var ACL = req.soajs.uracDriver.getAclAllEnv();
-        var tenant = req.soajs.tenant;
-        if (!ACL) {
-            ACL = (tenant.application.acl_all_env) ? tenant.application.acl_all_env : tenant.application.package_acl_all_env;
+        let ACL = null;
+        let uracACL = req.soajs.uracDriver.getAclAllEnv();
 
-            //old system acl schema
+        let resume = () => {
+            let tenant = req.soajs.tenant;
             if (!ACL) {
-                ACL = (tenant.application.acl) ? tenant.application.acl : tenant.application.package_acl;
+                ACL = (tenant.application.acl_all_env) ? tenant.application.acl_all_env : tenant.application.package_acl_all_env;
+
+                //old system acl schema
+                if (!ACL) {
+                    ACL = (tenant.application.acl) ? tenant.application.acl : tenant.application.package_acl;
+                }
             }
+
+            core.registry.getAllRegistriesInfo(function (error, environments) {
+                if (error) {
+                    return cb(error);
+                }
+
+                var envInfo = core.provision.getEnvironmentsFromACL(ACL, environments);
+                return cb(null, {"acl": ACL, "environments": envInfo});
+            });
+        };
+
+        if (uracACL) {
+            provision.getPackageData(uracACL, (error, pack) => {
+                if (pack && pack.acl_all_env)
+                    ACL = pack.acl_all_env;
+                resume();
+            });
         }
-
-        core.registry.getAllRegistriesInfo(function (error, environments) {
-            if (error) {
-                return cb(error);
-            }
-
-            var envInfo = core.provision.getEnvironmentsFromACL(ACL, environments);
-            return cb(null, {"acl": ACL, "environments": envInfo});
-        });
+        else
+            resume();
     }
 }
