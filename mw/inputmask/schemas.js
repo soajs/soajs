@@ -87,7 +87,7 @@ var schemas = [
             "type": "object",
             "properties": {
                 "serviceName": {"type": "string", "required": true},
-                "serviceVersion": {"type": "integer", "required": false},
+                "serviceVersion": {"type": "string", "required": false},
                 "serviceGroup": {"type": "string", "required": false},
                 "type": {"type": "string", "enum": ['service', 'daemon', 'static', 'multi']},
                 "extKeyRequired": {"type": "boolean", "required": false},

@@ -131,6 +131,35 @@ module.exports = function (configuration) {
         else {
             obj.req.soajs.log.debug("Detected new schema ACL Configuration using http methods ...");
 
+            if (aclObj) {
+                //check if acl has version schema
+                if (!Object.hasOwnProperty.call(aclObj, 'access') &&
+                    !Object.hasOwnProperty.call(aclObj, 'apis') &&
+                    !Object.hasOwnProperty.call(aclObj, 'apisRegExp') &&
+                    !Object.hasOwnProperty.call(aclObj, 'apisPermission')) {
+                    if (obj.service_v) {
+                        if (!aclObj[obj.service_v])
+                            return (154, null);
+                        aclObj = aclObj[obj.service_v];
+                    }
+                    else {
+                        //try to get latest version from ACL
+                        if (aclObj) {
+                            let version = null;
+                            for (let v in aclObj) {
+                                version = coreLibs.version.getLatest(version, v);
+                            }
+                            if (version) {
+                                obj.req.soajs.controller.serviceParams.service_v = version;
+                                if (!aclObj[version])
+                                    return (154, null);
+                                aclObj = aclObj[version];
+                            }
+                        }
+                    }
+                }
+            }
+
             //ACL with method support restful
             let method = obj.req.method.toLocaleLowerCase();
             if (aclObj && aclObj[method] && typeof aclObj[method] === "object") {
@@ -153,20 +182,6 @@ module.exports = function (configuration) {
             }
         }
         return cb(null, finalAcl);
-    };
-
-    // move this to lib
-    let getLatest = (vPre, vNew) => {
-        if (!vPre)
-            return vNew;
-
-        //for now we do parseInt since it is 1 digit
-        let vNewInt = parseInt(vNew);
-        let vPreInt = parseInt(vPre);
-        if (vNewInt > vPreInt)
-            return vNew;
-
-        return vPre;
     };
 
     return function (req, res, next) {
@@ -192,28 +207,26 @@ module.exports = function (configuration) {
         let service_n = service_nv;
         let service_v = null;
 
-        //check if there is /v1 in the url
-        let matches = req.url.match(/\/v[0-9]+/);
-        //let matches = req.url.match(/\/v([0-9]+)([.][0-9]+)?([.][0-9]+)?/);
+        //check if there is /v1 or v1.1 in the url
+        let matches = req.url.match(/\/v[0-9]+(.[0-9]+)?\//);
         if (matches && matches.length > 0) {
             let hit = matches[0].replace("/", '');
             if (serviceInfo[2] === hit && serviceInfo.length > 3) {
-                service_v = hit.replace("v", ''); //parseInt(hit.replace("v", ''));
+                service_v = hit.replace("v", '');
                 serviceInfo.splice(2, 1);
-                req.url = req.url.replace(matches[0], "");
+                req.url = req.url.replace(matches[0], "/");
                 parsedUrl = url.parse(req.url, true);
             }
         }
 
-        //check if there is service:1 in the url
+        //check if there is service:1 or :1.1 in the url
         if (!service_v) {
             let index = service_nv.indexOf(":");
             if (index !== -1) {
-                service_v = service_nv.substr(index + 1); //parseInt(service_nv.substr(index + 1));
-                //if (isNaN(service_v)) {
-                //    service_v = null;
-                //    req.soajs.log.warn('Service version must be integer: [' + service_nv + ']');
-                //}
+                matches = service_nv.match(/:[0-9]+(.[0-9]+)?/);
+                if (matches && matches.length > 0) {
+                    service_v = service_nv.substr(index + 1);
+                }
                 service_n = service_nv.substr(0, index);
             }
         }
@@ -228,10 +241,9 @@ module.exports = function (configuration) {
         };
 
         provision.getExternalKeyData(req.get("key"), req.soajs.registry.serviceConfig.key, function (err, keyObj) {
-            let versionError = null;
             if (err)
                 return next();
-            
+
                 req.soajs.controller.serviceParams.keyObj = keyObj;
                 if (keyObj && keyObj.application && keyObj.application.package) {
                     if (keyObj.env) {
@@ -250,43 +262,18 @@ module.exports = function (configuration) {
                             return next ();
 
                             req.soajs.controller.serviceParams.packObj = packObj;
-                            aclCheck({"req": req, "keyObj": keyObj, "packObj": packObj}, (err, finalAcl) => {
+                            aclCheck({"req": req, "keyObj": keyObj, "packObj": packObj, "service_v": service_v}, (err, finalAcl) => {
                                 if (err)
-                                    return next ();
+                                    return next (err);
 
-                                    //this is the finalACL with versions
+                                    //this is the finalACL without versions
                                     req.soajs.controller.serviceParams.finalAcl = finalAcl;
-                                    if (finalAcl) {
-                                        //check if acl has version schema
-                                        if (!Object.hasOwnProperty.call(finalAcl, 'access') &&
-                                            !Object.hasOwnProperty.call(finalAcl, 'apis') &&
-                                            !Object.hasOwnProperty.call(finalAcl, 'apisRegExp') &&
-                                            !Object.hasOwnProperty.call(finalAcl, 'apisPermission')) {
-                                            if (service_v) {
-                                                if (!finalAcl[service_v])
-                                                    versionError = 154;
-                                            }
-                                            else {
-                                                //try to get latest version from ACL
-                                                if (finalAcl) {
-                                                    let version = null;
-                                                    for (let v in finalAcl) {
-                                                        version = getLatest(version, v);
-                                                    }
-                                                    if (version) {
-                                                        req.soajs.controller.serviceParams.service_v = version;
-                                                        if (!finalAcl[version])
-                                                            versionError = 154;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    return next (versionError)
+
+                                    return next ()
                             });
                     });
                 }
-                else 
+                else
                     return next();
         });
     };

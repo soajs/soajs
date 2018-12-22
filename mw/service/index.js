@@ -112,8 +112,8 @@ module.exports = function (configuration) {
 						if(serviceName && serviceName.toLowerCase() !== 'controller'){
 							host += ":" + input.awareness.port + "/";
 							host += serviceName;
-							
-							if(version && !isNaN(parseInt(version))){
+
+							if(version){
 								host += "v" + version + "/"
 							}
 						}

@@ -109,11 +109,12 @@ service.prototype.init = function (callback) {
 
     soajs.param.serviceName = soajs.param.serviceName.toLowerCase();
     soajs.param.serviceGroup = soajs.param.serviceGroup || "No Group Service";
-    soajs.param.serviceVersion = soajs.param.serviceVersion || 1;
-    soajs.param.serviceVersion = parseInt(soajs.param.serviceVersion);
-    if (isNaN(soajs.param.serviceVersion)) {
-        throw new Error('Service version must be integer: [' + soajs.param.serviceVersion + ']');
+    soajs.param.serviceVersion = "" + (soajs.param.serviceVersion || 1);
+
+    if (!lib.version.validate(soajs.param.serviceVersion)) {
+        throw new Error('Service version must be of format [1.1]: [' + soajs.param.serviceVersion + ']');
     }
+
     soajs.param.servicePort = soajs.param.servicePort || null;
     soajs.param.extKeyRequired = soajs.param.extKeyRequired || false;
     soajs.param.requestTimeout = soajs.param.requestTimeout || null;
@@ -139,8 +140,8 @@ service.prototype.init = function (callback) {
     soajs.param.maintenance.readiness = "/heartbeat";
     if (!soajs.param.maintenance.commands)
         soajs.param.maintenance.commands = [];
-    soajs.param.maintenance.commands.push ({"label":"Releoad Registry","path":"/reloadRegistry","icon":"registry"});
-    soajs.param.maintenance.commands.push ({"label":"Resource Info","path":"/resourceInfo","icon":"info"});
+    soajs.param.maintenance.commands.push({"label": "Releoad Registry", "path": "/reloadRegistry", "icon": "registry"});
+    soajs.param.maintenance.commands.push({"label": "Resource Info", "path": "/resourceInfo", "icon": "info"});
 
 
     var fetchedHostIp = null;
@@ -217,16 +218,16 @@ service.prototype.init = function (callback) {
             soajs.serviceConf = lib.registry.getServiceConf(soajs.param.serviceName, registry);
 
             _self.log = core.getLogger(soajs.param.serviceName, registry.serviceConfig.logger);
-	
-	        //turn on swagger path
-	        if (fs.existsSync('./' + soajs.param.swaggerFilename)) {
-		        _self.app.get('/swagger', function (req, res) {
-			        let swaggerFile = fs.readFileSync('./' + soajs.param.swaggerFilename, {'encoding': 'utf8'});
-			        res.setHeader('Content-Type', 'text/yaml');
-			        res.send(swaggerFile);
-		        });
-		        _self.log.info("Swagger route [/swagger] is ON.");
-	        }
+
+            //turn on swagger path
+            if (fs.existsSync('./' + soajs.param.swaggerFilename)) {
+                _self.app.get('/swagger', function (req, res) {
+                    let swaggerFile = fs.readFileSync('./' + soajs.param.swaggerFilename, {'encoding': 'utf8'});
+                    res.setHeader('Content-Type', 'text/yaml');
+                    res.send(swaggerFile);
+                });
+                _self.log.info("Swagger route [/swagger] is ON.");
+            }
 
             if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true")
                 _self.log.info("SOAJS is in SOLO mode, the following got turned OFF [extKeyRequired, session, oauth, awareness, awarenessEnv].");
@@ -414,21 +415,21 @@ service.prototype.start = function (cb) {
         _self.app.use(utils.serviceErrorHandler);
 
         _self.log.info("Starting Service ...");
-	
-	    //calculate the data port value
+
+        //calculate the data port value
         let finalDataPort = _self.app.soajs.serviceConf.info.port;
-        if(!process.env.SOAJS_DEPLOY_HA){
-        	if(process.env.SOAJS_SRVPORT){
-		        finalDataPort = parseInt(process.env.SOAJS_SRVPORT);
-		        if(isNaN(finalDataPort)){
-			        throw new Error("Invalid port value detected in SOAJS_SRVPORT environment variable, port value is not a number!");
-		        }
-	        }
-	        else if(process.env.SOAJS_ENV && process.env.SOAJS_ENV.toUpperCase() !== 'DASHBOARD'){
-        	    finalDataPort += _self.app.soajs.serviceConf._conf.ports.controller;
-	        }
+        if (!process.env.SOAJS_DEPLOY_HA) {
+            if (process.env.SOAJS_SRVPORT) {
+                finalDataPort = parseInt(process.env.SOAJS_SRVPORT);
+                if (isNaN(finalDataPort)) {
+                    throw new Error("Invalid port value detected in SOAJS_SRVPORT environment variable, port value is not a number!");
+                }
+            }
+            else if (process.env.SOAJS_ENV && process.env.SOAJS_ENV.toUpperCase() !== 'DASHBOARD') {
+                finalDataPort += _self.app.soajs.serviceConf._conf.ports.controller;
+            }
         }
-        
+
         _self.app.httpServer = _self.app.listen(finalDataPort, function (err) {
             if (err) {
                 _self.log.error(core.error.generate(141));
@@ -453,7 +454,7 @@ service.prototype.start = function (cb) {
                         _self.log.info("Initiating service auto register for awareness ...");
                         core.registry.autoRegisterService({
                             "name": _self.app.soajs.param.serviceName,
-                            "port" : finalDataPort,
+                            "port": finalDataPort,
                             "oauth": _self.app.soajs.param.oauth,
                             "urac": _self.app.soajs.param.urac,
                             "urac_Profile": _self.app.soajs.param.urac_Profile,
@@ -494,19 +495,19 @@ service.prototype.start = function (cb) {
         }
         //calculate the maintenance port value
         var maintenancePort = _self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
-	    if(!process.env.SOAJS_DEPLOY_HA){
-		    if(process.env.SOAJS_SRVPORT){
-		    	let envPort = parseInt(process.env.SOAJS_SRVPORT);
-		    	if(isNaN(envPort)){
-		    		throw new Error("Invalid port value detected in SOAJS_SRVPORT environment variable, port value is not a number!");
-			    }
-			    maintenancePort = envPort + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
-		    }
-		    else if(process.env.SOAJS_ENV && process.env.SOAJS_ENV.toUpperCase() !== 'DASHBOARD'){
-			    maintenancePort += _self.app.soajs.serviceConf._conf.ports.controller;
-		    }
-	    }
-        
+        if (!process.env.SOAJS_DEPLOY_HA) {
+            if (process.env.SOAJS_SRVPORT) {
+                let envPort = parseInt(process.env.SOAJS_SRVPORT);
+                if (isNaN(envPort)) {
+                    throw new Error("Invalid port value detected in SOAJS_SRVPORT environment variable, port value is not a number!");
+                }
+                maintenancePort = envPort + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
+            }
+            else if (process.env.SOAJS_ENV && process.env.SOAJS_ENV.toUpperCase() !== 'DASHBOARD') {
+                maintenancePort += _self.app.soajs.serviceConf._conf.ports.controller;
+            }
+        }
+
         _self.appMaintenance.get("/heartbeat", function (req, res) {
             var response = _self.maintenanceResponse(req);
             response['result'] = true;
@@ -595,6 +596,7 @@ function injectInputmask(restApp, args) {
     }
     return args;
 }
+
 /**
  *
  * @param restApp
@@ -614,6 +616,7 @@ function injectServiceMW(restApp, args) {
     }
     return args;
 }
+
 /**
  *
  * @param app
@@ -626,6 +629,7 @@ function isSOAJready(app, log) {
     log.info("Can't attach route because soajs express app is not defined");
     return false;
 }
+
 /**
  *
  * @param self
@@ -637,6 +641,7 @@ function routeInjection(_self, args) {
     args = injectServiceMW(_self, args);
     return args;
 }
+
 /**
  *
  */

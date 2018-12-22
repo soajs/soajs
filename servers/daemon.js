@@ -74,10 +74,10 @@ daemon.prototype.init = function (callback) {
 
     _self.soajs.param.serviceName = _self.soajs.param.serviceName.toLowerCase();
     _self.soajs.param.serviceGroup = _self.soajs.param.serviceGroup || "No Group Daemon";
-    _self.soajs.param.serviceVersion = _self.soajs.param.serviceVersion || 1;
-    _self.soajs.param.serviceVersion = parseInt(_self.soajs.param.serviceVersion);
-    if (isNaN(_self.soajs.param.serviceVersion)) {
-        throw new Error('Daemon Service version must be integer: [' + _self.soajs.param.serviceVersion + ']');
+    _self.soajs.param.serviceVersion = "" + (_self.soajs.param.serviceVersion || 1);
+
+    if (!lib.version.validate(_self.soajs.param.serviceVersion)){
+        throw new Error('Daemon version must be of format [1.1] : [' + _self.soajs.param.serviceVersion + ']');
     }
     _self.soajs.param.servicePort = _self.soajs.param.servicePort || null;
     _self.soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;

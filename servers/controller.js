@@ -9,7 +9,8 @@ var url = require('url');
 var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
 var provision = coreModules.provision;
-var soajsUtils = require("soajs.core.libs").utils;
+var soajsLib = require("soajs.core.libs");
+var soajsUtils = soajsLib.utils;
 
 var favicon_mw = require('./../mw/favicon/index');
 var cors_mw = require('./../mw/cors/index');
@@ -40,7 +41,7 @@ function controller(param) {
     param = param || {};
     _self.awareness = true;
     _self.serviceName = "controller";
-    _self.serviceVersion = 1;
+    _self.serviceVersion = "1";
     _self.serviceIp = process.env.SOAJS_SRVIP || null;
     _self.serviceHATask = null;
 
@@ -237,14 +238,21 @@ controller.prototype.init = function (callback) {
                                             infoObj = body;
                                         }
 
+                                        if (!soajsLib.version.validate(infoObj.version)){
+                                            _self.log.warn("Failed to register service for [" + infoObj.name + "] version should be of format [1.1]");
+                                            res.writeHead(200, {'Content-Type': 'application/json'});
+                                            return res.end(JSON.stringify(response));
+                                        }
+
                                         let regOptions = {
                                             "name": infoObj.name,
                                             "group": infoObj.group,
                                             "port": parseInt(infoObj.port),
                                             "ip": infoObj.ip,
                                             "type": infoObj.type,
-                                            "version": parseInt(infoObj.version)
+                                            "version": infoObj.version
                                         };
+
                                         if (regOptions.type === "service") {
                                             regOptions["swagger"] = infoObj.swagger;
                                             regOptions["oauth"] = infoObj.oauth;
