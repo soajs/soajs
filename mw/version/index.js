@@ -210,7 +210,7 @@ module.exports = function (configuration) {
         //check if there is /v1 or v1.1 in the url
         let matches = req.url.match(/\/v[0-9]+(.[0-9]+)?\//);
         if (matches && matches.length > 0) {
-            let hit = matches[0].replace("/", '');
+            let hit = matches[0].replace(/\//g, '');
             if (serviceInfo[2] === hit && serviceInfo.length > 3) {
                 service_v = hit.replace("v", '');
                 serviceInfo.splice(2, 1);
