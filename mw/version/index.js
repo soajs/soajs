@@ -239,7 +239,10 @@ module.exports = function (configuration) {
             "service_v": service_v,
             "name": service_n
         };
-
+        var key = req.headers.key || parsedUrl.query.key;
+        if (!req.headers.key) {
+            req.headers.key = key;
+        }
         provision.getExternalKeyData(req.get("key"), req.soajs.registry.serviceConfig.key, function (err, keyObj) {
             if (err)
                 return next();

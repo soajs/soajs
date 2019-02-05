@@ -141,9 +141,6 @@ module.exports = function () {
                         req.soajs.log.warn(err.message);
                         return req.soajs.controllerResponse(core.error.getError(132));
                     }
-                    if (!req.headers.key) {
-                        req.headers.key = key;
-                    }
                     if (passportLogin) {
                         req.soajs.controller.gotoservice = simpleRTS;
                     } else if (proxy) {
@@ -500,7 +497,7 @@ function simpleRTS(req, res) {
  */
 function redirectToService(req, res) {
     preRedirect(req, res, function (obj) {
-        var requestOptions = {
+        let requestOptions = {
             'method': req.method,
             'uri': obj.uri,
             'timeout': 1000 * 3600,
