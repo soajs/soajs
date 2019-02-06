@@ -367,8 +367,8 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
             req.soajs.registry.services[service].port &&
             (process.env.SOAJS_DEPLOY_HA || req.soajs.registry.services[service].hosts)
         ) {
-            service = service.toLowerCase();
-            service_nv = service_nv.toLowerCase();
+            //service = service.toLowerCase();
+            //service_nv = service_nv.toLowerCase();
 
             var nextStep = function (version) {
                 var extKeyRequired = false;
