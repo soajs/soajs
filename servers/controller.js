@@ -351,6 +351,8 @@ controller.prototype.init = function (callback) {
                                         delete response['data'].serviceConfig.oauth;
                                         delete response['data'].serviceConfig.cors;
                                     }
+                                    if (reg.deployer)
+                                        response['data'].deployer = reg.deployer;
                                     if (reg.custom)
                                         response['data'].custom = reg.custom;
                                     if (reg.resources)
