@@ -35,7 +35,6 @@ var utilsData = {
 describe("testing Multitenant index", function () {
 	
 	let serviceStub;
-	let serviceStub2;
     let serviceStub3;
 	let serviceStubUtils1;
 	let serviceStubUtils2;
@@ -46,11 +45,8 @@ describe("testing Multitenant index", function () {
 	let serviceStubUtils7;
 	
 	afterEach(function (done) {
-		if (serviceStub) {
-			serviceStub.restore();
-		}
-		if (serviceStub2) {
-			serviceStub2.restore();
+		if (serviceStub3) {
+            serviceStub3.restore();
 		}
 		if (serviceStubUtils1) {
 			serviceStubUtils1.restore();
@@ -109,10 +105,12 @@ describe("testing Multitenant index", function () {
 
 	it("Success test", function (done) {
 
-
-
         req.soajs.controller.serviceParams.packObj = {};
 
+        serviceStub3 = sinon.stub(provision, 'getTenantOauth', (id, cb) => {
+                return cb(null, getTenantOauthObj);
+            }
+        );
 
 		// utils stubs
 		serviceStubUtils1 = sinon.stub(utils, 'securityGeoCheck', (obj, cb) => {

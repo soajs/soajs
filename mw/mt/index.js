@@ -258,11 +258,15 @@ module.exports = function (configuration) {
             }
             else {
                 req.soajs.controller.serviceParams.isAPIPublic = true;
+
                 if (serviceParam.oauth) {
                     var oauthExec = function () {
                         soajs.oauth(req, res, next);
                     };
-                    return oauthExec();
+                    if (soajs.oauthService && req.soajs.controller.serviceParams.name === soajs.oauthService.name && (req.soajs.controller.serviceParams.path === soajs.oauthService.tokenApi || req.soajs.controller.serviceParams.path === soajs.oauthService.authorizationApi))
+                        return next();
+                    else
+                        return oauthExec();
                 }
                 else
                     return next();
