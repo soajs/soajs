@@ -238,7 +238,7 @@ controller.prototype.init = function (callback) {
                                             infoObj = body;
                                         }
 
-                                        if (!soajsLib.version.validate(infoObj.version)){
+                                        if (!soajsLib.version.validate(infoObj.version)) {
                                             _self.log.warn("Failed to register service for [" + infoObj.name + "] version should be of format [1.1]");
                                             res.writeHead(200, {'Content-Type': 'application/json'});
                                             return res.end(JSON.stringify(response));
@@ -250,7 +250,7 @@ controller.prototype.init = function (callback) {
                                             "port": parseInt(infoObj.port),
                                             "ip": infoObj.ip,
                                             "type": infoObj.type,
-                                            "version": infoObj.version
+                                            "version": "" + infoObj.version
                                         };
 
                                         if (regOptions.type === "service") {
@@ -335,7 +335,7 @@ controller.prototype.init = function (callback) {
                                     response['result'] = true;
                                     response['data'] = {}; //soajsUtils.cloneObj(reg);
                                 }
-                                if(reg) {
+                                if (reg) {
                                     if (reg.timeLoaded)
                                         response['data'].timeLoaded = reg.timeLoaded;
                                     if (reg.name)
