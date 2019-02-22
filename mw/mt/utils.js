@@ -106,7 +106,9 @@ var utils = {
     "aclCheck": function (obj, cb) {
         obj.finalAcl = null;
         if (obj.req.soajs.controller.serviceParams.finalAcl)
-            obj.finalAcl = obj.req.soajs.controller.serviceParams.finalAcl[obj.req.soajs.controller.serviceParams.version] || obj.req.soajs.controller.serviceParams.finalAcl;
+            obj.finalAcl = obj.req.soajs.controller.serviceParams.finalAcl;
+            // note: no need to check for version since it is already resolved at version MW
+            //obj.finalAcl = obj.req.soajs.controller.serviceParams.finalAcl[obj.req.soajs.controller.serviceParams.version] || obj.req.soajs.controller.serviceParams.finalAcl;
 
         return cb(null, obj);
     },
