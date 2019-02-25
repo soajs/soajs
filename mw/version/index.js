@@ -138,9 +138,10 @@ module.exports = function (configuration) {
                     !Object.hasOwnProperty.call(aclObj, 'apisRegExp') &&
                     !Object.hasOwnProperty.call(aclObj, 'apisPermission')) {
                     if (obj.service_v) {
-                        if (!aclObj[obj.service_v])
+                        let san_v = coreLibs.version.sanitize(obj.service_v);
+                        if (!aclObj[san_v])
                             return (154, null);
-                        aclObj = aclObj[obj.service_v];
+                        aclObj = aclObj[san_v];
                     }
                     else {
                         //try to get latest version from ACL
@@ -150,7 +151,7 @@ module.exports = function (configuration) {
                                 version = coreLibs.version.getLatest(version, v);
                             }
                             if (version) {
-                                obj.req.soajs.controller.serviceParams.service_v = version;
+                                obj.req.soajs.controller.serviceParams.service_v = coreLibs.version.unsanitize(version);
                                 if (!aclObj[version])
                                     return (154, null);
                                 aclObj = aclObj[version];

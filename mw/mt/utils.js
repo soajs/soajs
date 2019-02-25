@@ -95,9 +95,28 @@ var utils = {
         obj.req.soajs.log.debug("Found ACL at URAC level, overriding default ACL configuration.");
         provision.getPackageData(uracACL, (error, pack) => {
             if (pack && pack.acl) {
-                obj.finalAcl = pack.acl;
-                if (obj.finalAcl)
-                    obj.finalAcl = obj.finalAcl[obj.req.soajs.controller.serviceParams.version] || obj.finalAcl;
+                obj.finalAcl = pack.acl[obj.req.soajs.controller.serviceParams.name];
+                if (obj.finalAcl) {
+                    let san_v = coreLibs.version.sanitize(obj.req.soajs.controller.serviceParams.version);
+                    obj.finalAcl = obj.finalAcl[san_v] || obj.finalAcl;
+
+                    let method = obj.req.method.toLocaleLowerCase();
+                    if (obj.finalAcl && obj.finalAcl[method] && typeof obj.finalAcl[method] === "object") {
+                        let newAclObj = {};
+                        if (obj.finalAcl.hasOwnProperty('access'))
+                            newAclObj.access = obj.finalAcl.access;
+                        if (obj.finalAcl[method].hasOwnProperty('apis'))
+                            newAclObj.apis = obj.finalAcl[method].apis;
+                        if (obj.finalAcl[method].hasOwnProperty('apisRegExp'))
+                            newAclObj.apisRegExp = obj.finalAcl[method].apisRegExp;
+                        if (obj.finalAcl[method].hasOwnProperty('apisPermission'))
+                            newAclObj.apisPermission = obj.finalAcl[method].apisPermission;
+                        else if (obj.finalAcl.hasOwnProperty('apisPermission'))
+                            newAclObj.apisPermission = obj.finalAcl.apisPermission;
+
+                        obj.finalAcl = newAclObj; //TODO: support filterOutRegExpObj(newAclObj);
+                    }
+                }
             }
             return cb(null, obj);
         });
@@ -107,8 +126,6 @@ var utils = {
         obj.finalAcl = null;
         if (obj.req.soajs.controller.serviceParams.finalAcl)
             obj.finalAcl = obj.req.soajs.controller.serviceParams.finalAcl;
-            // note: no need to check for version since it is already resolved at version MW
-            //obj.finalAcl = obj.req.soajs.controller.serviceParams.finalAcl[obj.req.soajs.controller.serviceParams.version] || obj.req.soajs.controller.serviceParams.finalAcl;
 
         return cb(null, obj);
     },
@@ -471,6 +488,8 @@ var utils = {
      */
     "apiCheck": function (obj, cb) {
         var system = _system.getAcl(obj);
+        console.log("apiCheck")
+        console.log(system)
         var api = (system && system.apis ? system.apis[obj.req.soajs.controller.serviceParams.path] : null);
         if (!api && system && system.apisRegExp && Object.keys(system.apisRegExp).length) {
             for (var jj = 0; jj < system.apisRegExp.length; jj++) {
