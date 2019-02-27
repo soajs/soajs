@@ -365,7 +365,7 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
             req.soajs.registry.services &&
             req.soajs.registry.services[service] &&
             req.soajs.registry.services[service].port &&
-            (process.env.SOAJS_DEPLOY_HA || req.soajs.registry.services[service].hosts)
+            (process.env.SOAJS_DEPLOY_HA || req.soajs.registry.services[service].hosts || req.soajs.registry.services[service].srcType === "endpoint")
         ) {
             //service = service.toLowerCase();
             //service_nv = service_nv.toLowerCase();
@@ -436,13 +436,16 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
                 }
                 else if (req.soajs.registry.services[service].hosts) {
                     version = req.soajs.registry.services[service].hosts.latest;
-                    nextStep(version);
+                    return nextStep(version);
+                } else if (req.soajs.registry.services[service].srcType === "endpoint") {
+                    //TODO: we should support what version is available aka deployed
+                    return nextStep("1");
                 } else {
                     return callback(null, null);
                 }
             }
             else
-                nextStep(version);
+                return nextStep(version);
         }
         else {
             return callback(null, null);
@@ -504,7 +507,6 @@ function redirectToService(req, res) {
             'headers': req.headers,
             'jar': false
         };
-
         if (obj.config.authorization)
             isRequestAuthorized(req, requestOptions);
 
@@ -539,21 +541,17 @@ function preRedirect(req, res, cb) {
     if (!config)
         return req.soajs.controllerResponse(core.error.getError(131));
 
-    var requestTOR = restServiceParams.registry.requestTimeoutRenewal || config.requestTimeoutRenewal;
-    var requestTO = restServiceParams.registry.requestTimeout || config.requestTimeout;
-
-    req.soajs.awareness.getHost(restServiceParams.name, restServiceParams.version, function (host) {
-        if (!host) {
-            req.soajs.log.error('Unable to find any healthy host for service [' + restServiceParams.name + (restServiceParams.version ? ('@' + restServiceParams.version) : '') + ']');
-            return req.soajs.controllerResponse(core.error.getError(133));
-        }
-
+    let nextStep = function (host, port, fullURI) {
         req.soajs.log.info({
             "serviceName": restServiceParams.name,
             "host": host,
+            "version": restServiceParams.version,
             "url": restServiceParams.url,
             "header": req.headers
         });
+
+        var requestTOR = restServiceParams.registry.requestTimeoutRenewal || config.requestTimeoutRenewal;
+        var requestTO = restServiceParams.registry.requestTimeout || config.requestTimeout;
 
         req.soajs.controller.renewalCount = 0;
         res.setTimeout(requestTO * 1000, function () {
@@ -565,19 +563,19 @@ function preRedirect(req, res, cb) {
                 let uri = 'http://' + host + ':' + (restServiceParams.registry.port + req.soajs.registry.serviceConfig.ports.maintenanceInc) + '/heartbeat';
 
                 if (restServiceParams.registry.maintenance && restServiceParams.registry.maintenance.readiness && restServiceParams.registry.maintenance.port) {
-                    let port = restServiceParams.registry.port;
+                    let maintenancePort = port;
                     let path = restServiceParams.registry.maintenance.readiness;
                     if ("maintenance" === restServiceParams.registry.maintenance.port.type)
-                        port = port + req.soajs.registry.serviceConfig.ports.maintenanceInc;
+                        maintenancePort = maintenancePort + req.soajs.registry.serviceConfig.ports.maintenanceInc;
                     else if ("inherit" === restServiceParams.registry.maintenance.port.type)
-                        port = port;
+                        maintenancePort = port;
                     else {
                         let tempPort = parseInt(restServiceParams.registry.maintenance.port.value);
                         if (!isNaN(tempPort)) {
-                            port = restServiceParams.registry.maintenance.port.value;
+                            maintenancePort = restServiceParams.registry.maintenance.port.value;
                         }
                     }
-                    uri = 'http://' + host + ':' + port + path;
+                    uri = 'http://' + host + ':' + maintenancePort + path;
                 }
 
                 request({
@@ -601,9 +599,39 @@ function preRedirect(req, res, cb) {
         return cb({
             'host': host,
             'config': config,
-            'uri': 'http://' + host + ':' + restServiceParams.registry.port + restServiceParams.url
+            'uri': (fullURI ? host + restServiceParams.url : 'http://' + host + ':' + port + restServiceParams.url)
         });
-    });
+    };
+
+    if (restServiceParams.registry.srcType && restServiceParams.registry.srcType === "endpoint") {
+        let host = restServiceParams.registry.src.url;
+        if (restServiceParams.version && restServiceParams.registry.src.urls) {
+            for (let i = 0; i < restServiceParams.registry.src.urls.length; i++) {
+                if (restServiceParams.registry.src.urls[i].version === restServiceParams.version)
+                    host = restServiceParams.registry.src.urls[i].url
+            }
+        }
+        if (restServiceParams.keyObj && restServiceParams.keyObj.config) {
+            if (restServiceParams.keyObj.config[restServiceParams.name] && restServiceParams.keyObj.config[restServiceParams.name].url)
+                host = restServiceParams.keyObj.config[restServiceParams.name].url;
+            if (restServiceParams.version && restServiceParams.keyObj.config[restServiceParams.name].urls) {
+                for (let i = 0; i < restServiceParams.keyObj.config[restServiceParams.name].urls.length; i++) {
+                    if (restServiceParams.keyObj.config[restServiceParams.name].urls[i].version === restServiceParams.version)
+                        host = restServiceParams.keyObj.config[restServiceParams.name].urls[i].url
+                }
+            }
+        }
+        return nextStep(host, restServiceParams.registry.port, true);
+    }
+    else {
+        req.soajs.awareness.getHost(restServiceParams.name, restServiceParams.version, function (host) {
+            if (!host) {
+                req.soajs.log.error('Unable to find any healthy host for service [' + restServiceParams.name + (restServiceParams.version ? ('@' + restServiceParams.version) : '') + ']');
+                return req.soajs.controllerResponse(core.error.getError(133));
+            }
+            return nextStep(host, restServiceParams.registry.port);
+        });
+    }
 }
 
 /**

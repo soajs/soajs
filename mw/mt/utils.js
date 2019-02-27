@@ -488,8 +488,6 @@ var utils = {
      */
     "apiCheck": function (obj, cb) {
         var system = _system.getAcl(obj);
-        console.log("apiCheck")
-        console.log(system)
         var api = (system && system.apis ? system.apis[obj.req.soajs.controller.serviceParams.path] : null);
         if (!api && system && system.apisRegExp && Object.keys(system.apisRegExp).length) {
             for (var jj = 0; jj < system.apisRegExp.length; jj++) {
