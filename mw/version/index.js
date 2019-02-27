@@ -136,11 +136,12 @@ module.exports = function (configuration) {
                 if (!Object.hasOwnProperty.call(aclObj, 'access') &&
                     !Object.hasOwnProperty.call(aclObj, 'apis') &&
                     !Object.hasOwnProperty.call(aclObj, 'apisRegExp') &&
-                    !Object.hasOwnProperty.call(aclObj, 'apisPermission')) {
+                    !Object.hasOwnProperty.call(aclObj, 'apisPermission') &&
+                    Object.keys(aclObj).length) {
                     if (obj.service_v) {
                         let san_v = coreLibs.version.sanitize(obj.service_v);
                         if (!aclObj[san_v])
-                            return (154, null);
+                            return cb(154, null);
                         aclObj = aclObj[san_v];
                     }
                     else {
@@ -248,37 +249,42 @@ module.exports = function (configuration) {
             if (err)
                 return next();
 
-                req.soajs.controller.serviceParams.keyObj = keyObj;
-                if (keyObj && keyObj.application && keyObj.application.package) {
-                    if (keyObj.env) {
-                        let keyEnv = keyObj.env.toLowerCase();
-                        if (keyEnv !== regEnvironment){
-                            return next (144);
-                        }
+            req.soajs.controller.serviceParams.keyObj = keyObj;
+            if (keyObj && keyObj.application && keyObj.application.package) {
+                if (keyObj.env) {
+                    let keyEnv = keyObj.env.toLowerCase();
+                    if (keyEnv !== regEnvironment) {
+                        return next(144);
                     }
-                   // req.soajs.tenant = keyObj.tenant;
-                   // req.soajs.tenant.key = {
-                   //     "iKey": keyObj.key,
-                   //     "eKey": keyObj.extKey
-                   // };
-                    provision.getPackageData(keyObj.application.package, function (err, packObj) {
-                        if (err)
-                            return next ();
-
-                            req.soajs.controller.serviceParams.packObj = packObj;
-                            aclCheck({"req": req, "keyObj": keyObj, "packObj": packObj, "service_v": service_v}, (err, finalAcl) => {
-                                if (err)
-                                    return next (err);
-
-                                    //this is the finalACL without versions
-                                    req.soajs.controller.serviceParams.finalAcl = finalAcl;
-
-                                    return next ()
-                            });
-                    });
                 }
-                else
-                    return next();
+                // req.soajs.tenant = keyObj.tenant;
+                // req.soajs.tenant.key = {
+                //     "iKey": keyObj.key,
+                //     "eKey": keyObj.extKey
+                // };
+                provision.getPackageData(keyObj.application.package, function (err, packObj) {
+                    if (err)
+                        return next();
+
+                    req.soajs.controller.serviceParams.packObj = packObj;
+                    aclCheck({
+                        "req": req,
+                        "keyObj": keyObj,
+                        "packObj": packObj,
+                        "service_v": service_v
+                    }, (err, finalAcl) => {
+                        if (err)
+                            return next(err);
+
+                        //this is the finalACL without versions
+                        req.soajs.controller.serviceParams.finalAcl = finalAcl;
+
+                        return next()
+                    });
+                });
+            }
+            else
+                return next();
         });
     };
 };

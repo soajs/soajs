@@ -8,6 +8,7 @@ var http = require('http');
 var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
 var provision = coreModules.provision;
+var coreLibs = require("soajs.core.libs");
 
 var drivers = require('soajs.core.drivers');
 
@@ -439,7 +440,16 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
                     return nextStep(version);
                 } else if (req.soajs.registry.services[service].srcType === "endpoint") {
                     //TODO: we should support what version is available aka deployed
-                    return nextStep("1");
+                    if (req.soajs.registry.endpoints && req.soajs.registry.endpoints.deployed && req.soajs.registry.endpoints.deployed[service]) {
+                        if (Array.isArray(req.soajs.registry.endpoints.deployed[service])) {
+                            let ver = req.soajs.registry.endpoints.deployed[service][0];
+                            for (let i = 1; i < req.soajs.registry.endpoints.deployed[service].length; i++) {
+                                ver = coreLibs.version.getLatest(ver, req.soajs.registry.endpoints.deployed[service][i]);
+                            }
+                            return nextStep(ver);
+                        }
+                    }
+                    return callback(null, null);
                 } else {
                     return callback(null, null);
                 }
