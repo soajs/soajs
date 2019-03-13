@@ -668,7 +668,7 @@ describe("testing multi tenancy", function () {
 			});
 		});
 		
-		it("calling example03 using with a timeout value", function (done) {
+		it("calling example03 testRoute2", function (done) {
 			requester('post', {
 				uri: 'http://localhost:4000/example03/testRoute2',
 				headers: {
@@ -694,7 +694,7 @@ describe("testing multi tenancy", function () {
 			});
 		});
 		
-		it("calling example03 using with a timeout value", function (done) {
+		it("calling example03 testRoute3 with a timeout value", function (done) {
 			requester('post', {
 				uri: 'http://localhost:4000/example03/testRoute3',
 				headers: {
