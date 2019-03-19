@@ -250,6 +250,9 @@ module.exports = function (configuration) {
                 req.soajs.log.error(err);
                 return next();
             }
+            if (!keyObj)
+                return next(148);
+
             req.soajs.controller.serviceParams.keyObj = keyObj;
             if (keyObj && keyObj.application && keyObj.application.package) {
                 if (keyObj.env) {
@@ -266,6 +269,8 @@ module.exports = function (configuration) {
                 provision.getPackageData(keyObj.application.package, function (err, packObj) {
                     if (err)
                         return next();
+                    if (!packObj)
+                        return next (149);
 
                     req.soajs.controller.serviceParams.packObj = packObj;
                     aclCheck({
