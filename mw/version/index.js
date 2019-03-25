@@ -245,7 +245,10 @@ module.exports = function (configuration) {
         if (!req.headers.key) {
             req.headers.key = key;
         }
-        provision.getExternalKeyData(req.get("key"), req.soajs.registry.serviceConfig.key, function (err, keyObj) {
+        if (!key)
+            return next ();
+
+        provision.getExternalKeyData(key, req.soajs.registry.serviceConfig.key, function (err, keyObj) {
             if (err) {
                 req.soajs.log.error(err);
                 return next();
