@@ -157,7 +157,7 @@ service.prototype.init = function (callback) {
             version = packageJson.version;
         }
         return version;
-    }
+    };
     var packageVersion = loadVersion();
     _self.maintenanceResponse = function (req, route) {
         var response = {
@@ -463,7 +463,8 @@ service.prototype.start = function (cb) {
                             "serviceIp": _self.app.soajs.param.serviceIp,
                             "serviceVersion": _self.app.soajs.param.serviceVersion,
                             "serviceHATask": _self.app.soajs.param.serviceHATask,
-                            "what": "services"
+                            "what": "services",
+                            "mw": _self.app.soajs.param.mw || false
                         }, function (err, registered) {
                             if (err) {
                                 _self.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
@@ -492,7 +493,7 @@ service.prototype.start = function (cb) {
                 version = packageJson.version;
             }
             return version;
-        }
+        };
         //calculate the maintenance port value
         var maintenancePort = _self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
         if (!process.env.SOAJS_DEPLOY_HA) {
