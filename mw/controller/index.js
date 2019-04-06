@@ -274,13 +274,18 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
             return req.soajs.controllerResponse(core.error.getError(207));
         }
         else {
+            let config = req.soajs.registry.services.controller;
+            if (!config)
+                return req.soajs.controllerResponse(core.error.getError(131));
+            let requestTO = config.requestTimeout;
+
             //formulate request and pipe
             var myUri = reg.protocol + '://' + reg.apiPrefix + "." + reg.domain + ':' + reg.port + requestedRoute;
 
             var requestConfig = {
                 'uri': myUri,
                 'method': req.method,
-                'timeout': 1000 * 3600,
+                'timeout': requestTO * 1000,
                 'jar': false,
                 'headers': req.headers
             };
@@ -305,8 +310,8 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
             req.soajs.log.debug(requestConfig);
 
             //proxy request
-            var proxy = request(requestConfig);
-            proxy.on('error', function (error) {
+            req.soajs.controller.redirectedRequest = request(requestConfig);
+            req.soajs.controller.redirectedRequest.on('error', function (error) {
                 req.soajs.log.error(error);
                 try {
                     return req.soajs.controllerResponse(core.error.getError(135));
@@ -316,10 +321,10 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
             });
 
             if (req.method === 'POST' || req.method === 'PUT') {
-                req.pipe(proxy).pipe(res);
+                req.pipe(req.soajs.controller.redirectedRequest).pipe(res);
             }
             else {
-                proxy.pipe(res);
+                req.soajs.controller.redirectedRequest.pipe(res);
             }
         }
     });
@@ -481,7 +486,7 @@ function simpleRTS(req, res) {
         if (obj.config.authorization)
             isRequestAuthorized(req, requestOptions);
 
-        var connector = http.request(requestOptions, function (serverResponse) {
+        req.soajs.controller.redirectedRequest = http.request(requestOptions, function (serverResponse) {
             serverResponse.pause();
             serverResponse.headers['access-control-allow-origin'] = '*';
 
@@ -489,7 +494,7 @@ function simpleRTS(req, res) {
             serverResponse.pipe(res, {end: true});
             serverResponse.resume();
         });
-        connector.on('aborted', function (err) {
+        req.soajs.controller.redirectedRequest.on('error', function (err) {
             req.soajs.log.error(err);
             try {
                 return req.soajs.controllerResponse(core.error.getError(135));
@@ -497,7 +502,7 @@ function simpleRTS(req, res) {
                 req.soajs.log.error(e);
             }
         });
-        req.pipe(connector, {end: true});
+        req.pipe(req.soajs.controller.redirectedRequest, {end: true});
         req.resume();
     });
 }
@@ -513,7 +518,7 @@ function redirectToService(req, res) {
         let requestOptions = {
             'method': req.method,
             'uri': obj.uri,
-            'timeout': 1000 * 3600,
+            'timeout': obj.requestTO * 1000,
             'headers': req.headers,
             'jar': false
         };
@@ -560,11 +565,14 @@ function preRedirect(req, res, cb) {
             "header": req.headers
         });
 
-        var requestTOR = restServiceParams.registry.requestTimeoutRenewal || config.requestTimeoutRenewal;
-        var requestTO = restServiceParams.registry.requestTimeout || config.requestTimeout;
+        let requestTOR = restServiceParams.registry.requestTimeoutRenewal || config.requestTimeoutRenewal;
+        let requestTO = restServiceParams.registry.requestTimeout || config.requestTimeout;
 
+        let timeToRenew = requestTO * 100;
         req.soajs.controller.renewalCount = 0;
-        res.setTimeout(requestTO * 1000, function () {
+        req.soajs.controller.monitorEndingReq = false;
+
+        let renewReqMonitor = function () {
             req.soajs.log.warn('Request is taking too much time ...');
             req.soajs.controller.renewalCount++;
             if (req.soajs.controller.renewalCount <= requestTOR) {
@@ -594,21 +602,31 @@ function preRedirect(req, res, cb) {
                 }, function (error, response) {
                     if (!error && response.statusCode === 200) {
                         req.soajs.log.info('... able to renew request for ', requestTO, 'seconds');
-                        res.setTimeout(requestTO * 1000);
+                        res.setTimeout(timeToRenew, renewReqMonitor);
                     } else {
                         req.soajs.log.error('Service heartbeat is not responding');
                         return req.soajs.controllerResponse(core.error.getError(133));
                     }
                 });
             } else {
-                req.soajs.log.error('Request time exceeded the requestTimeoutRenewal:', requestTO + requestTO * requestTOR);
-                return req.soajs.controllerResponse(core.error.getError(134));
+                if (!req.soajs.controller.monitorEndingReq) {
+                    req.soajs.controller.monitorEndingReq = true;
+                    req.soajs.log.error('Request time exceeded the requestTimeoutRenewal:', requestTO + requestTO * requestTOR);
+                    if (req.soajs.controller.redirectedRequest) {
+                        req.soajs.log.info("Request aborted:", req.url);
+                        req.soajs.controller.redirectedRequest.abort();
+                    }
+                    return req.soajs.controllerResponse(core.error.getError(134));
+                }
             }
-        });
+        };
+
+        res.setTimeout(timeToRenew, renewReqMonitor);
 
         return cb({
             'host': host,
             'config': config,
+            'requestTO': requestTO,
             'uri': (fullURI ? host + restServiceParams.url : 'http://' + host + ':' + port + restServiceParams.url)
         });
     };
