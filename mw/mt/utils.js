@@ -315,7 +315,21 @@ var utils = {
                     return cb(null, obj);
 
                 return obj.soajs.oauth(obj.req, obj.res, function (error) {
-                    return cb(error, obj);
+                    if (error)
+                        return cb(error, obj);
+                    else {
+                        if (obj.req.oauth && obj.req.oauth.bearerToken && obj.req.oauth.bearerToken.user && (obj.req.oauth.bearerToken.user.loginMode === 'urac') && obj.req.oauth.bearerToken.user.pinLocked) {
+                            if (obj.soajs.oauthService && (obj.req.soajs.controller.serviceParams.name === obj.soajs.oauthService.name) && (obj.req.soajs.controller.serviceParams.path === obj.soajs.oauthService.pinApi)) {
+                                return cb(error, obj);
+                            }
+                            else {
+                                return cb(145, obj);
+                            }
+                        }
+                        else {
+                            return cb(error, obj);
+                        }
+                    }
                 });
             };
 

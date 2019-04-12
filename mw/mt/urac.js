@@ -1,25 +1,33 @@
 "use strict";
-var uracDriver = require('soajs.urac.driver');
-var coreModules = require("soajs.core.modules");
+const uracDriver = require('soajs.urac.driver');
 
 function urac(param) {
-    var _self = this;
+    let _self = this;
 
     _self.soajs = param.soajs;
     _self.userRecord = null;
     _self.id = null;
 
-
     if (param.oauth && 0 === param.oauth.type)
         _self.userRecord = param.oauth.bearerToken;
     else {
+        // if type === 2
         if (param.oauth && param.oauth.bearerToken && param.oauth.bearerToken.user) {
+
             _self.id = param.oauth.bearerToken.user.id;
-            if (param.oauth.bearerToken.user.loginMode === "oauth")
+            if (param.oauth.bearerToken.user.username)
+                _self.username = param.oauth.bearerToken.user.username;
+
+            if (param.oauth.bearerToken.user.loginMode === "oauth") {
                 _self.userRecord = param.oauth.bearerToken.user;
+            }
+            else if (_self.soajs.registry.serviceConfig.oauth.getUserFromToken) {
+                _self.userRecord = param.oauth.bearerToken.user;
+            }
         }
         else if (param._id) {
             _self.id = param._id;
+            _self.username = param.username;
         }
     }
 }
@@ -29,12 +37,12 @@ function urac(param) {
  * @param cb
  */
 urac.prototype.init = function (cb) {
-    var _self = this;
+    let _self = this;
     if (_self.userRecord)
         return cb(null, _self.userRecord);
 
     if (_self.id) {
-        uracDriver.getRecord(_self.soajs, {id: _self.id.toString()}, function (err, record) {
+        uracDriver.getRecord(_self.soajs, {id: _self.id.toString(), username: _self.username}, function (err, record) {
             if (record) {
                 _self.userRecord = record;
             }
@@ -42,7 +50,7 @@ urac.prototype.init = function (cb) {
         });
     }
     else {
-        var error = new Error('oAuth userId is not available to pull URAC profile');
+        let error = new Error('oAuth userId is not available to pull URAC profile');
         cb(error, null);
     }
 };
@@ -53,11 +61,11 @@ urac.prototype.init = function (cb) {
  * @returns {*}
  */
 urac.prototype.getProfile = function (_ALL) {
-    var _self = this;
+    let _self = this;
     if (!_self.userRecord) {
         return null;
     }
-    var urac = null;
+    let urac = null;
     if (_self.userRecord.username) {
         urac = {
             "_id": _self.userRecord._id,
@@ -111,7 +119,7 @@ urac.prototype.getAcl = function () {
     let _self = this;
     let productCode = _self.soajs.tenant.application.product;
 
-    var acl = null;
+    let acl = null;
 
     if (!_self.userRecord) {
         return acl;
@@ -131,10 +139,10 @@ urac.prototype.getAcl = function () {
  * Get user Acl in all environments
  */
 urac.prototype.getAclAllEnv = function () {
-    var _self = this;
+    let _self = this;
     let productCode = _self.soajs.tenant.application.product;
 
-    var acl = null;
+    let acl = null;
 
     if (!_self.userRecord) {
         return acl;
@@ -154,12 +162,12 @@ urac.prototype.getAclAllEnv = function () {
  * @returns {*}
  */
 urac.prototype.getConfig = function () {
-    var _self = this;
-    var key = _self.soajs.tenant.key.iKey;
+    let _self = this;
+    let key = _self.soajs.tenant.key.iKey;
     if (!_self.userRecord) {
         return null;
     }
-    var config = null;
+    let config = null;
 
     if (_self.userRecord.config && _self.userRecord.config.keys) {
         if (_self.userRecord.config.keys[key] && _self.userRecord.config.keys[key].config) {
@@ -175,11 +183,11 @@ urac.prototype.getConfig = function () {
  * @returns {*}
  */
 urac.prototype.getGroups = function () {
-    var _self = this;
+    let _self = this;
     if (!_self.userRecord) {
         return null;
     }
-    var groups = null;
+    let groups = null;
     if (_self.userRecord.groups) {
         groups = _self.userRecord.groups;
     }

@@ -11,6 +11,7 @@ module.exports = function (configuration) {
     configuration.soajs.oauthService.name = configuration.soajs.oauthService.name || "oauth";
     configuration.soajs.oauthService.tokenApi = configuration.soajs.oauthService.tokenApi || "/token";
     configuration.soajs.oauthService.authorizationApi = configuration.soajs.oauthService.authorizationApi || "/authorization";
+    configuration.soajs.oauthService.pinApi = configuration.soajs.oauthService.pinApi || "/pin";
 
 
     let oauthserver = require('oauth2-server');
