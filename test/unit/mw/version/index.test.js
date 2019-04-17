@@ -77,12 +77,12 @@ describe("testing version index", function () {
 	it("Success test", function (done) {
 		
 		
-		serviceStub = sinon.stub(provision, 'getExternalKeyData', (extKey, keyConfig, cb) => {
+		serviceStub = sinon.stub(provision, 'getExternalKeyData').callsFake ((extKey, keyConfig, cb) => {
 				return cb(null, getExternalKeyDataKeyObj);
 			}
 		);
 		
-		serviceStub2 = sinon.stub(provision, 'getPackageData', (code, cb) => {
+		serviceStub2 = sinon.stub(provision, 'getPackageData').callsFake ((code, cb) => {
 				var pack = {};
 				return cb(null, pack);
 			}

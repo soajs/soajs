@@ -107,18 +107,18 @@ describe("Testing Controller", function () {
 		
 		var controller = helper.requireModule('./servers/controller');
 		
-		awarenessMwStub = sinon.stub(awareness_mw, 'getMw', (param) => {
+		awarenessMwStub = sinon.stub(awareness_mw, 'getMw').callsFake ((param) => {
 				return function (req, res, next) {
 					next();
 				};
 			}
 		);
 		
-		coreModulesStub = sinon.stub(coreModules.provision, 'loadProvision', (cb) => {
+		coreModulesStub = sinon.stub(coreModules.provision, 'loadProvision').callsFake ((cb) => {
 				return cb(false);
 			}
 		);
-		coreModulesCoreStub = sinon.stub(coreModules.core, 'getHostIp', (cb) => {
+		coreModulesCoreStub = sinon.stub(coreModules.core, 'getHostIp').callsFake ((cb) => {
 				return cb({
 					result: false,
 					extra: {
@@ -141,18 +141,18 @@ describe("Testing Controller", function () {
 		
 		var controller = helper.requireModule('./servers/controller');
 		
-		awarenessMwStub = sinon.stub(awareness_mw, 'getMw', (param) => {
+		awarenessMwStub = sinon.stub(awareness_mw, 'getMw').callsFake ((param) => {
 				return function (req, res, next) {
 					next();
 				};
 			}
 		);
 		
-		coreModulesStub = sinon.stub(coreModules.provision, 'loadProvision', (cb) => {
+		coreModulesStub = sinon.stub(coreModules.provision, 'loadProvision').callsFake ((cb) => {
 				return cb(true);
 			}
 		);
-		coreModulesCoreStub = sinon.stub(coreModules.core, 'getHostIp', (cb) => {
+		coreModulesCoreStub = sinon.stub(coreModules.core, 'getHostIp').callsFake ((cb) => {
 				return cb({
 					result: true,
 					extra: {
@@ -162,7 +162,7 @@ describe("Testing Controller", function () {
 			}
 		);
 		
-		httpStub = sinon.stub(http, 'createServer', (cb) => {
+		httpStub = sinon.stub(http, 'createServer').callsFake ((cb) => {
 				if (cb.route) { // createServer(app)
 					return {
 						close: function () {
@@ -212,19 +212,19 @@ describe("Testing Controller", function () {
 	it("init - proxySocket", function (done) {
 		var controller = helper.requireModule('./servers/controller');
 		
-		awarenessMwStub = sinon.stub(awareness_mw, 'getMw', (param) => {
+		awarenessMwStub = sinon.stub(awareness_mw, 'getMw').callsFake ((param) => {
 				return function (req, res, next) {
 					next();
 				};
 			}
 		);
 		
-		coreModulesStub = sinon.stub(coreModules.provision, 'loadProvision', (cb) => {
+		coreModulesStub = sinon.stub(coreModules.provision, 'loadProvision').callsFake ((cb) => {
 				return cb(true);
 			}
 		);
 		
-		httpProxyCreateProxyServerStub = sinon.stub(httpProxy, 'createProxyServer', (cb) => {
+		httpProxyCreateProxyServerStub = sinon.stub(httpProxy, 'createProxyServer').callsFake ((cb) => {
 			return {
 				on: function () {
 					
@@ -235,7 +235,7 @@ describe("Testing Controller", function () {
 			};
 		});
 		
-		httpStub = sinon.stub(http, 'createServer', (cb) => {
+		httpStub = sinon.stub(http, 'createServer').callsFake ((cb) => {
 				if (cb.route) { // createServer(app)
 					return {
 						close: function () {
@@ -275,19 +275,19 @@ describe("Testing Controller", function () {
 	it("init - getRegistry error", function (done) {
 		var controller = helper.requireModule('./servers/controller');
 		
-		awarenessMwStub = sinon.stub(awareness_mw, 'getMw', (param) => {
+		awarenessMwStub = sinon.stub(awareness_mw, 'getMw').callsFake ((param) => {
 				return function (req, res, next) {
 					next();
 				};
 			}
 		);
 		
-		coreModulesStubLoadByEnv = sinon.stub(coreModules.core.registry, 'loadByEnv', (obj, cb) => {
+		coreModulesStubLoadByEnv = sinon.stub(coreModules.core.registry, 'loadByEnv').callsFake ((obj, cb) => {
 				return cb({code: 2, message: "erreur"});
 			}
 		);
 		
-		httpStub = sinon.stub(http, 'createServer', (cb) => {
+		httpStub = sinon.stub(http, 'createServer').callsFake ((cb) => {
 				if (cb.route) { // createServer(app)
 					return {
 						close: function () {
@@ -327,19 +327,19 @@ describe("Testing Controller", function () {
 	it("init - getRegistry success", function (done) {
 		var controller = helper.requireModule('./servers/controller');
 		
-		awarenessMwStub = sinon.stub(awareness_mw, 'getMw', (param) => {
+		awarenessMwStub = sinon.stub(awareness_mw, 'getMw').callsFake ((param) => {
 				return function (req, res, next) {
 					next();
 				};
 			}
 		);
 		
-		coreModulesStubLoadByEnv = sinon.stub(coreModules.core.registry, 'loadByEnv', (obj, cb) => {
+		coreModulesStubLoadByEnv = sinon.stub(coreModules.core.registry, 'loadByEnv').callsFake ((obj, cb) => {
 				return cb(null, {});
 			}
 		);
 		
-		httpStub = sinon.stub(http, 'createServer', (cb) => {
+		httpStub = sinon.stub(http, 'createServer').callsFake ((cb) => {
 				if (cb.route) { // createServer(app)
 					return {
 						close: function () {
@@ -379,14 +379,14 @@ describe("Testing Controller", function () {
 	it("init - reload registry", function (done) {
 		var controller = helper.requireModule('./servers/controller');
 		
-		awarenessMwStub = sinon.stub(awareness_mw, 'getMw', (param) => {
+		awarenessMwStub = sinon.stub(awareness_mw, 'getMw').callsFake ((param) => {
 				return function (req, res, next) {
 					next();
 				};
 			}
 		);
 		
-		httpStub = sinon.stub(http, 'createServer', (cb) => {
+		httpStub = sinon.stub(http, 'createServer').callsFake ((cb) => {
 				if (cb.route) { // createServer(app)
 					return {
 						close: function () {
@@ -426,24 +426,24 @@ describe("Testing Controller", function () {
 	it("init - register ", function (done) {
 		var controller = helper.requireModule('./servers/controller');
 		
-		awarenessMwStub = sinon.stub(awareness_mw, 'getMw', (param) => {
+		awarenessMwStub = sinon.stub(awareness_mw, 'getMw').callsFake ((param) => {
 				return function (req, res, next) {
 					next();
 				};
 			}
 		);
 		
-		registerStub = sinon.stub(coreModules.core.registry, 'register', (obj, cb) => {
+		registerStub = sinon.stub(coreModules.core.registry, 'register').callsFake ((obj, cb) => {
 				return cb(null, {});
 			}
 		);
 		
-		reloadStub = sinon.stub(coreModules.core.registry, 'reload', (obj, cb) => {
+		reloadStub = sinon.stub(coreModules.core.registry, 'reload').callsFake ((obj, cb) => {
 				return cb(null, {});
 			}
 		);
 		
-		httpStub = sinon.stub(http, 'createServer', (cb) => {
+		httpStub = sinon.stub(http, 'createServer').callsFake ((cb) => {
 				if (cb.route) { // createServer(app)
 					return {
 						close: function () {

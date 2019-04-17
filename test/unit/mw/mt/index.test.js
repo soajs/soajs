@@ -88,7 +88,7 @@ describe("testing Multitenant index", function () {
 
         req.soajs.controller.serviceParams.keyObj = getExternalKeyDataKeyObj;
 
-        serviceStub3 = sinon.stub(provision, 'getTenantOauth', (id, cb) => {
+        serviceStub3 = sinon.stub(provision, 'getTenantOauth').callsFake ((id, cb) => {
                 return cb(null, getTenantOauthObj);
             }
         );
@@ -107,37 +107,37 @@ describe("testing Multitenant index", function () {
 
         req.soajs.controller.serviceParams.packObj = {};
 
-        serviceStub3 = sinon.stub(provision, 'getTenantOauth', (id, cb) => {
+        serviceStub3 = sinon.stub(provision, 'getTenantOauth').callsFake ((id, cb) => {
                 return cb(null, getTenantOauthObj);
             }
         );
 
 		// utils stubs
-		serviceStubUtils1 = sinon.stub(utils, 'securityGeoCheck', (obj, cb) => {
+		serviceStubUtils1 = sinon.stub(utils, 'securityGeoCheck').callsFake ((obj, cb) => {
 				return cb(null, utilsData);
 			}
 		);
-		serviceStubUtils2 = sinon.stub(utils, 'securityDeviceCheck', (code, cb) => {
+		serviceStubUtils2 = sinon.stub(utils, 'securityDeviceCheck').callsFake ((code, cb) => {
 				return cb(null, utilsData);
 			}
 		);
-		serviceStubUtils3 = sinon.stub(utils, 'oauthCheck', (code, cb) => {
+		serviceStubUtils3 = sinon.stub(utils, 'oauthCheck').callsFake ((code, cb) => {
 				return cb(null, utilsData);
 			}
 		);
-		serviceStubUtils4 = sinon.stub(utils, 'uracCheck', (code, cb) => {
+		serviceStubUtils4 = sinon.stub(utils, 'uracCheck').callsFake ((code, cb) => {
 				return cb(null, utilsData);
 			}
 		);
-		serviceStubUtils5 = sinon.stub(utils, 'serviceCheck', (code, cb) => {
+		serviceStubUtils5 = sinon.stub(utils, 'serviceCheck').callsFake ((code, cb) => {
 				return cb(null, utilsData);
 			}
 		);
-		serviceStubUtils6 = sinon.stub(utils, 'apiCheck', (code, cb) => {
+		serviceStubUtils6 = sinon.stub(utils, 'apiCheck').callsFake ((code, cb) => {
 				return cb(null, utilsData);
 			}
 		);
-		serviceStubUtils7 = sinon.stub(utils, 'aclCheck', (code, cb) => {
+		serviceStubUtils7 = sinon.stub(utils, 'aclCheck').callsFake ((code, cb) => {
 				return cb(null, utilsData);
 			}
 		);

@@ -106,7 +106,7 @@ describe("Testing Controller index - returnKeyAndPermissions /key/permission/get
 	it("fail - findExtKey error", function (done) {
 		var functionMw = index();
 		
-		serviceStub1 = sinon.stub(core.provision, 'getEnvironmentExtKeyWithDashboardAccess', (tenant, cb) => {
+		serviceStub1 = sinon.stub(core.provision, 'getEnvironmentExtKeyWithDashboardAccess').callsFake ( (tenant, cb) => {
 				return cb({code: 1, message: "erreur"});
 			}
 		);
@@ -123,11 +123,11 @@ describe("Testing Controller index - returnKeyAndPermissions /key/permission/get
 	it("fail - findKeyPermissions error", function (done) {
 		var functionMw = index();
 		
-		serviceStub1 = sinon.stub(core.provision, 'getEnvironmentExtKeyWithDashboardAccess', (tenant, cb) => {
+		serviceStub1 = sinon.stub(core.provision, 'getEnvironmentExtKeyWithDashboardAccess').callsFake ((tenant, cb) => {
 				return cb(null, {});
 			}
 		);
-		serviceStub2 = sinon.stub(core.registry, 'getAllRegistriesInfo', (cb) => {
+		serviceStub2 = sinon.stub(core.registry, 'getAllRegistriesInfo').callsFake ((cb) => {
 				return cb({code: 2, message: "erreur"});
 			}
 		);
@@ -144,15 +144,15 @@ describe("Testing Controller index - returnKeyAndPermissions /key/permission/get
 	it("success", function (done) {
 		var functionMw = index();
 		
-		serviceStub1 = sinon.stub(core.provision, 'getEnvironmentExtKeyWithDashboardAccess', (tenant, cb) => {
+		serviceStub1 = sinon.stub(core.provision, 'getEnvironmentExtKeyWithDashboardAccess').callsFake ((tenant, cb) => {
 				return cb(null, {});
 			}
 		);
-		serviceStub2 = sinon.stub(core.registry, 'getAllRegistriesInfo', (cb) => {
+		serviceStub2 = sinon.stub(core.registry, 'getAllRegistriesInfo').callsFake ((cb) => {
 				return cb();
 			}
 		);
-		serviceStub3 = sinon.stub(core.provision, 'getEnvironmentsFromACL', (acl, env) => {
+		serviceStub3 = sinon.stub(core.provision, 'getEnvironmentsFromACL').callsFake ((acl, env) => {
 				return {};
 			}
 		);
@@ -280,7 +280,7 @@ describe("Testing Controller index - proxy/redirect", function () {
 	it("fail - key.getinfo error", function (done) {
 		var functionMw = index();
 		
-		serviceStub1 = sinon.stub(core.key, 'getInfo', (key1, key2, cb) => {
+		serviceStub1 = sinon.stub(core.key, 'getInfo').callsFake ((key1, key2, cb) => {
 				return cb({code: 1, message: "erreur"});
 			}
 		);
@@ -295,12 +295,12 @@ describe("Testing Controller index - proxy/redirect", function () {
 	it("fail - getOriginalTenantRecord error", function (done) {
 		var functionMw = index();
 		
-		serviceStub1 = sinon.stub(core.key, 'getInfo', (key1, key2, cb) => {
+		serviceStub1 = sinon.stub(core.key, 'getInfo').callsFake ((key1, key2, cb) => {
 				return cb(null, "key");
 			}
 		);
 		
-		serviceStub2 = sinon.stub(core.provision, 'getTenantByCode', (code, cb) => {
+		serviceStub2 = sinon.stub(core.provision, 'getTenantByCode').callsFake ((code, cb) => {
 				return cb({code: 1, message: "erreur"});
 			}
 		);
@@ -315,17 +315,17 @@ describe("Testing Controller index - proxy/redirect", function () {
 	it("fail - proxyRequest - loadByEnv on error", function (done) {
 		var functionMw = index();
 		
-		serviceStub1 = sinon.stub(core.key, 'getInfo', (key1, key2, cb) => {
+		serviceStub1 = sinon.stub(core.key, 'getInfo').callsFake ((key1, key2, cb) => {
 				return cb(null, "key");
 			}
 		);
-		serviceStub2 = sinon.stub(core.registry, 'loadByEnv', (obj, cb) => {
+		serviceStub2 = sinon.stub(core.registry, 'loadByEnv').callsFake ((obj, cb) => {
 				let reg = {};
 				return cb({code: 2, message: "erreur"});
 			}
 		);
 		
-		serviceStub3 = sinon.stub(core.provision, 'getTenantByCode', (code, cb) => {
+		serviceStub3 = sinon.stub(core.provision, 'getTenantByCode').callsFake ((code, cb) => {
 				let tenant = {
 					applications: [
 						{
@@ -357,11 +357,11 @@ describe("Testing Controller index - proxy/redirect", function () {
 	it("success - proxyRequest - loadByEnv success", function (done) {
 		var functionMw = index();
 		
-		serviceStub1 = sinon.stub(core.key, 'getInfo', (key1, key2, cb) => {
+		serviceStub1 = sinon.stub(core.key, 'getInfo').callsFake ((key1, key2, cb) => {
 				return cb(null, "key");
 			}
 		);
-		serviceStub2 = sinon.stub(core.registry, 'loadByEnv', (obj, cb) => {
+		serviceStub2 = sinon.stub(core.registry, 'loadByEnv').callsFake ((obj, cb) => {
 				let reg = {
 					protocol: "http",
 					apiPrefix: "",
@@ -374,7 +374,7 @@ describe("Testing Controller index - proxy/redirect", function () {
 				return cb(null, reg);
 			}
 		);
-		serviceStub3 = sinon.stub(core.provision, 'getTenantByCode', (code, cb) => {
+		serviceStub3 = sinon.stub(core.provision, 'getTenantByCode').callsFake ((code, cb) => {
 				let tenant = {
 					applications: [
 						{

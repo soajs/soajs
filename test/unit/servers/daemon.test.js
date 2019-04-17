@@ -78,7 +78,7 @@ describe("Testing Daemon", function () {
 			servicePort: 20
 		};
 		
-		coreModulesCoreStub = sinon.stub(coreModules.core, 'getHostIp', (cb) => {
+		coreModulesCoreStub = sinon.stub(coreModules.core, 'getHostIp').callsFake ((cb) => {
 				return cb(null, {
 					result: true,
 					extra: {
@@ -89,7 +89,7 @@ describe("Testing Daemon", function () {
 			}
 		);
 		
-		coreRegistryLoadStub = sinon.stub(coreModules.core.registry, 'load', (obj, cb) => {
+		coreRegistryLoadStub = sinon.stub(coreModules.core.registry, 'load').callsFake ((obj, cb) => {
 				let registry = {
 					serviceConfig: {}
 				};
@@ -97,7 +97,7 @@ describe("Testing Daemon", function () {
 			}
 		);
 		
-		coreLoggerStub = sinon.stub(coreModules.core, 'getLogger', (serviceName, logger) => {
+		coreLoggerStub = sinon.stub(coreModules.core, 'getLogger').callsFake ((serviceName, logger) => {
 				return {
 					info: function (msg) {
 						console.log(msg);
@@ -126,7 +126,7 @@ describe("Testing Daemon", function () {
 			servicePort: 20
 		};
 		
-		coreModulesCoreStub = sinon.stub(coreModules.core, 'getHostIp', (cb) => {
+		coreModulesCoreStub = sinon.stub(coreModules.core).callsFake ('getHostIp', (cb) => {
 				return cb(null, {
 					result: false,
 					extra: {
@@ -137,7 +137,7 @@ describe("Testing Daemon", function () {
 			}
 		);
 		
-		coreRegistryLoadStub = sinon.stub(coreModules.core.registry, 'load', (obj, cb) => {
+		coreRegistryLoadStub = sinon.stub(coreModules.core.registry).callsFake ('load', (obj, cb) => {
 				let registry = {
 					serviceConfig: {}
 				};
@@ -145,7 +145,7 @@ describe("Testing Daemon", function () {
 			}
 		);
 		
-		coreLoggerStub = sinon.stub(coreModules.core, 'getLogger', (serviceName, logger) => {
+		coreLoggerStub = sinon.stub(coreModules.core, 'getLogger').callsFake ((serviceName, logger) => {
 				return {
 					info: function (msg) {
 						console.log(msg);
@@ -178,7 +178,7 @@ describe("Testing Daemon", function () {
 			awarenessEnv: true
 		};
 		
-		coreModulesCoreStub = sinon.stub(coreModules.core, 'getHostIp', (cb) => {
+		coreModulesCoreStub = sinon.stub(coreModules.core, 'getHostIp').callsFake ((cb) => {
 				return cb(null, {
 					result: false,
 					extra: {
@@ -189,7 +189,7 @@ describe("Testing Daemon", function () {
 			}
 		);
 		
-		coreRegistryLoadStub = sinon.stub(coreModules.core.registry, 'load', (obj, cb) => {
+		coreRegistryLoadStub = sinon.stub(coreModules.core.registry, 'load').callsFake ((obj, cb) => {
 				let registry = {
 					serviceConfig: {}
 				};
@@ -197,7 +197,7 @@ describe("Testing Daemon", function () {
 			}
 		);
 		
-		coreLoggerStub = sinon.stub(coreModules.core, 'getLogger', (serviceName, logger) => {
+		coreLoggerStub = sinon.stub(coreModules.core, 'getLogger').callsFake ((serviceName, logger) => {
 				return {
 					info: function (msg) {
 						console.log(msg);
@@ -212,14 +212,14 @@ describe("Testing Daemon", function () {
 			}
 		);
 		
-		awarenessMwStub = sinon.stub(awareness_mw, 'getMw', (param) => {
+		awarenessMwStub = sinon.stub(awareness_mw, 'getMw').callsFake ((param) => {
 				return function (req, res, next) {
 					next();
 				};
 			}
 		);
 		
-		getDaemonServiceConfStub = sinon.stub(lib.registry, 'getDaemonServiceConf', () => {
+		getDaemonServiceConfStub = sinon.stub(lib.registry, 'getDaemonServiceConf').callsFake (() => {
 				return {
 					info: {
 						port: 80
@@ -233,12 +233,12 @@ describe("Testing Daemon", function () {
 			}
 		);
 		
-		loadProvisionStub = sinon.stub(coreModules.provision, 'loadProvision', (cb) => {
+		loadProvisionStub = sinon.stub(coreModules.provision, 'loadProvision').callsFake ((cb) => {
 				return cb(true);
 			}
 		);
 		
-		loadDaemonGrpConfStub = sinon.stub(coreModules.provision, 'loadDaemonGrpConf', (groupConf, serviceName, cb) => {
+		loadDaemonGrpConfStub = sinon.stub(coreModules.provision, 'loadDaemonGrpConf').callsFake ((groupConf, serviceName, cb) => {
 				let daemonConf = {
 					processing: "sequential",
 					status: "valid",
@@ -256,18 +256,18 @@ describe("Testing Daemon", function () {
 			}
 		);
 		
-		autoRegisterServiceStub = sinon.stub(coreModules.core.registry, 'autoRegisterService', () => {
+		autoRegisterServiceStub = sinon.stub(coreModules.core.registry, 'autoRegisterService').callsFake (() => {
 				return {};
 			}
 		);
 		
-		getPackageDataStub = sinon.stub(coreModules.provision, 'getPackageData', (pack,cb) => {
+		getPackageDataStub = sinon.stub(coreModules.provision, 'getPackageData').callsFake ((pack,cb) => {
 			let data = {};
 			return cb(null,data);
 			}
 		);
 		
-		getExternalKeyDataStub = sinon.stub(coreModules.provision, 'getExternalKeyData', (in1, in2, cb) => {
+		getExternalKeyDataStub = sinon.stub(coreModules.provision, 'getExternalKeyData').callsFake ((in1, in2, cb) => {
 				let data = {
 					application : {
 						package : {
@@ -282,12 +282,12 @@ describe("Testing Daemon", function () {
 			}
 		);
 		
-		registerHostStub = sinon.stub(coreModules.core.registry, 'registerHost', () => {
+		registerHostStub = sinon.stub(coreModules.core.registry, 'registerHost').callsFake (() => {
 				return {};
 			}
 		);
 		
-		coreRegistryGet = sinon.stub(coreModules.core.registry, 'get', () => {
+		coreRegistryGet = sinon.stub(coreModules.core.registry, 'get').callsFake (() => {
 				let registry = {
 					serviceConfig: {},
 					coreDB: {}

@@ -17,7 +17,7 @@ describe("Testing awarenessEnv HA", function () {
 		coreModules = require("soajs.core.modules");
 		core = coreModules.core;
 		
-		provisionStub = sinon.stub(core.registry, 'get', () => {
+		provisionStub = sinon.stub(core.registry, 'get').callsFake (() => {
 				return {
 					deployer: {
 						selected: "test0.test1.test2",

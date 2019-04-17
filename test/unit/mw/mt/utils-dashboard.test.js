@@ -29,7 +29,7 @@ describe("testing utils dashboard", function () {
 	
 	it("test uracCheck - getEnvRegistry - same env", function (done) {
 		
-		provisionStub = sinon.stub(provision, 'getTenantData', (code, cb) => {
+		provisionStub = sinon.stub(provision, 'getTenantData').callsFake ((code, cb) => {
 				return cb(null, {});
 			}
 		);
