@@ -126,7 +126,7 @@ describe("Testing Daemon", function () {
 			servicePort: 20
 		};
 		
-		coreModulesCoreStub = sinon.stub(coreModules.core).callsFake ('getHostIp', (cb) => {
+		coreModulesCoreStub = sinon.stub(coreModules.core, 'getHostIp').callsFake ((cb) => {
 				return cb(null, {
 					result: false,
 					extra: {
@@ -137,7 +137,7 @@ describe("Testing Daemon", function () {
 			}
 		);
 		
-		coreRegistryLoadStub = sinon.stub(coreModules.core.registry).callsFake ('load', (obj, cb) => {
+		coreRegistryLoadStub = sinon.stub(coreModules.core.registry, 'load').callsFake ((obj, cb) => {
 				let registry = {
 					serviceConfig: {}
 				};
