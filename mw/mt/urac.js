@@ -91,6 +91,7 @@ urac.prototype.getProfile = function (_ALL) {
             }
 
             urac.config = _self.userRecord.config;
+            urac.groupsConfig = _self.userRecord.groupsConfig;
         }
     }
     else if (_self.userRecord.userId) {

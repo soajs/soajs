@@ -202,7 +202,7 @@ module.exports = function (configuration) {
                                         }
                                         if (req.soajs.uracDriver) {
                                             if (serviceParam.urac) {
-                                                var uracObj = req.soajs.uracDriver.getProfile(serviceParam.urac_Config);
+                                                var uracObj = req.soajs.uracDriver.getProfile((serviceParam.urac_Config || serviceParam.urac_GroupConfig));
                                                 if (uracObj) {
                                                     injectObj.urac = {
                                                         "_id": uracObj._id,
@@ -229,8 +229,11 @@ module.exports = function (configuration) {
                                                     if (serviceParam.urac_ACL)
                                                         injectObj.urac.acl_AllEnv = null;//req.soajs.uracDriver.getAclAllEnv();
 
-                                                    if (serviceParam.urac_Config){
+                                                    if (serviceParam.urac_Config) {
                                                         injectObj.urac.config = uracObj.config;
+                                                    }
+                                                    if (serviceName.urac_GroupConfig) {
+                                                        injectObj.urac.groupsConfig = uracObj.groupsConfig;
                                                     }
                                                 }
                                             }
