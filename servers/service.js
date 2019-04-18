@@ -128,6 +128,7 @@ service.prototype.init = function (callback) {
     soajs.param.urac_Profile = soajs.param.urac_Profile || false;
     soajs.param.urac_ACL = soajs.param.urac_ACL || false;
     soajs.param.urac_Config = soajs.param.urac_Config || false;
+    soajs.param.urac_GroupConfig = soajs.param.urac_GroupConfig || false,
     soajs.param.provision_ACL = soajs.param.provision_ACL || false;
     if (soajs.param.hasOwnProperty("oauth"))
         soajs.param.oauth = soajs.param.oauth;
@@ -209,6 +210,8 @@ service.prototype.init = function (callback) {
             "urac": soajs.param.urac,
             "urac_Profile": soajs.param.urac_Profile,
             "urac_ACL": soajs.param.urac_ACL,
+            "urac_Config": soajs.param.urac_Config,
+            "urac_GroupConfig": soajs.param.urac_GroupConfig,
             "provision_ACL": soajs.param.provision_ACL,
             "oauth": soajs.param.oauth,
             "apiList": soajs.apiList,
@@ -460,6 +463,8 @@ service.prototype.start = function (cb) {
                             "urac": _self.app.soajs.param.urac,
                             "urac_Profile": _self.app.soajs.param.urac_Profile,
                             "urac_ACL": _self.app.soajs.param.urac_ACL,
+                            "urac_Config": _self.app.soajs.param.urac_Config,
+                            "urac_GroupConfig": _self.app.soajs.param.urac_GroupConfig,
                             "provision_ACL": _self.app.soajs.param.provision_ACL,
                             "serviceIp": _self.app.soajs.param.serviceIp,
                             "serviceVersion": _self.app.soajs.param.serviceVersion,
