@@ -127,6 +127,7 @@ service.prototype.init = function (callback) {
     soajs.param.urac = soajs.param.urac || false;
     soajs.param.urac_Profile = soajs.param.urac_Profile || false;
     soajs.param.urac_ACL = soajs.param.urac_ACL || false;
+    soajs.param.urac_Config = soajs.param.urac_Config || false;
     soajs.param.provision_ACL = soajs.param.provision_ACL || false;
     if (soajs.param.hasOwnProperty("oauth"))
         soajs.param.oauth = soajs.param.oauth;
