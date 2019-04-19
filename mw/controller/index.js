@@ -173,11 +173,13 @@ function proxyRequest(req, res) {
     /*
      get ext key for remote env requested
      */
-    var tenant = req.soajs.tenant;
-    var parsedUrl = req.soajs.controller.serviceParams.parsedUrl;
-
-    var remoteENV = (parsedUrl.query) ? parsedUrl.query.__env : req.headers.__env;
-    remoteENV = remoteENV.toUpperCase();
+    let tenant = req.soajs.tenant;
+    let parsedUrl = req.soajs.controller.serviceParams.parsedUrl;
+    let remoteENV = req.headers.__env;
+    if (parsedUrl.query && parsedUrl.query.__env)
+        remoteENV = parsedUrl.query.__env;
+    if (remoteENV)
+        remoteENV = remoteENV.toUpperCase();
 
     var requestedRoute;
     //check if requested route is provided as query param
@@ -238,7 +240,7 @@ function getOriginalTenantRecord(tenant, cb) {
  * @returns {null|String}
  */
 function findExtKeyForEnvironment(tenant, env) {
-    var key;
+    let key;
     tenant.applications.forEach(function (oneApplication) {
 
         //loop in tenant keys
@@ -248,8 +250,9 @@ function findExtKeyForEnvironment(tenant, env) {
             oneKey.extKeys.forEach(function (oneExtKey) {
                 //get the ext key for the request environment who also has dashboardAccess true
                 //note: only one extkey per env has dashboardAccess true, simply find it and break
-                if (oneExtKey.env && oneExtKey.env === env && oneExtKey.dashboardAccess) {
+                if (oneExtKey.env && oneExtKey.env === env) {
                     key = oneExtKey.extKey; // key or ext key/.???? no key
+
                 }
             });
         });
@@ -278,9 +281,9 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
             if (!config)
                 return req.soajs.controllerResponse(core.error.getError(131));
             let requestTO = config.requestTimeout;
-
+            let prefix = reg.apiPrefix + "."
             //formulate request and pipe
-            var myUri = reg.protocol + '://' + reg.apiPrefix + "." + reg.domain + ':' + reg.port + requestedRoute;
+            var myUri = reg.protocol + '://' + (reg.apiPrefix ? reg.apiPrefix + "." : "") + reg.domain + ':' + reg.port + requestedRoute;
 
             var requestConfig = {
                 'uri': myUri,
@@ -362,8 +365,11 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
             "name": serviceName,
             "url": requestedRoute,
             "version": req.soajs.registry.services[serviceName].version || 1,
-            "extKeyRequired": true
+            "extKeyRequired": false
         };
+        if (req.headers.key)
+            proxyInfo.extKeyRequired = true;
+
         return callback(null, proxyInfo);
     } else {
         if (service &&
