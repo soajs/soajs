@@ -230,7 +230,8 @@ module.exports = function (configuration) {
                                                         injectObj.urac.acl = null;//req.soajs.uracDriver.getAcl();
                                                     if (serviceParam.urac_ACL)
                                                         injectObj.urac.acl_AllEnv = null;//req.soajs.uracDriver.getAclAllEnv();
-
+                                                    console.log(serviceParam)
+                                                    console.log(JSON.stringify(uracObj))
                                                     if (serviceParam.urac_Config) {
                                                         injectObj.urac.config = uracObj.config;
                                                     }
