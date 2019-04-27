@@ -14,6 +14,7 @@ var uracDriver = require("./urac.js");
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
 
+let filterOutRegExpObj = require ("../version/apiPathParam2apiRegExp.js");
 /**
  * Contains functions to calculate and retrieve the ACL based on SOAJS layers
  *
@@ -116,6 +117,7 @@ var utils = {
 
                         obj.finalAcl = newAclObj; //TODO: support filterOutRegExpObj(newAclObj);
                     }
+                    obj.finalAcl = filterOutRegExpObj(obj.finalAcl);
                 }
             }
             return cb(null, obj);
