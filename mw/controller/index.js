@@ -198,8 +198,24 @@ function proxyRequest(req, res) {
 
     req.soajs.log.debug("attempting to redirect to: " + requestedRoute + " in " + remoteENV + " Environment.");
 
-    if (tenant) {
-        getOriginalTenantRecord(tenant, function (error, originalTenant) {
+    let tCode = null;
+    let tExtKey = null;
+
+    if (parsedUrl.query) {
+        if (parsedUrl.query.tCode)
+            tCode = parsedUrl.query.tCode;
+        else if (tenant)
+            tCode = tenant.code;
+
+        if (parsedUrl.query.extKey)
+            tExtKey = parsedUrl.query.extKey;
+    }
+    if (tExtKey) {
+        //proceed with proxying the request
+        proxyRequestToRemoteEnv(req, res, remoteENV, tExtKey, requestedRoute);
+    }
+    else if (tCode) {
+        getOriginalTenantRecord(tCode, function (error, originalTenant) {
             if (error) {
                 return req.soajs.controllerResponse(core.error.getError(139)); //todo: make sure we have set the correct error code number
             }
@@ -209,7 +225,7 @@ function proxyRequest(req, res) {
 
             //no key found
             if (!remoteExtKey) {
-                req.soajs.log.fatal("No remote key found for tenant: " + tenant.code + " in environment: " + remoteENV);
+                req.soajs.log.fatal("No remote key found for tenant: " + tCode + " in environment: " + remoteENV);
                 return req.soajs.controllerResponse(core.error.getError(137));
             }
             else {
@@ -226,11 +242,11 @@ function proxyRequest(req, res) {
 
 /**
  * function that fetches a tenant record from core.provision
- * @param {Object} tenant
- * @param {Callback} cb
+ * @param tCode
+ * @param cb
  */
-function getOriginalTenantRecord(tenant, cb) {
-    core.provision.getTenantByCode(tenant.code, cb);
+function getOriginalTenantRecord(tCode, cb) {
+    core.provision.getTenantByCode(tCode, cb);
 }
 
 /**
