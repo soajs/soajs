@@ -196,7 +196,10 @@ function proxyRequest(req, res) {
         return req.soajs.controllerResponse(core.error.getError(139));
     }
 
-    req.soajs.log.debug("attempting to redirect to: " + requestedRoute + " in " + remoteENV + " Environment.");
+    if (remoteENV)
+        req.soajs.log.debug("attempting to redirect to: " + requestedRoute + " in " + remoteENV + " Environment.");
+    else
+        req.soajs.log.debug("attempting to redirect to: " + requestedRoute);
 
     let tCode = null;
     let tExtKey = null;
