@@ -55,7 +55,7 @@ module.exports = function (configuration) {
         }
         else {
             serviceParam = {
-                "extKeyRequired": serviceInfo.extKeyRequired || false
+                "extKeyRequired": req.soajs.controller.serviceParams.extKeyRequired || false
             };
         }
 
