@@ -370,7 +370,7 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
 function extractBuildParameters(req, service, service_nv, version, proxyInfo, url, callback) {
 
     if (proxyInfo) {
-        var requestedRoute;
+        let requestedRoute;
         //check if requested route is provided as query param
         if (proxyInfo.query && proxyInfo.query.proxyRoute) {
             requestedRoute = decodeURIComponent(proxyInfo.query.proxyRoute);
@@ -379,19 +379,23 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
         if (!requestedRoute && proxyInfo.pathname.replace(/^\/proxy/, '') !== '') {
             requestedRoute = proxyInfo.pathname.replace(/^\/proxy/, '');
         }
-
-        var serviceName = requestedRoute.split("/")[1];
-        if (!req.soajs.registry.services[serviceName]) {
-            return callback(core.error.getError(130));
-        }
-
-        var proxyInfo = {
-            "registry": req.soajs.registry.services[serviceName],
-            "name": serviceName,
+        let proxyInfo = {
             "url": requestedRoute,
-            "version": req.soajs.registry.services[serviceName].version || 1,
             "extKeyRequired": false
         };
+        let serviceName = requestedRoute.split("/")[1];
+        //if (!req.soajs.registry.services[serviceName]) {
+        //return callback(core.error.getError(130));
+        //}
+        if (req.soajs.registry.services[serviceName]) {
+            proxyInfo = {
+                "registry": req.soajs.registry.services[serviceName],
+                "name": serviceName,
+                "url": requestedRoute,
+                "version": req.soajs.registry.services[serviceName].version || 1,
+                "extKeyRequired": false
+            };
+        }
         if (req.headers.key)
             proxyInfo.extKeyRequired = true;
 

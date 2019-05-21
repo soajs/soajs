@@ -22,48 +22,41 @@ module.exports = function (configuration) {
     var app = configuration.app;
 
     return function (req, res, next) {
-        /**
-         *    TODO: the below are the params that we should turn on per service per env to populate injectObj upon
-         *        urac
-         *        urac_Profile
-         *        urac_ACL
-         *        provision_ACL
-         *        extKeyRequired ? maybe
-         *        oauth
-         */
-        var serviceInfo = req.soajs.controller.serviceParams.registry.versions[req.soajs.controller.serviceParams.version];
-        if (!serviceInfo) {
-            return next(133);
-        }
-
         //if there is a proxy no need to do any of the below, return next
-        var proxyInfo = req.soajs.controller.serviceParams.serviceInfo;
-        var proxy = (proxyInfo[1] === 'proxy' && proxyInfo[2] === 'redirect');
-        var keyPermissionGet = (proxyInfo[1] === 'key' && proxyInfo[2] === 'permission' && proxyInfo[3] === 'get');
-
-        var oauth = true;
-        if (Object.hasOwnProperty.call(serviceInfo, 'oauth')) {
-            oauth = serviceInfo.oauth;
+        let proxyInfo = req.soajs.controller.serviceParams.serviceInfo;
+        let proxy = (proxyInfo[1] === 'proxy' && proxyInfo[2] === 'redirect');
+        let keyPermissionGet = (proxyInfo[1] === 'key' && proxyInfo[2] === 'permission' && proxyInfo[3] === 'get');
+        let serviceParam = {};
+        if (!proxy) {
+            let serviceInfo = req.soajs.controller.serviceParams.registry.versions[req.soajs.controller.serviceParams.version];
+            if (!serviceInfo) {
+                return next(133);
+            }
+            let oauth = true;
+            if (Object.hasOwnProperty.call(serviceInfo, 'oauth')) {
+                oauth = serviceInfo.oauth;
+            }
+            serviceParam = {
+                "urac": serviceInfo.urac || false,
+                "urac_Profile": serviceInfo.urac_Profile || false,
+                "urac_ACL": serviceInfo.urac_ACL || false,
+                "urac_Config": serviceInfo.urac_Config || false,
+                "urac_GroupConfig": serviceInfo.urac_GroupConfig || false,
+                "provision_ACL": serviceInfo.provision_ACL || false,
+                "extKeyRequired": serviceInfo.extKeyRequired || false,
+                "oauth": oauth
+            };
+            if (serviceInfo[regEnvironment]) {
+                if (serviceInfo[regEnvironment].hasOwnProperty("extKeyRequired"))
+                    serviceParam.extKeyRequired = serviceInfo[regEnvironment].extKeyRequired;
+                if (serviceInfo[regEnvironment].hasOwnProperty("oauth"))
+                    serviceParam.oauth = serviceInfo[regEnvironment].oauth;
+            }
         }
-        var serviceParam = {
-            "urac": serviceInfo.urac || false,
-            "urac_Profile": serviceInfo.urac_Profile || false,
-            "urac_ACL": serviceInfo.urac_ACL || false,
-            "urac_Config": serviceInfo.urac_Config || false,
-            "urac_GroupConfig": serviceInfo.urac_GroupConfig || false,
-            "provision_ACL": serviceInfo.provision_ACL || false,
-            "extKeyRequired": serviceInfo.extKeyRequired || false,
-            "oauth": oauth
-        };
-
-        //if (serviceInfo.hasOwnProperty("oauth"))
-        //    serviceParam.oauth = serviceInfo.oauth;
-
-        if (serviceInfo[regEnvironment]) {
-            if (serviceInfo[regEnvironment].hasOwnProperty("extKeyRequired"))
-                serviceParam.extKeyRequired = serviceInfo[regEnvironment].extKeyRequired;
-            if (serviceInfo[regEnvironment].hasOwnProperty("oauth"))
-                serviceParam.oauth = serviceInfo[regEnvironment].oauth;
+        else {
+            serviceParam = {
+                "extKeyRequired": serviceInfo.extKeyRequired || false
+            };
         }
 
         if (proxyInfo[2] === "swagger" && proxyInfo[proxyInfo.length - 1] === proxyInfo[2])
