@@ -335,7 +335,7 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
         }
     };
     if (!remoteENV) {
-        triggerProxy(myUri, 30);
+        triggerProxy(requestedRoute, 30);
     }
     else {
         //get remote env registry
