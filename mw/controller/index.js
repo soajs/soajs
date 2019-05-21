@@ -379,7 +379,7 @@ function extractBuildParameters(req, service, service_nv, version, proxyInfo, ur
         if (!requestedRoute && proxyInfo.pathname.replace(/^\/proxy/, '') !== '') {
             requestedRoute = proxyInfo.pathname.replace(/^\/proxy/, '');
         }
-        let proxyInfo = {
+        proxyInfo = {
             "url": requestedRoute,
             "extKeyRequired": false
         };
