@@ -41,9 +41,8 @@ module.exports = function (configuration) {
             };
             if (input.tenant.main)
                 output.tenant.main = input.tenant.main;
-
         }
-        
+
         if (input.key) {
             output.key = {
                 config: input.key.config,
