@@ -62,7 +62,7 @@ module.exports = function (configuration) {
 
         if (proxyInfo[2] === "swagger" && proxyInfo[proxyInfo.length - 1] === proxyInfo[2])
             return next();
-        console.log(serviceParam)
+
         let oauthExec = function () {
             if (serviceParam.oauth) {
                 if (soajs.oauthService && req.soajs.controller.serviceParams.name === soajs.oauthService.name && (req.soajs.controller.serviceParams.path === soajs.oauthService.tokenApi || req.soajs.controller.serviceParams.path === soajs.oauthService.authorizationApi))
