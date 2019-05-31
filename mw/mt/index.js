@@ -55,12 +55,24 @@ module.exports = function (configuration) {
         }
         else {
             serviceParam = {
-                "extKeyRequired": req.soajs.controller.serviceParams.extKeyRequired || false
+                "extKeyRequired": req.soajs.controller.serviceParams.extKeyRequired || false,
+                "oauth": true
             };
         }
 
         if (proxyInfo[2] === "swagger" && proxyInfo[proxyInfo.length - 1] === proxyInfo[2])
             return next();
+        console.log(serviceParam)
+        let oauthExec = function () {
+            if (serviceParam.oauth) {
+                if (soajs.oauthService && req.soajs.controller.serviceParams.name === soajs.oauthService.name && (req.soajs.controller.serviceParams.path === soajs.oauthService.tokenApi || req.soajs.controller.serviceParams.path === soajs.oauthService.authorizationApi))
+                    return next();
+                else
+                    soajs.oauth(req, res, next);
+            }
+            else
+                return next();
+        };
 
         req.soajs.awareness.getHost('controller', function (controllerHostInThisEnvironment) {
             if (serviceParam.extKeyRequired) {
@@ -91,7 +103,7 @@ module.exports = function (configuration) {
 
                                 if (proxy) {
                                     req.soajs.log.debug("Detected proxy request, bypassing MT ACL checks...");
-                                    return next();
+                                    return oauthExec();
                                 }
 
                                 var serviceCheckArray = [function (cb) {
@@ -263,18 +275,7 @@ module.exports = function (configuration) {
             }
             else {
                 req.soajs.controller.serviceParams.isAPIPublic = true;
-
-                if (serviceParam.oauth) {
-                    var oauthExec = function () {
-                        soajs.oauth(req, res, next);
-                    };
-                    if (soajs.oauthService && req.soajs.controller.serviceParams.name === soajs.oauthService.name && (req.soajs.controller.serviceParams.path === soajs.oauthService.tokenApi || req.soajs.controller.serviceParams.path === soajs.oauthService.authorizationApi))
-                        return next();
-                    else
-                        return oauthExec();
-                }
-                else
-                    return next();
+                return oauthExec();
             }
         });
     };

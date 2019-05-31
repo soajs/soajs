@@ -101,7 +101,7 @@ module.exports = function (configuration) {
         }
 
         let parsedUrl = url.parse(req.url, true);
-        if (!req.query && parsedUrl.query && parsedUrl.query.access_token) {
+        if (!req.query && parsedUrl.query) {
             req.query = parsedUrl.query;
         }
 
