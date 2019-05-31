@@ -171,7 +171,8 @@ module.exports = function (configuration) {
                                                 "id": keyObj.tenant.id,
                                                 "code": keyObj.tenant.code,
                                                 "locked": keyObj.tenant.locked,
-                                                "roaming": data.req.soajs.tenant.roaming
+                                                "roaming": data.req.soajs.tenant.roaming,
+                                                "type":keyObj.tenant.type
                                             },
                                             "key": {
                                                 /*
@@ -200,6 +201,9 @@ module.exports = function (configuration) {
                                             "device": data.device,
                                             "geo": data.geo
                                         };
+
+                                        if (keyObj.tenant.main)
+                                            injectObj.tenant.main = keyObj.tenant.main;
 
                                         if (controllerHostInThisEnvironment) {
                                             injectObj.awareness = {
