@@ -172,7 +172,7 @@ module.exports = function (configuration) {
                                                 "code": keyObj.tenant.code,
                                                 "locked": keyObj.tenant.locked,
                                                 "roaming": data.req.soajs.tenant.roaming,
-                                                "type":keyObj.tenant.type
+                                                "type": keyObj.tenant.type
                                             },
                                             "key": {
                                                 /*
