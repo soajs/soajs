@@ -46,6 +46,8 @@ urac.prototype.init = function (cb) {
             if (record) {
                 _self.userRecord = record;
             }
+            if (err && err.msg)
+                err = new Error(err.msg);
             cb(err, record);
         });
     }
