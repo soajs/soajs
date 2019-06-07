@@ -677,7 +677,7 @@ function preRedirect(req, res, cb) {
         if (restServiceParams.keyObj && restServiceParams.keyObj.config) {
             if (restServiceParams.keyObj.config[restServiceParams.name] && restServiceParams.keyObj.config[restServiceParams.name].url)
                 host = restServiceParams.keyObj.config[restServiceParams.name].url;
-            if (restServiceParams.version && restServiceParams.keyObj.config[restServiceParams.name].urls) {
+            if (restServiceParams.version && restServiceParams.keyObj.config[restServiceParams.name] && restServiceParams.keyObj.config[restServiceParams.name].urls) {
                 for (let i = 0; i < restServiceParams.keyObj.config[restServiceParams.name].urls.length; i++) {
                     if (restServiceParams.keyObj.config[restServiceParams.name].urls[i].version === restServiceParams.version)
                         host = restServiceParams.keyObj.config[restServiceParams.name].urls[i].url
