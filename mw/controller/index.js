@@ -350,7 +350,7 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
                 if (!config)
                     return req.soajs.controllerResponse(core.error.getError(131));
                 let requestTO = config.requestTimeout;
-                if (!reg.protocol || !reg.domain)
+                if (!reg.protocol || !reg.domain || !reg.port)
                     return req.soajs.controllerResponse(core.error.getError(208));
                 //formulate request and pipe
                 let myUri = reg.protocol + '://' + (reg.apiPrefix ? reg.apiPrefix + "." : "") + reg.domain + ':' + reg.port + requestedRoute;
