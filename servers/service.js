@@ -151,16 +151,31 @@ service.prototype.init = function (callback) {
     if (!autoRegHost && !process.env.SOAJS_DEPLOY_HA) {
         soajs.param.serviceIp = '127.0.0.1';
     }
-    var loadVersion = function () {
-        var rootPath = process.cwd();
-        var version = null;
-        if (fs.existsSync(rootPath + "/package.json")) {
-            var packageJson = require(rootPath + "/package.json");
-            version = packageJson.version;
+    let loadVersion = function () {
+        let version = {};
+        let core_packageJson = require("./../package.json");
+        if (core_packageJson && core_packageJson.version)
+            version.core = core_packageJson.version;
+        if (soajs.param && soajs.param.packagejson) {
+            if (soajs.param.packagejson.version)
+                version.service = soajs.param.packagejson.version;
+            if (soajs.param.packagejson.dependencies)
+                version.dependencies = soajs.param.packagejson.dependencies;
+        }
+        else {
+            if (fs.existsSync(process.cwd() + "/package.json")) {
+                let service_packageJson = require(process.cwd() + "/package.json");
+                if (service_packageJson) {
+                    if (service_packageJson.version)
+                        version.service = service_packageJson.version;
+                    if (service_packageJson.dependencies)
+                        version.dependencies = service_packageJson.dependencies;
+                }
+            }
         }
         return version;
     };
-    var packageVersion = loadVersion();
+    let versions = loadVersion();
     _self.maintenanceResponse = function (req, route) {
         var response = {
             'result': false,
@@ -171,8 +186,8 @@ service.prototype.init = function (callback) {
                 'route': route || req.path
             }
         };
-        if (packageVersion)
-            response.service.version = packageVersion;
+        response.versions = versions;
+
         return response;
     };
     if (!soajs.param.serviceIp && !process.env.SOAJS_DEPLOY_HA) {

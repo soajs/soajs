@@ -7,7 +7,7 @@ var coreLibs = require("soajs.core.libs");
 var regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
 
-let filterOutRegExpObj = require ("./apiPathParam2apiRegExp.js");
+let filterOutRegExpObj = require("./apiPathParam2apiRegExp.js");
 /**
  *
  * @param configuration
@@ -59,7 +59,7 @@ module.exports = function (configuration) {
                             if (version) {
                                 obj.req.soajs.controller.serviceParams.service_v = coreLibs.version.unsanitize(version);
                                 if (!aclObj[version])
-                                    return cb (154, null);
+                                    return cb(154, null);
                                 aclObj = aclObj[version];
                             }
                         }
@@ -138,6 +138,15 @@ module.exports = function (configuration) {
             }
         }
 
+        var key = req.headers.key || parsedUrl.query.key;
+        if (!req.headers.key) {
+            req.headers.key = key;
+        }
+
+        if (!req.query.access_token && req.headers.access_token) {
+            req.query.access_token = req.headers.access_token;
+        }
+
         req.soajs.controller.serviceParams = {
             "parsedUrl": parsedUrl,
             "serviceInfo": serviceInfo,
@@ -146,12 +155,9 @@ module.exports = function (configuration) {
             "service_v": service_v,
             "name": service_n
         };
-        var key = req.headers.key || parsedUrl.query.key;
-        if (!req.headers.key) {
-            req.headers.key = key;
-        }
+
         if (!key)
-            return next ();
+            return next();
 
         provision.getExternalKeyData(key, req.soajs.registry.serviceConfig.key, function (err, keyObj) {
             if (err) {
@@ -178,7 +184,7 @@ module.exports = function (configuration) {
                     if (err)
                         return next();
                     if (!packObj)
-                        return next (149);
+                        return next(149);
 
                     req.soajs.controller.serviceParams.packObj = packObj;
                     aclCheck({
