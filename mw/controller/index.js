@@ -601,6 +601,7 @@ function preRedirect(req, res, cb) {
             "host": host,
             "version": restServiceParams.version,
             "url": restServiceParams.url,
+            "port": restServiceParams.registry.port,
             "header": req.headers
         });
 
@@ -634,7 +635,7 @@ function preRedirect(req, res, cb) {
                     }
                     uri = 'http://' + host + ':' + maintenancePort + path;
                 }
-
+                req.soajs.log.info("heartead @: " + uri);
                 request({
                     'uri': uri,
                     'headers': req.headers

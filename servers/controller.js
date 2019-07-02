@@ -350,8 +350,9 @@ controller.prototype.init = function (callback) {
                                         response['data'].tenantMetaDB = reg.tenantMetaDB;
                                     if (reg.serviceConfig) {
                                         response['data'].serviceConfig = soajsUtils.cloneObj(reg.serviceConfig);
-                                        delete response['data'].serviceConfig.oauth;
                                         delete response['data'].serviceConfig.cors;
+                                        if (reqServiceName !== "oauth")
+                                            delete response['data'].serviceConfig.oauth;
                                     }
                                     if (reg.deployer)
                                         response['data'].deployer = reg.deployer;
