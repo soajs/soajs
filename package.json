@@ -16,11 +16,12 @@
     "node": "*"
   },
   "scripts": {
-    "test": "grunt test"
+    "test": "grunt test",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "devDependencies": {
     "bcryptjs": "2.4.3",
-
     "grunt": "1.0.4",
     "grunt-contrib-jshint": "2.1.0",
     "grunt-jsdoc": "2.3.1",
@@ -30,13 +31,10 @@
     "grunt-env": "0.4.4",
     "grunt-istanbul": "0.8.0",
     "grunt-coveralls": "2.0.0",
-
     "lodash": "4.17.11",
-
     "mocha": "6.1.3",
     "shelljs": "0.8.3",
     "sinon": "7.3.1",
-
     "soajs.mongodb.data": "2.1.*"
   },
   "dependencies": {
@@ -56,13 +54,13 @@
     "oauth2-server": "2.4.1",
     "path-to-regexp": "3.0.0",
     "request": "2.84.0",
-
     "soajs.core.libs": "1.2.0",
     "soajs.core.modules": "2.5.8",
     "soajs.core.drivers": "3.5.7",
     "soajs.urac.driver": "2.0.0",
-
     "useragent": "2.2.1",
-    "validator": "9.4.1"
-  }
+    "validator": "9.4.1",
+    "snyk": "^1.189.0"
+  },
+  "snyk": true
 }

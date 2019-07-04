@@ -1,0 +1,50 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.13.5
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-LODASH-450202:
+    - soajs.urac.driver > soajs.core.modules > async > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - async > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.urac.driver > passport-azure-ad > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.modules > elasticsearch > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.drivers > async > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.modules > async > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.modules > handlebars > async > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.drivers > aws-sdk > xmlbuilder > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.drivers > soajs.core.modules > async > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.urac.driver > soajs.core.modules > elasticsearch > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.drivers > soajs.core.modules > elasticsearch > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.drivers > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.drivers > googleapis > async > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.drivers > handlebars > async > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.drivers > ms-rest-azure > async > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.drivers > azure-arm-compute > ms-rest-azure > async > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.drivers > soajs.core.modules > handlebars > async > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.urac.driver > soajs.core.modules > handlebars > async > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.drivers > aws-sdk > xml2js > xmlbuilder > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.drivers > azure-arm-storage > ms-rest-azure > async > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.drivers > azure-arm-resource > ms-rest-azure > async > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
+    - soajs.core.drivers > azure-arm-network > ms-rest-azure > async > lodash:
+        patched: '2019-07-04T02:04:53.687Z'
