@@ -169,6 +169,7 @@ controller.prototype.init = function (callback) {
                     });
 
                     _self.serverMaintenance = http.createServer(function (req, res) {
+                        req.soajs = {};
                         if (req.url === '/favicon.ico') {
                             res.writeHead(200, {'Content-Type': 'image/x-icon'});
                             return res.end();
@@ -370,8 +371,23 @@ controller.prototype.init = function (callback) {
                                         }
                                     }
                                 }
-                                res.writeHead(200, {'Content-Type': 'application/json'});
-                                return res.end(JSON.stringify(response));
+                                awareness_mw.getMw({
+                                    "awareness": _self.awareness,
+                                    "serviceName": _self.serviceName,
+                                    "log": _self.log,
+                                    "serviceIp": _self.serviceIp
+                                })(req, res, () => {
+                                    req.soajs.awareness.getHost('controller', function (controllerHostInThisEnvironment) {
+                                        if (reg.serviceConfig && reg.serviceConfig.ports && reg.serviceConfig.ports.controller) {
+                                            response['data'].awareness = {
+                                                "host": controllerHostInThisEnvironment,
+                                                "port": reg.serviceConfig.ports.controller
+                                            };
+                                        }
+                                        res.writeHead(200, {'Content-Type': 'application/json'});
+                                        return res.end(JSON.stringify(response));
+                                    });
+                                });
                             });
                         }
                         else {
