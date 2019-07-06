@@ -334,6 +334,11 @@ describe("Testing Controller", function () {
 
         awarenessMwStub = sinon.stub(awareness_mw, 'getMw').callsFake((param) => {
                 return function (req, res, next) {
+                    req.soajs.awareness = {
+                        "getHost": (s, cb) => {
+                            cb("127.0.0.1");
+                        }
+                    };
                     next();
                 };
             }
