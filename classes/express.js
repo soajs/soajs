@@ -14,6 +14,11 @@ function soajsWapper(_method) {
             jsonObj = arguments[0];
         else if (typeof arguments[1] === "object")
             jsonObj = arguments[1];
+        if (jsonObj && jsonObj.result === false) {
+            if (!this.statusCode || (this.statusCode && this.statusCode === 200)) {
+                this.statusCode = 500;
+            }
+        }
         if (jsonObj)
             soajsAuth = this.get("soajsauth");
         if (soajsAuth)
