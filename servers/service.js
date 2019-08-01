@@ -299,7 +299,7 @@ service.prototype.init = function (callback) {
             _self.app.use(soajs_mw({"log": _self.log}));
 
             var response_mw = require("./../mw/response/index");
-            _self.app.use(response_mw({}));
+            _self.app.use(response_mw({"errors": soajs.param.errors, "status": soajs.param.status}));
 
             if (soajs.param.bodyParser) {
                 var bodyParser = require('body-parser');
@@ -426,7 +426,7 @@ service.prototype.start = function (cb) {
         var registry = core.registry.get();
         _self.app.all('*', function (req, res, next) {
             req.soajs.log.error(151, 'Unknown API : ' + req.path);
-            return next (151);
+            return next(151);
             //res.jsonp(req.soajs.buildResponse(core.error.getError(151)));
         });
 

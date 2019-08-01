@@ -8,6 +8,9 @@ var soajsRes = require("./response.js");
  * @returns {Function}
  */
 module.exports = function (configuration) {
+    var errors = configuration.errors || null;
+    var status = configuration.status || null;
+
     return function (req, res, next) {
         if (!req.soajs) {
             req.soajs = {};
@@ -46,6 +49,19 @@ module.exports = function (configuration) {
                     res.writeHead(200, headObj);
 
                 res.end(JSON.stringify(jsonRes));
+            };
+        }
+        else {
+            req.soajs.getError = function (errorCode) {
+                var errorObj = {"code": errorCode};
+                if (errorCode && errors && errors[errorCode]) {
+                    errorObj.msg = errors[errorCode];
+                }
+                if (errorCode && status && status[errorCode]) {
+                    errorObj.status = status[errorCode];
+                }
+
+                return errorObj;
             };
         }
         next();
