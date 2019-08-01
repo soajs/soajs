@@ -62,7 +62,10 @@ function serviceClientErrorHandler(err, req, res, next) {
  * @param next
  */
 function serviceErrorHandler(err, req, res, next) {
-    res.status(500);
+    if (err && err.status)
+        res.status(err.status);
+    else
+        res.status(500);
     if (err.code && err.msg) {
         res.jsonp(req.soajs.buildResponse(err));
     } else {
