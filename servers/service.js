@@ -424,9 +424,10 @@ service.prototype.start = function (cb) {
     if (_self.app && _self.app.soajs) {
         _self.log.info("Service about to start ...");
         var registry = core.registry.get();
-        _self.app.all('*', function (req, res) {
+        _self.app.all('*', function (req, res, next) {
             req.soajs.log.error(151, 'Unknown API : ' + req.path);
-            res.jsonp(req.soajs.buildResponse(core.error.getError(151)));
+            return next (151);
+            //res.jsonp(req.soajs.buildResponse(core.error.getError(151)));
         });
 
         _self.app.use(utils.logErrors);
