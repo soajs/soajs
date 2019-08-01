@@ -34,9 +34,9 @@ module.exports = function (configuration) {
         };
         if (configuration.controllerResponse) {
             req.soajs.controllerResponse = function (jsonObj) {
+                var jsonRes = jsonObj;
                 if (req.soajs.buildResponse && jsonObj.code && jsonObj.msg)
-                    jsonObj = req.soajs.buildResponse(jsonObj);
-
+                    jsonRes = req.soajs.buildResponse(jsonObj);
 
                 var headObj = jsonObj.headObj || {};
                 headObj['Content-Type'] = 'application/json';
@@ -45,7 +45,7 @@ module.exports = function (configuration) {
                 else
                     res.writeHead(200, headObj);
 
-                res.end(JSON.stringify(jsonObj));
+                res.end(JSON.stringify(jsonRes));
             };
         }
         next();
