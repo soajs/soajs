@@ -42,6 +42,7 @@ module.exports = function (configuration) {
                 "urac_ACL": serviceInfo.urac_ACL || false,
                 "urac_Config": serviceInfo.urac_Config || false,
                 "urac_GroupConfig": serviceInfo.urac_GroupConfig || false,
+                "tenant_Profile": serviceInfo.tenant_Profile || false,
                 "provision_ACL": serviceInfo.provision_ACL || false,
                 "extKeyRequired": serviceInfo.extKeyRequired || false,
                 "oauth": oauth
@@ -204,6 +205,9 @@ module.exports = function (configuration) {
 
                                         if (keyObj.tenant.main)
                                             injectObj.tenant.main = keyObj.tenant.main;
+
+                                        if (serviceParam.tenant_Profile && keyObj.tenant.profile)
+                                            injectObj.tenant.profile = keyObj.tenant.profile;
 
                                         if (controllerHostInThisEnvironment) {
                                             injectObj.awareness = {
