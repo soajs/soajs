@@ -262,6 +262,7 @@ controller.prototype.init = function (callback) {
                                             regOptions["urac_ACL"] = infoObj.urac_ACL;
                                             regOptions["urac_Config"] = infoObj.urac_Config;
                                             regOptions["urac_GroupConfig"] = infoObj.urac_GroupConfig;
+                                            regOptions["tenant_Profile"] = infoObj.tenant_Profile;
                                             regOptions["provision_ACL"] = infoObj.provision_ACL;
                                             regOptions["extKeyRequired"] = infoObj.extKeyRequired;
                                             regOptions["requestTimeout"] = parseInt(infoObj.requestTimeout);
