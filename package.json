@@ -20,7 +20,6 @@
   },
   "devDependencies": {
     "bcryptjs": "2.4.3",
-
     "grunt": "1.0.4",
     "grunt-contrib-jshint": "2.1.0",
     "grunt-jsdoc": "2.3.1",
@@ -30,13 +29,10 @@
     "grunt-env": "0.4.4",
     "grunt-istanbul": "0.8.0",
     "grunt-coveralls": "2.0.0",
-
     "lodash": "4.17.11",
-
     "mocha": "6.1.3",
     "shelljs": "0.8.3",
     "sinon": "7.3.1",
-
     "soajs.mongodb.data": "2.1.*"
   },
   "dependencies": {
@@ -49,6 +45,7 @@
     "express-session": "1.15.6",
     "http-proxy": "1.16.2",
     "jsonwebtoken": "8.4.0",
+    "jsontoxml": "1.*",
     "merge": "1.2.1",
     "method-override": "2.3.10",
     "morgan": "1.9.1",
@@ -56,12 +53,10 @@
     "oauth2-server": "2.4.1",
     "path-to-regexp": "3.0.0",
     "request": "2.84.0",
-
     "soajs.core.libs": "1.2.0",
     "soajs.core.modules": "2.5.12",
     "soajs.core.drivers": "3.5.12",
     "soajs.urac.driver": "2.0.3",
-
     "useragent": "2.2.1",
     "validator": "9.4.1"
   }
