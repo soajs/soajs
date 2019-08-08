@@ -58,8 +58,8 @@ module.exports = function (configuration) {
                             }
                             if (version) {
                                 obj.req.soajs.controller.serviceParams.service_v = coreLibs.version.unsanitize(version);
-                                if (!aclObj[version])
-                                    return cb(154, null);
+                                //if (!aclObj[version])
+                                //    return cb(154, null);
                                 aclObj = aclObj[version];
                             }
                         }
