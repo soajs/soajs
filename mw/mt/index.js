@@ -244,8 +244,8 @@ module.exports = function (configuration) {
                                                     if (serviceParam.urac_ACL)
                                                         injectObj.urac.acl_AllEnv = null;//req.soajs.uracDriver.getAclAllEnv();
 
-                                                    req.soajs.log.debug(serviceParam);
-                                                    req.soajs.log.debug(JSON.stringify(uracObj));
+                                                    //req.soajs.log.debug(serviceParam);
+                                                    //req.soajs.log.debug(JSON.stringify(uracObj));
 
                                                     if (serviceParam.urac_Config) {
                                                         injectObj.urac.config = uracObj.config;
