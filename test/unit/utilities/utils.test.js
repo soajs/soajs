@@ -66,7 +66,7 @@ describe("Testing utilities", function () {
 
     it("controllerClientErrorHandler - request xhr", function (done) {
         req.xhr = {};
-        utils.controllerClientErrorHandler(null, req, res, , (msg) => {
+        utils.controllerClientErrorHandler(null, req, res, (msg) => {
             consle.log(msg);
         });
         done();
