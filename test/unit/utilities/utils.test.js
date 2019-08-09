@@ -59,7 +59,7 @@ describe("Testing utilities", function () {
     it("serviceClientErrorHandler - request xhr", function (done) {
         req.xhr = {};
         utils.serviceClientErrorHandler(null, req, res, (msg) => {
-            consle.log(msg);
+            console.log(msg);
         });
         done();
     });
@@ -67,7 +67,7 @@ describe("Testing utilities", function () {
     it("controllerClientErrorHandler - request xhr", function (done) {
         req.xhr = {};
         utils.controllerClientErrorHandler(null, req, res, (msg) => {
-            consle.log(msg);
+            console.log(msg);
         });
         done();
     });
