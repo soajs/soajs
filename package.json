@@ -56,7 +56,7 @@
     "soajs.core.libs": "1.2.0",
     "soajs.core.modules": "2.5.13",
     "soajs.core.drivers": "3.5.13",
-    "soajs.urac.driver": "2.0.4",
+    "soajs.urac.driver": "2.0.5",
     "useragent": "2.2.1",
     "validator": "9.4.1"
   }
