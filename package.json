@@ -1,7 +1,7 @@
 {
   "name": "soajs",
   "description": "soajs framework",
-  "version": "2.5.7",
+  "version": "2.5.8",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -19,7 +19,7 @@
     "test": "grunt test"
   },
   "devDependencies": {
-    "bcryptjs": "2.4.3",
+    "bcrypt": "^3.0.6",
     "grunt": "1.0.4",
     "grunt-contrib-jshint": "2.1.0",
     "grunt-jsdoc": "2.3.1",
@@ -54,9 +54,9 @@
     "path-to-regexp": "3.0.0",
     "request": "2.84.0",
     "soajs.core.libs": "1.2.0",
-    "soajs.core.modules": "2.5.13",
-    "soajs.core.drivers": "3.5.13",
-    "soajs.urac.driver": "2.0.5",
+    "soajs.core.modules": "2.5.14",
+    "soajs.core.drivers": "3.5.14",
+    "soajs.urac.driver": "2.0.6",
     "useragent": "2.2.1",
     "validator": "9.4.1"
   }

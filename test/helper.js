@@ -6,7 +6,7 @@ var testConsole = {
 	}
 };
 
-var bcrypt = require('bcryptjs');
+var bcrypt = require('bcrypt');
 var request = require("request");
 
 var lib = {
