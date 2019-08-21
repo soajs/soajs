@@ -12,6 +12,9 @@ var coreLibs = require("soajs.core.libs");
 
 var drivers = require('soajs.core.drivers');
 
+var regEnvironment = (process.env.SOAJS_ENV || "dev");
+regEnvironment = regEnvironment.toLowerCase();
+
 /**
  *
  * @returns {Function}
@@ -297,6 +300,9 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
             'jar': false,
             'headers': req.headers
         };
+
+        requestConfig.headers.soajs_roaming = regEnvironment;
+
         if (remoteExtKey) {
             //add remote ext key in headers
             requestConfig.headers.key = remoteExtKey;

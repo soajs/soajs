@@ -6,7 +6,7 @@ var fs = require('fs');
 
 var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
-var provision = coreModules.provision;
+//var provision = coreModules.provision;
 var lib = require("soajs.core.libs");
 
 var express = require("./../classes/express");
