@@ -6,7 +6,7 @@ module.exports = {
     "mergeACLArray": function (arrayACL, cb) {
 	
 	    //if only one return it
-	    if (arrayACL.length === 0){
+	    if (arrayACL.length === 1){
 		    return cb(null, arrayACL[0]);
 	    }
 	    let acl = {};
@@ -83,7 +83,7 @@ module.exports = {
 						    return serviceCall();
 					    }
 					    if (version.apisPermission === "restricted") {
-						    if (acl.acl_all_env[envName][serviceName] && acl.acl_all_env[envName][serviceName][versionValue] && acl.acl_all_env[envName][serviceName][versionValue].apisPermission && acl.acl_all_env[envName][serviceName][versionValue].apisPermission === "restricted") {
+						    if (acl.acl_all_env[envName][serviceName][versionValue].apisPermission && acl.acl_all_env[envName][serviceName][versionValue].apisPermission === "restricted") {
 							    //only restricted allowed to merge
 							    acl.acl_all_env[envName][serviceName][versionValue] = _.merge(acl.acl_all_env[envName][serviceName][versionValue], version);
 							    return versionCall();
@@ -93,7 +93,7 @@ module.exports = {
 						    }
 					    } else {
 						    //keep the old
-						    if (acl.acl_all_env[envName][serviceName] && acl.acl_all_env[envName][serviceName][versionValue] && acl.acl_all_env[envName][serviceName][versionValue].apisPermission && acl.acl_all_env[envName][serviceName][versionValue].apisPermission === "restricted") {
+						    if (acl.acl_all_env[envName][serviceName][versionValue].apisPermission && acl.acl_all_env[envName][serviceName][versionValue].apisPermission === "restricted") {
 							    return versionCall();
 						    } else {
 							    //only non restricted allowed to merge
