@@ -790,8 +790,8 @@ function returnKeyAndPermissions(req, res) {
     }
 
     function findKeyPermissions(cb) {
-        let ACL = null;
-        let uracACL = req.soajs.uracDriver.getAclAllEnv();
+        //let ACL = null;
+        let ACL = req.soajs.uracDriver.getAclAllEnv();
 
         let resume = () => {
             let tenant = req.soajs.tenant;
@@ -813,7 +813,8 @@ function returnKeyAndPermissions(req, res) {
                 return cb(null, {"acl": ACL, "environments": envInfo});
             });
         };
-
+        resume();
+    /*
         if (uracACL) {
             provision.getPackageData(uracACL, (error, pack) => {
                 if (pack && pack.acl_all_env)
@@ -823,5 +824,6 @@ function returnKeyAndPermissions(req, res) {
         }
         else
             resume();
+    */
     }
 }

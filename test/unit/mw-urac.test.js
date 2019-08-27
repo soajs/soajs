@@ -540,7 +540,13 @@ describe("testing urac", function () {
                     "TPROD": ["TPROD_BASIC"]
                 }
             };
-
+            urac.user_ACL = {
+                "acl": {
+                    "urac": {},
+                    "oauth": {},
+                    "dashboard": {}
+                }
+            };
             var acl = urac.getAcl();
             assert.ok(acl);
             done();
@@ -552,119 +558,119 @@ describe("testing urac", function () {
         assert.ok(!acl);
         done();
     });
-/*
-    it("success - testing getAclAllEnv key override", function (done) {
-        var opts = {
-            soajs: soajsReqObj,
-            oauth: {
-                bearerToken: {
-                    user: {
-                        id: '5551f9abe179c39b760f7a1c',
-                        loginMode: 'urac'
-                    }
-                }
-            }
-        };
-        opts.soajs.inputmaskData.isOwner = true;
-        opts.soajs.inputmaskData.tCode = 'test';
-        var urac = new uracDriver(opts);
-        urac.init(function (error, response) {
-            assert.ifError(error);
-            assert.ok(response);
-
-            urac.userRecord.config = {
-                keys: {
-                    "d1eaaf5fdc35c11119330a8a0273fee9": {
-                        acl_all_env: {
-                            "urac": {},
-                            "oauth": {},
-                            "dashboard": {}
+    /*
+        it("success - testing getAclAllEnv key override", function (done) {
+            var opts = {
+                soajs: soajsReqObj,
+                oauth: {
+                    bearerToken: {
+                        user: {
+                            id: '5551f9abe179c39b760f7a1c',
+                            loginMode: 'urac'
                         }
                     }
                 }
             };
+            opts.soajs.inputmaskData.isOwner = true;
+            opts.soajs.inputmaskData.tCode = 'test';
+            var urac = new uracDriver(opts);
+            urac.init(function (error, response) {
+                assert.ifError(error);
+                assert.ok(response);
 
-            var acl = urac.getAclAllEnv();
-            assert.ok(acl);
-            done();
-        });
-    });
-
-    it("success - testing getAclAllEnv package override", function (done) {
-        var opts = {
-            soajs: soajsReqObj,
-            oauth: {
-                bearerToken: {
-                    user: {
-                        id: '5551f9abe179c39b760f7a1c',
-                        loginMode: 'urac'
+                urac.userRecord.config = {
+                    keys: {
+                        "d1eaaf5fdc35c11119330a8a0273fee9": {
+                            acl_all_env: {
+                                "urac": {},
+                                "oauth": {},
+                                "dashboard": {}
+                            }
+                        }
                     }
-                }
-            }
-        };
-        opts.soajs.inputmaskData.isOwner = true;
-        opts.soajs.inputmaskData.tCode = 'test';
-        var urac = new uracDriver(opts);
-        urac.init(function (error, response) {
-            assert.ifError(error);
-            assert.ok(response);
+                };
 
-            urac.userRecord.config = {
-                packages: {
-                    "TPROD_BASIC": {
-                        acl_all_env: {
-                            "urac": {},
-                            "oauth": {},
-                            "dashboard": {}
+                var acl = urac.getAclAllEnv();
+                assert.ok(acl);
+                done();
+            });
+        });
+
+        it("success - testing getAclAllEnv package override", function (done) {
+            var opts = {
+                soajs: soajsReqObj,
+                oauth: {
+                    bearerToken: {
+                        user: {
+                            id: '5551f9abe179c39b760f7a1c',
+                            loginMode: 'urac'
                         }
                     }
                 }
             };
+            opts.soajs.inputmaskData.isOwner = true;
+            opts.soajs.inputmaskData.tCode = 'test';
+            var urac = new uracDriver(opts);
+            urac.init(function (error, response) {
+                assert.ifError(error);
+                assert.ok(response);
 
-            var acl = urac.getAclAllEnv();
-            assert.ok(acl);
-            done();
-        });
-    });
-
-    it("success - testing getAclAllEnv groups key override", function (done) {
-        var opts = {
-            soajs: soajsReqObj,
-            oauth: {
-                bearerToken: {
-                    user: {
-                        id: '5551f9abe179c39b760f7a1c',
-                        loginMode: 'urac'
+                urac.userRecord.config = {
+                    packages: {
+                        "TPROD_BASIC": {
+                            acl_all_env: {
+                                "urac": {},
+                                "oauth": {},
+                                "dashboard": {}
+                            }
+                        }
                     }
-                }
-            }
-        };
-        opts.soajs.inputmaskData.isOwner = true;
-        opts.soajs.inputmaskData.tCode = 'test';
-        var urac = new uracDriver(opts);
-        urac.init(function (error, response) {
-            assert.ifError(error);
-            assert.ok(response);
+                };
 
-            delete urac.userRecord.config;
-            urac.userRecord.groupsConfig = {
-                keys: {
-                    "d1eaaf5fdc35c11119330a8a0273fee9": {
-                        acl_all_env: {
-                            "urac": {},
-                            "oauth": {},
-                            "dashboard": {}
+                var acl = urac.getAclAllEnv();
+                assert.ok(acl);
+                done();
+            });
+        });
+
+        it("success - testing getAclAllEnv groups key override", function (done) {
+            var opts = {
+                soajs: soajsReqObj,
+                oauth: {
+                    bearerToken: {
+                        user: {
+                            id: '5551f9abe179c39b760f7a1c',
+                            loginMode: 'urac'
                         }
                     }
                 }
             };
+            opts.soajs.inputmaskData.isOwner = true;
+            opts.soajs.inputmaskData.tCode = 'test';
+            var urac = new uracDriver(opts);
+            urac.init(function (error, response) {
+                assert.ifError(error);
+                assert.ok(response);
 
-            var acl = urac.getAclAllEnv();
-            assert.ok(acl);
-            done();
+                delete urac.userRecord.config;
+                urac.userRecord.groupsConfig = {
+                    keys: {
+                        "d1eaaf5fdc35c11119330a8a0273fee9": {
+                            acl_all_env: {
+                                "urac": {},
+                                "oauth": {},
+                                "dashboard": {}
+                            }
+                        }
+                    }
+                };
+
+                var acl = urac.getAclAllEnv();
+                assert.ok(acl);
+                done();
+            });
         });
-    });
-*/
+    */
     it("success - testing getAclAllEnv groups override", function (done) {
         var opts = {
             soajs: soajsReqObj,
@@ -688,6 +694,14 @@ describe("testing urac", function () {
             urac.userRecord.groupsConfig = {
                 allowedPackages: {
                     "TPROD": ["TPROD_BASIC"]
+                }
+            };
+
+            urac.user_ACL = {
+                "acl_all_env": {
+                    "urac": {},
+                    "oauth": {},
+                    "dashboard": {}
                 }
             };
 
