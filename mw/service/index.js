@@ -192,6 +192,7 @@ module.exports = function (configuration) {
 
         if (obj.req.soajs.param.urac_Profile && obj.req.soajs.param.urac_ACL) {
             obj.req.soajs.uracDriver.userRecord = obj.req.soajs.urac;
+            obj.req.soajs.uracDriver.user_ACL = {"acl": obj.req.soajs.urac.acl};
         }
 
         obj.req.soajs.uracDriver.init(function (error, uracProfile) {

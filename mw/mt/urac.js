@@ -44,9 +44,13 @@ function urac(param) {
 urac.prototype.init = function (cb) {
     let _self = this;
     if (_self.userRecord) {
-        _self.resolveACL(() => {
+        if (_self.user_ACL)
             return cb(null, _self.userRecord);
-        });
+        else {
+            _self.resolveACL(() => {
+                return cb(null, _self.userRecord);
+            });
+        }
     }
     else if (_self.id) {
         uracDriver.getRecord(_self.soajs, {id: _self.id.toString(), username: _self.username}, function (err, record) {
