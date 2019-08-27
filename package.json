@@ -1,7 +1,7 @@
 {
   "name": "soajs",
   "description": "soajs framework",
-  "version": "2.5.9",
+  "version": "2.5.10",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -45,7 +45,7 @@
     "http-proxy": "1.16.2",
     "jsonwebtoken": "8.4.0",
     "jsontoxml": "1.*",
-    "lodash": "4.17.11",
+    "lodash": "4.17.15",
     "merge": "1.2.1",
     "method-override": "2.3.10",
     "morgan": "1.9.1",
