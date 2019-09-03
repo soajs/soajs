@@ -540,13 +540,17 @@ function simpleRTS(req, res) {
             });
             req.soajs.controller.redirectedRequest.on('error', function (err) {
                 req.soajs.log.error(err);
-                return req.soajs.controllerResponse(core.error.getError(135));
+                if (!req.soajs.controller.monitorEndingReq) {
+                    return req.soajs.controllerResponse(core.error.getError(135));
+                }
             });
             req.pipe(req.soajs.controller.redirectedRequest, {end: true});
             req.resume();
         } catch (e) {
             req.soajs.log.error(e);
-            return req.soajs.controllerResponse(core.error.getError(135));
+            if (!req.soajs.controller.monitorEndingReq) {
+                return req.soajs.controllerResponse(core.error.getError(135));
+            }
         }
     });
 }
@@ -562,7 +566,7 @@ function redirectToService(req, res) {
         let requestOptions = {
             'method': req.method,
             'uri': obj.uri,
-            'timeout': obj.requestTO * 1000,
+            //'timeout': obj.requestTO * 1000,
             'headers': req.headers,
             'jar': false
         };
@@ -573,7 +577,9 @@ function redirectToService(req, res) {
             req.soajs.controller.redirectedRequest = request(requestOptions);
             req.soajs.controller.redirectedRequest.on('error', function (err) {
                 req.soajs.log.error(err);
-                return req.soajs.controllerResponse(core.error.getError(135));
+                if (!req.soajs.controller.monitorEndingReq) {
+                    return req.soajs.controllerResponse(core.error.getError(135));
+                }
             });
 
             if (req.method === 'POST' || req.method === 'PUT') {
@@ -583,7 +589,9 @@ function redirectToService(req, res) {
             }
         } catch (e) {
             req.soajs.log.error(e);
-            return req.soajs.controllerResponse(core.error.getError(135));
+            if (!req.soajs.controller.monitorEndingReq) {
+                return req.soajs.controllerResponse(core.error.getError(135));
+            }
         }
     });
 }
@@ -646,22 +654,30 @@ function preRedirect(req, res, cb) {
                     'uri': uri,
                     'headers': req.headers
                 }, function (error, response) {
-                    if (!error && response.statusCode === 200) {
-                        req.soajs.log.info('... able to renew request for ', requestTO, 'seconds');
-                        res.setTimeout(timeToRenew, renewReqMonitor);
-                    } else {
-                        req.soajs.log.error('Service heartbeat is not responding');
-                        return req.soajs.controllerResponse(core.error.getError(133));
+                    let resContentType = res.getHeader('content-type');
+                    if (resContentType.match (/stream/i)) {
+                        req.soajs.controller.renewalCount--;
+                        req.soajs.log.info('Stream detected for ['+ req.url + ']. Connection will remain open ...');
+                    }
+                    else {
+                        if (!error && response.statusCode === 200) {
+                            req.soajs.log.info('... able to renew request for ', requestTO, 'seconds');
+                            res.setTimeout(timeToRenew, renewReqMonitor);
+                        } else {
+                            req.soajs.controller.monitorEndingReq = true;
+                            req.soajs.log.error('Service heartbeat is not responding');
+                            return req.soajs.controllerResponse(core.error.getError(133));
+                        }
                     }
                 });
             } else {
+                if (req.soajs.controller.redirectedRequest) {
+                    req.soajs.log.info("Request aborted:", req.url);
+                    req.soajs.controller.redirectedRequest.abort();
+                }
                 if (!req.soajs.controller.monitorEndingReq) {
                     req.soajs.controller.monitorEndingReq = true;
                     req.soajs.log.error('Request time exceeded the requestTimeoutRenewal:', requestTO + requestTO * requestTOR);
-                    if (req.soajs.controller.redirectedRequest) {
-                        req.soajs.log.info("Request aborted:", req.url);
-                        req.soajs.controller.redirectedRequest.abort();
-                    }
                     return req.soajs.controllerResponse(core.error.getError(134));
                 }
             }
