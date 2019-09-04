@@ -655,19 +655,21 @@ function preRedirect(req, res, cb) {
                     'headers': req.headers
                 }, function (error, response) {
                     let resContentType = res.getHeader('content-type');
-                    if (resContentType.match (/stream/i)) {
-                        req.soajs.controller.renewalCount--;
-                        req.soajs.log.info('Stream detected for ['+ req.url + ']. Connection will remain open ...');
-                    }
-                    else {
-                        if (!error && response.statusCode === 200) {
+                    let isStream = resContentType.match(/stream/i);
+                    if (!error && response.statusCode === 200) {
+                        if (isStream) {
+                            req.soajs.controller.renewalCount--;
+                            req.soajs.log.info('Stream detected for [' + req.url + ']. Connection will remain open ...');
+                        }
+                        else {
                             req.soajs.log.info('... able to renew request for ', requestTO, 'seconds');
                             res.setTimeout(timeToRenew, renewReqMonitor);
-                        } else {
-                            req.soajs.controller.monitorEndingReq = true;
-                            req.soajs.log.error('Service heartbeat is not responding');
-                            return req.soajs.controllerResponse(core.error.getError(133));
                         }
+                    } else {
+                        req.soajs.controller.monitorEndingReq = true;
+                        req.soajs.log.error('Service heartbeat is not responding');
+                        req.soajs.controller.redirectedRequest.abort();
+                        return req.soajs.controllerResponse(core.error.getError(133));
                     }
                 });
             } else {
@@ -830,16 +832,16 @@ function returnKeyAndPermissions(req, res) {
             });
         };
         resume();
-    /*
-        if (uracACL) {
-            provision.getPackageData(uracACL, (error, pack) => {
-                if (pack && pack.acl_all_env)
-                    ACL = pack.acl_all_env;
+        /*
+            if (uracACL) {
+                provision.getPackageData(uracACL, (error, pack) => {
+                    if (pack && pack.acl_all_env)
+                        ACL = pack.acl_all_env;
+                    resume();
+                });
+            }
+            else
                 resume();
-            });
-        }
-        else
-            resume();
-    */
+        */
     }
 }

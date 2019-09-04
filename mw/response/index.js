@@ -43,11 +43,12 @@ module.exports = function (configuration) {
 
                 var headObj = jsonObj.headObj || {};
                 headObj['Content-Type'] = 'application/json';
-                if (jsonObj.status)
-                    res.writeHead(jsonObj.status, headObj);
-                else
-                    res.writeHead(200, headObj);
-
+                if (!res.headersSent) {
+                    if (jsonObj.status)
+                        res.writeHead(jsonObj.status, headObj);
+                    else
+                        res.writeHead(200, headObj);
+                }
                 res.end(JSON.stringify(jsonRes));
             };
         }
