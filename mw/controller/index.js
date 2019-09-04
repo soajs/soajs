@@ -655,7 +655,9 @@ function preRedirect(req, res, cb) {
                     'headers': req.headers
                 }, function (error, response) {
                     let resContentType = res.getHeader('content-type');
-                    let isStream = resContentType.match(/stream/i);
+                    let isStream = false;
+                    if (resContentType)
+                        isStream = resContentType.match(/stream/i);
                     if (!error && response.statusCode === 200) {
                         if (isStream) {
                             req.soajs.controller.renewalCount--;
