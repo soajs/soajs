@@ -330,7 +330,7 @@ function proxyRequestToRemoteEnv(req, res, remoteENV, remoteExtKey, requestedRou
                 return req.soajs.controllerResponse(core.error.getError(135));
             });
 
-            if (req.method === 'POST' || req.method === 'PUT'|| req.method === 'PATCH') {
+            if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
                 req.pipe(req.soajs.controller.redirectedRequest).pipe(res);
             }
             else {
