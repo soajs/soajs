@@ -12,7 +12,7 @@ module.exports = function() {
 			var origin = req.soajs.registry.serviceConfig.cors.origin || '*';
 			var credentials = req.soajs.registry.serviceConfig.cors.credentials || 'true';
 			var methods = req.soajs.registry.serviceConfig.cors.methods || 'GET,HEAD,PUT,PATCH,POST,DELETE';
-			var headers = req.soajs.registry.serviceConfig.cors.headers || 'key,soajsauth,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+			var headers = req.soajs.registry.serviceConfig.cors.headers || '__env,key,soajsauth,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
 			var maxage = req.soajs.registry.serviceConfig.cors.maxage || 1728000;
 
 			if(method === 'OPTIONS') {
