@@ -50,7 +50,7 @@ var lib = {
 		if (awarenessCache[serviceName] &&
 			awarenessCache[serviceName][version] &&
 			awarenessCache[serviceName][version].host) {
-				param.log.info('Got ' + awarenessCache[serviceName][version].host + ' from awareness cache');
+				param.log.debug('Got ' + awarenessCache[serviceName][version].host + ' from awareness cache');
 				return awarenessCache[serviceName][version].host;
 			}
 
@@ -91,7 +91,7 @@ var lib = {
 				}
 
 				lib.setHostInCache(serviceName, version, response);
-				param.log.info('Got ' + response + ' from cluster API');
+				param.log.debug('Got ' + response + ' from cluster API');
 				return cb(response);
 			});
 		}

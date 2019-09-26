@@ -22,7 +22,7 @@ var fetchControllerHosts = function (next) {
         else {
             controllerHosts = hosts;
         }
-        param.log.info("Self Awareness ENV reloaded controller hosts. next reload is in [" + registry.serviceConfig.awareness.autoRelaodRegistry + "] milliseconds");
+        param.log.debug("Self Awareness ENV reloaded controller hosts. next reload is in [" + registry.serviceConfig.awareness.autoRelaodRegistry + "] milliseconds");
         setTimeout(fetchControllerHosts, registry.serviceConfig.awareness.autoRelaodRegistry);
 
         if (next && typeof next === "function")
