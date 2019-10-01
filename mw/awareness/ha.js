@@ -2,7 +2,7 @@
 var async = require('async');
 
 var drivers = require('soajs.core.drivers');
-var coreModules = require ("soajs.core.modules");
+var coreModules = require("soajs.core.modules");
 var core = coreModules.core;
 var param = null;
 
@@ -12,12 +12,12 @@ regEnvironment = regEnvironment.toLowerCase();
 var awarenessCache = {};
 
 var lib = {
-	"constructDriverParam": function(serviceName){
+	"constructDriverParam": function (serviceName) {
 		var info = core.registry.get().deployer.selected.split('.');
 		var deployerConfig = core.registry.get().deployer.container[info[1]][info[2]];
-
+		
 		let strategy = process.env.SOAJS_DEPLOY_HA;
-		if (strategy === 'swarm'){
+		if (strategy === 'swarm') {
 			strategy = 'docker';
 		}
 		
@@ -33,37 +33,37 @@ var lib = {
 				"env": regEnvironment
 			}
 		};
-
+		
 		if (serviceName) {
 			options.params.serviceName = serviceName;
 		}
-
+		
 		return options;
 	},
-
-	"getLatestVersion" : function (serviceName, cb){
+	
+	"getLatestVersion": function (serviceName, cb) {
 		var options = lib.constructDriverParam(serviceName);
 		drivers.execute({"type": "container", "driver": options.strategy}, 'getLatestVersion', options, cb);
 	},
-
+	
 	"getHostFromCache": function (serviceName, version) {
 		if (awarenessCache[serviceName] &&
 			awarenessCache[serviceName][version] &&
 			awarenessCache[serviceName][version].host) {
-				param.log.debug('Got ' + awarenessCache[serviceName][version].host + ' from awareness cache');
-				return awarenessCache[serviceName][version].host;
-			}
-
+			param.log.debug('Got ' + awarenessCache[serviceName][version].host + ' from awareness cache');
+			return awarenessCache[serviceName][version].host;
+		}
+		
 		return null;
 	},
-
+	
 	"setHostInCache": function (serviceName, version, hostname) {
 		if (!awarenessCache[serviceName]) awarenessCache[serviceName] = {};
 		if (!awarenessCache[serviceName][version]) awarenessCache[serviceName][version] = {};
-
+		
 		awarenessCache[serviceName][version].host = hostname;
 	},
-
+	
 	"getHostFromAPI": function (serviceName, version, cb) {
 		var options = lib.constructDriverParam(serviceName);
 		if (!version) {
@@ -74,61 +74,68 @@ var lib = {
 					param.log.error(err);
 					return cb(null);
 				}
-
+				
 				getHost(obtainedVersion);
 			});
 		}
 		else {
 			getHost(version);
 		}
-
+		
 		function getHost(version) {
 			options.params.version = version;
-			drivers.execute({"type": "container", "driver": options.strategy}, 'getServiceHost', options, (error, response) => {
-				if(error){
+			drivers.execute({
+				"type": "container",
+				"driver": options.strategy
+			}, 'getServiceHost', options, (error, response) => {
+				if (error) {
 					param.log.error(error);
 					return cb(null);
 				}
-
+				
 				lib.setHostInCache(serviceName, version, response);
 				param.log.debug('Got ' + response + ' from cluster API');
 				return cb(response);
 			});
 		}
 	},
-
+	
 	"rebuildAwarenessCache": function () {
 		var myCache = {};
 		var options = lib.constructDriverParam();
-		drivers.execute({"type": "container", "driver": options.strategy}, 'listServices', options, (error, services) => {
+		drivers.execute({
+			"type": "container",
+			"driver": options.strategy
+		}, 'listServices', options, (error, services) => {
 			if (error) {
 				param.log.error(error);
 				return;
 			}
-
+			
 			async.each(services, function (oneService, callback) {
 				var version, serviceName;
 				if (oneService.labels && oneService.labels['soajs.service.version']) {
 					version = oneService.labels['soajs.service.version'];
 				}
-
+				
 				if (oneService.labels && oneService.labels['soajs.service.name']) {
 					serviceName = oneService.labels['soajs.service.name'];
 				}
-
+				
 				//if no version is found, lib.getHostFromAPI() will get it from cluster api
 				lib.getHostFromAPI(serviceName, version, function (hostname) {
 					myCache[serviceName] = {};
-					myCache[serviceName][version] = { host: hostname };
+					myCache[serviceName][version] = {host: hostname};
 					return callback();
 				});
 			}, function () {
 				awarenessCache = myCache;
 				param.log.debug("Awareness cache rebuilt successfully");
 				// param.log.debug(awarenessCache);
-
+				
 				var cacheTTL = core.registry.get().serviceConfig.awareness.cacheTTL;
 				if (cacheTTL) {
+					param.log.debug("rebuilding cache in: " + cacheTTL);
 					setTimeout(lib.rebuildAwarenessCache, cacheTTL);
 				}
 			});
@@ -137,42 +144,42 @@ var lib = {
 };
 
 var ha = {
-    "init": function (_param) {
-    	param = _param;
-
+	"init": function (_param) {
+		param = _param;
+		
 		lib.rebuildAwarenessCache();
-    },
-
-    "getServiceHost": function () {
-    	var serviceName, version, env, cb;
-	    cb = arguments[arguments.length -1];
-
-	    switch(arguments.length){
-	    	//controller, cb
-		    case 2:
-			    serviceName = arguments[0];
-			    break;
-
-		    //controller, 1, cb
-		    case 3:
-			    serviceName = arguments[0];
-			    version = arguments[1];
-			    break;
-
-		    //controller, 1, dash, cb [dash is ignored]
-		    case 4:
-			    serviceName = arguments[0];
-			    version = arguments[1];
-			    break;
-	    }
-
-	    env = regEnvironment;
-
-        if(serviceName === 'controller') {
-	        if(process.env.SOAJS_DEPLOY_HA === 'kubernetes') {
-		        serviceName += "-v1-service";
-	        }
-
+	},
+	
+	"getServiceHost": function () {
+		var serviceName, version, env, cb;
+		cb = arguments[arguments.length - 1];
+		
+		switch (arguments.length) {
+			//controller, cb
+			case 2:
+				serviceName = arguments[0];
+				break;
+			
+			//controller, 1, cb
+			case 3:
+				serviceName = arguments[0];
+				version = arguments[1];
+				break;
+			
+			//controller, 1, dash, cb [dash is ignored]
+			case 4:
+				serviceName = arguments[0];
+				version = arguments[1];
+				break;
+		}
+		
+		env = regEnvironment;
+		
+		if (serviceName === 'controller') {
+			if (process.env.SOAJS_DEPLOY_HA === 'kubernetes') {
+				serviceName += "-v1-service";
+			}
+			
 			var info = core.registry.get().deployer.selected.split('.');
 			var deployerConfig = core.registry.get().deployer.container[info[1]][info[2]];
 			var namespace = '';
@@ -182,10 +189,10 @@ var ha = {
 					namespace += '-' + env + '-controller-v1';
 				}
 			}
-
-        	return cb(env + "-" + serviceName + namespace);
-        }
-        else {
+			
+			return cb(env + "-" + serviceName + namespace);
+		}
+		else {
 			var hostname = lib.getHostFromCache(serviceName, version);
 			if (hostname) {
 				return cb(hostname);
@@ -193,23 +200,23 @@ var ha = {
 			else {
 				lib.getHostFromAPI(serviceName, version, cb);
 			}
-        }
-    },
-
+		}
+	},
+	
 	"getLatestVersionFromCache": function (serviceName) {
 		if (!awarenessCache[serviceName]) return null;
-
+		
 		var serviceVersions = Object.keys(awarenessCache[serviceName]), latestVersion = 0;
 		if (serviceVersions.length === 0) return null;
-
+		
 		for (var i = 0; i < serviceVersions.length; i++) {
 			if (serviceVersions[i] > latestVersion) {
 				latestVersion = serviceVersions[i];
 			}
 		}
-
+		
 		if (latestVersion === 0) return null;
-
+		
 		return latestVersion;
 	}
 };
