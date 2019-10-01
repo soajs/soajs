@@ -11,6 +11,8 @@ regEnvironment = regEnvironment.toLowerCase();
 
 var awarenessCache = {};
 
+let timeout = null;
+
 var lib = {
 	"constructDriverParam": function (serviceName) {
 		var info = core.registry.get().deployer.selected.split('.');
@@ -135,8 +137,11 @@ var lib = {
 				
 				var cacheTTL = core.registry.get().serviceConfig.awareness.cacheTTL;
 				if (cacheTTL) {
+					if (timeout) {
+						clearTimeout(timeout);
+					}
 					param.log.debug("rebuilding cache in: " + cacheTTL);
-					setTimeout(lib.rebuildAwarenessCache, cacheTTL);
+					timeout = setTimeout(lib.rebuildAwarenessCache, cacheTTL);
 				}
 			});
 		});
