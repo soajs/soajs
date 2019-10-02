@@ -96,7 +96,7 @@ var lib = {
 				}
 				
 				//lib.setHostInCache(serviceName, version, response);
-				param.log.debug('Got ' + serviceName + ' - ' + version + ' - ' + response + ' from cluster API');
+				param.log.debug(' .... got ' + serviceName + ' - ' + version + ' - ' + response + ' from cluster API');
 				return cb(response);
 			});
 		}
@@ -123,6 +123,11 @@ var lib = {
 				if (oneService.labels && oneService.labels['soajs.service.name']) {
 					serviceName = oneService.labels['soajs.service.name'];
 				}
+				
+				param.log.debug('Building awareness for ' + serviceName + ' - ' + version + ' ....');
+				
+				if (!serviceName)
+					return callback();
 				
 				//if no version is found, lib.getHostFromAPI() will get it from cluster api
 				lib.getHostFromAPI(serviceName, version, function (hostname) {
@@ -206,6 +211,7 @@ var ha = {
 				return cb(hostname);
 			}
 			else {
+				param.log.debug('Getting host for ' + serviceName + ' - ' + version + ' ....');
 				lib.getHostFromAPI(serviceName, version, cb);
 			}
 		}
