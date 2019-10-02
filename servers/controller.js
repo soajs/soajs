@@ -383,7 +383,8 @@ controller.prototype.init = function (callback) {
                                     "awareness": _self.awareness,
                                     "serviceName": _self.serviceName,
                                     "log": _self.log,
-                                    "serviceIp": _self.serviceIp
+                                    "serviceIp": _self.serviceIp,
+	                                "doNotRebuildCache": true
                                 })(req, res, () => {
                                     req.soajs.awareness.getHost('controller', function (controllerHostInThisEnvironment) {
                                         if (reg && reg.serviceConfig && reg.serviceConfig.ports && reg.serviceConfig.ports.controller) {
