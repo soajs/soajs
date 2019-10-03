@@ -95,11 +95,13 @@ module.exports = function () {
         extractBuildParameters(req, service_n, service_nv, service_v, proxyInfo, parsedUrl.path, function (error, parameters) {
             if (error) {
                 req.soajs.log.fatal(error);
+	            req.soajs.log.debug(req.headers);
                 return req.soajs.controllerResponse(core.error.getError(130));
             }
 
             if (!parameters) {
                 req.soajs.log.fatal("url[", req.url, "] couldn't be matched to a service or the service entry in registry is missing [port || hosts]");
+	            req.soajs.log.debug(req.headers);
                 return req.soajs.controllerResponse(core.error.getError(130));
             }
 
