@@ -122,3 +122,8 @@ The Agent is a service that runs in the background and performs maintenance and 
 ---
 
 More information is available on SOAJS [website](http://www.soajs.org).
+
+### License
+*Copyright SOAJS All Rights Reserved.*
+
+Use of this source code is governed by an Apache license that can be found in the LICENSE file at the root of this repository.

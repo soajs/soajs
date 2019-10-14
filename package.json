@@ -55,7 +55,7 @@
     "request": "2.84.0",
     "soajs.core.libs": "1.2.0",
     "soajs.core.modules": "2.5.21",
-    "soajs.core.drivers": "3.5.19",
+    "soajs.core.drivers": "3.5.21",
     "soajs.urac.driver": "2.0.12",
     "useragent": "2.2.1",
     "validator": "9.4.1"
