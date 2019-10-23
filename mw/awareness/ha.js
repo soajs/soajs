@@ -116,6 +116,9 @@ var lib = {
 			
 			async.each(services, function (oneService, callback) {
 				var version, serviceName;
+				if (oneService.labels['soajs.service.type'] !== "service" && oneService.labels['soajs.service.type'] !== "daemon"){
+					return callback();
+				}
 				if (oneService.labels && oneService.labels['soajs.service.version']) {
 					version = oneService.labels['soajs.service.version'];
 				}
