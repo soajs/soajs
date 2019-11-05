@@ -4,22 +4,31 @@ language: node_js
 
 node_js: 8
 
-services:
-  - mongodb
+jobs:
+  include:
 
-branches:
-  only:
-    - staging
-    - master
+  - stage: install, check code style and coverage
+    services:
+    - mongodb
+    addons:
+      hosts:
+      - localhost
+      - dev-controller
+      - kubernetes.default
+    before_script:
+    - npm install -g grunt-cli
+    script:
+    - if [ "$TRAVIS_BRANCH" != "master" ]; then grunt test; fi
+    - if [ "$TRAVIS_BRANCH" = "master" ]; then grunt coverage; fi
 
-addons:
-  hosts:
-    - localhost
-    - dev-controller
-    - kubernetes.default
-
-before_script:
-  - npm install -g grunt-cli
-
-script:
-  - grunt coverage
+  - stage: Publish to npm
+    if: branch =~ /(release)/
+    script:
+    - echo "PUBLISH npm"
+    deploy:
+      provider: npm
+      email: $NPM_EMAIL
+      api_key: $NPM_TOKEN
+      on:
+        all_branches: true
+        condition: $TRAVIS_BRANCH =~ ^(release)*

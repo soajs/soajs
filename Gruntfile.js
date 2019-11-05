@@ -69,6 +69,7 @@ module.exports = function (grunt) {
 				"node": true,
 				"maxerr": 100,
 				"indent": 2,
+				"esversion": 6,
 				"globals": {
 					"describe": false,
 					"it": false,
@@ -76,11 +77,10 @@ module.exports = function (grunt) {
 					"beforeEach": false,
 					"after": false,
 					"afterEach": false
-				},
-				ignores: ['test/coverage/**/*.js']
+				}
 			},
 			files: {
-				src: ['**/*.js']
+				src: ['index.js', 'config.js', 'classes/*.js', 'mw/**/*.js', 'servers/*.js', 'utilities/*.js']
 			},
 			gruntfile: {
 				src: 'Gruntfile.js'
@@ -194,7 +194,7 @@ module.exports = function (grunt) {
 	grunt.registerTask("default", ['jshint']);
 	grunt.registerTask("integration", ['clean', 'copy', 'env:coverage', 'instrument', 'mochaTest:integration']);
 	grunt.registerTask("unit", ['clean', 'copy', 'env:coverage', 'instrument', 'mochaTest:unit']);
-	grunt.registerTask("test", ['clean', 'copy', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration']);
+	grunt.registerTask("test", ['clean', 'copy', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration', 'storeCoverage', 'makeReport']);
 	grunt.registerTask("coverage", ['clean', 'copy', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration', 'storeCoverage', 'makeReport', 'coveralls']);
 
 };
