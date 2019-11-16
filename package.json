@@ -54,9 +54,9 @@
     "path-to-regexp": "3.0.0",
     "request": "2.84.0",
     "soajs.core.libs": "1.2.0",
-    "soajs.core.modules": "2.5.21",
-    "soajs.core.drivers": "3.5.26",
-    "soajs.urac.driver": "2.0.13",
+    "soajs.core.modules": "3.0.0",
+    "soajs.core.drivers": "3.5.27",
+    "soajs.urac.driver": "2.0.14",
     "useragent": "2.2.1",
     "validator": "9.4.1"
   }
