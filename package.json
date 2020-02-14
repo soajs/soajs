@@ -1,7 +1,7 @@
 {
   "name": "soajs",
   "description": "soajs framework",
-  "version": "2.6.5",
+  "version": "2.6.6",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -54,9 +54,9 @@
     "path-to-regexp": "6.1.0",
     "request": "2.88.0",
     "soajs.core.libs": "1.2.0",
-    "soajs.core.modules": "3.0.3",
-    "soajs.core.drivers": "3.5.33",
-    "soajs.urac.driver": "2.1.2",
+    "soajs.core.modules": "3.1.3",
+    "soajs.core.drivers": "3.5.34",
+    "soajs.urac.driver": "2.1.3",
     "useragent": "2.3.0",
     "validator": "12.1.0"
   }

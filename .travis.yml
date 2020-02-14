@@ -2,12 +2,13 @@ sudo: required
 
 language: node_js
 
-node_js: 8
+node_js: 10
 
 jobs:
   include:
 
   - stage: install, check code style and coverage
+    if: tag IS blank
     services:
     - mongodb
     addons:
