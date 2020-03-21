@@ -143,10 +143,10 @@ service.prototype.init = function (callback) {
     soajs.param.maintenance.readiness = "/heartbeat";
     if (!soajs.param.maintenance.commands)
         soajs.param.maintenance.commands = [];
-    soajs.param.maintenance.commands.push({"label": "Releoad Registry", "path": "/reloadRegistry", "icon": "registry"});
-    soajs.param.maintenance.commands.push({"label": "Resource Info", "path": "/resourceInfo", "icon": "info"});
-
-
+    soajs.param.maintenance.commands.push({"label": "Releoad Registry", "path": "/reloadRegistry", "icon": "fas fa-undo"});
+    soajs.param.maintenance.commands.push({"label": "Resource Info", "path": "/resourceInfo", "icon": "fas fa-info"});
+    
+    
     var fetchedHostIp = null;
     var serviceIpNotDetected = false;
     if (!autoRegHost && !process.env.SOAJS_DEPLOY_HA) {
