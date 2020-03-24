@@ -25,9 +25,16 @@ describe("Starting Unit test", () => {
 	});
 	
 	it("Unit test for BL", (done) => {
+		
+		require("./utilities/utils.js");
+		
 		require("./classes/http.js");
 		require("./classes/MultiTenantSession.js");
+		
+		require("./mw/response/index.js");
 		require("./mw/service/index.js");
+		require("./mw/soajs/index.js");
+		
 		done();
 	});
 	
