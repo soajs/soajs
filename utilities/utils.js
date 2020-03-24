@@ -73,7 +73,7 @@ function serviceClientErrorHandler(err, req, res, next) {
  * @param res
  * @param next
  */
-function serviceErrorHandler(err, req, res, next) {
+function serviceErrorHandler(err, req, res) {
 	if (err && err.status) {
 		res.status(err.status);
 	} else {
