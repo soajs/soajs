@@ -1,7 +1,14 @@
 "use strict";
-var merge = require('merge');
 
-var regEnvironment = (process.env.SOAJS_ENV || "dev");
+/**
+ * @license
+ * Copyright SOAJS All Rights Reserved.
+ *
+ * Use of this source code is governed by an Apache license that can be
+ * found in the LICENSE file at the root of this repository
+ */
+
+let regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
 
 /**
@@ -15,7 +22,7 @@ function MultiTenantSession(obj) {
 	this.setPersistSessionHOLDER({"tenant": obj.tenant, "product": obj.product, "request": obj.request});
 	this.preserveTenantSession();
 	this.setCLIENTINFO({"device": obj.device, "geo": obj.geo, "extKey": obj.tenant.extKey});
-
+	
 }
 
 /**
@@ -32,7 +39,7 @@ MultiTenantSession.prototype.assure = function (obj) {
 	if (!this.session.persistSession.holder) {
 		this.session.persistSession.holder = {};
 	}
-
+	
 	if (!this.session.sessions) {
 		this.session.sessions = {};
 		this.setPersistSessionSTATE("ALL");
@@ -59,15 +66,15 @@ MultiTenantSession.prototype.assure = function (obj) {
  *
  */
 MultiTenantSession.prototype.preserveTenantSession = function () {
-	var tId = this.session.persistSession.holder.tenant.id;
-	var key = this.session.persistSession.holder.tenant.key;
-
-	for (var tenant in this.session.sessions) {
+	let tId = this.session.persistSession.holder.tenant.id;
+	let key = this.session.persistSession.holder.tenant.key;
+	
+	for (let tenant in this.session.sessions) {
 		if (tenant !== tId) {
 			delete this.session.sessions[tenant];
 		} else {
 			if (this.session.sessions[tId] && this.session.sessions[tId].keys) {
-				for (var k in this.session.sessions[tId].keys) {
+				for (let k in this.session.sessions[tId].keys) {
 					if (k !== key) {
 						delete this.session.sessions[tId].keys[k];
 					}
@@ -88,10 +95,10 @@ MultiTenantSession.prototype.setPersistSessionSTATE = function (state) {
 	if (!this.session.persistSession.state) {
 		this.session.persistSession.state = {};
 	}
-
-	if (this.session.persistSession.state.DONE)
+	
+	if (this.session.persistSession.state.DONE) {
 		delete this.session.persistSession.state.DONE;
-
+	}
 	this.session.persistSession.state[state] = true;
 };
 
@@ -111,10 +118,10 @@ MultiTenantSession.prototype.setPersistSessionHOLDER = function (holder) {
  * @param clientInfo
  */
 MultiTenantSession.prototype.setCLIENTINFO = function (clientInfo) {
-	var tId = this.session.persistSession.holder.tenant.id;
-
+	let tId = this.session.persistSession.holder.tenant.id;
+	
 	//TODO: check if clientInfo is still the same
-
+	
 	this.session.sessions[tId].clientInfo = clientInfo;
 	//TODO: discuss with team if this is needed
 	//this.setPersistSessionSTATE("CLIENTINFO");
@@ -126,9 +133,9 @@ MultiTenantSession.prototype.setCLIENTINFO = function (clientInfo) {
  * @param cb
  */
 MultiTenantSession.prototype.setSERVICE = function (obj, cb) {
-	var tId = this.session.persistSession.holder.tenant.id;
-	var key = this.session.persistSession.holder.tenant.key;
-	var service = this.session.persistSession.holder.request.service;
+	let tId = this.session.persistSession.holder.tenant.id;
+	let key = this.session.persistSession.holder.tenant.key;
+	let service = this.session.persistSession.holder.request.service;
 	this.session.sessions[tId].keys[key].services[service] = obj;
 	this.setPersistSessionSTATE("SERVICE");
 	if (cb && (typeof cb === "function")) {
@@ -141,11 +148,11 @@ MultiTenantSession.prototype.setSERVICE = function (obj, cb) {
  * @returns {*}
  */
 MultiTenantSession.prototype.getSERVICE = function () {
-	var tId = this.session.persistSession.holder.tenant.id;
-	var key = this.session.persistSession.holder.tenant.key;
-	var service = this.session.persistSession.holder.request.service;
-	var obj = this.session.sessions[tId].keys[key].services[service];
-
+	let tId = this.session.persistSession.holder.tenant.id;
+	let key = this.session.persistSession.holder.tenant.key;
+	let service = this.session.persistSession.holder.request.service;
+	let obj = this.session.sessions[tId].keys[key].services[service];
+	
 	return obj;
 };
 
@@ -154,7 +161,7 @@ MultiTenantSession.prototype.getSERVICE = function () {
  * @param cb
  */
 MultiTenantSession.prototype.deleteTenantSession = function (cb) {
-	var tId = this.session.persistSession.holder.tenant.id;
+	let tId = this.session.persistSession.holder.tenant.id;
 	this.session.sessions[tId] = null;
 	this.setPersistSessionSTATE("TENANT");
 	if (cb && (typeof cb === "function")) {

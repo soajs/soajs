@@ -1,6 +1,14 @@
 "use strict";
 
-var http = require('http');
+/**
+ * @license
+ * Copyright SOAJS All Rights Reserved.
+ *
+ * Use of this source code is governed by an Apache license that can be
+ * found in the LICENSE file at the root of this repository
+ */
+
+const http = require('http');
 
 
 /**
@@ -11,16 +19,13 @@ var http = require('http');
  *
  * @returns {*}
  */
-http.IncomingMessage.prototype.getClientIP = function() {
-    var x_forwarded_for = this.get('x-forwarded-for') ? this.get('x-forwarded-for').split(',')[0] : '';
-    var ip_address = this.get('x-real-ip') || x_forwarded_for || this.connection.remoteAddress;
-
-    return ip_address ? ip_address.replace(/^::ffff:/i, '') : null;
+http.IncomingMessage.prototype.getClientIP = function () {
+	let x_forwarded_for = this.get('x-forwarded-for') ? this.get('x-forwarded-for').split(',')[0] : '';
+	let ip_address = this.get('x-real-ip') || x_forwarded_for || this.connection.remoteAddress;
+	
+	return ip_address ? ip_address.replace(/^::ffff:/i, '') : null;
 };
 
 http.IncomingMessage.prototype.getClientUserAgent = function () {
-    return this.get('user-agent');
+	return this.get('user-agent');
 };
-
-
-

@@ -1,24 +1,30 @@
 'use strict';
 
-var coreModules = require ("soajs.core.modules");
-var core = coreModules.core;
-var log = null;
+/**
+ * @license
+ * Copyright SOAJS All Rights Reserved.
+ *
+ * Use of this source code is governed by an Apache license that can be
+ * found in the LICENSE file at the root of this repository
+ */
+
 /**
  *
  * @param configuration
  * @returns {Function}
  */
-module.exports = function (configuration) {
-    log = configuration.log;
-
-    return function (req, res, next) {
-        if (!req.soajs)
-            req.soajs = {};
-
-        req.soajs.log = log;
-        req.soajs.registry = core.registry.get();
-        req.soajs.meta = core.meta;
-        req.soajs.validator = core.validator;
-        next();
-    };
+module.exports = (configuration) => {
+	let log = configuration.log;
+	let core = configuration.core;
+	
+	return (req, res, next) => {
+		if (!req.soajs) {
+			req.soajs = {};
+		}
+		req.soajs.log = log;
+		req.soajs.registry = core.registry.get();
+		req.soajs.meta = core.meta;
+		req.soajs.validator = core.validator;
+		return next();
+	};
 };

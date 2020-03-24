@@ -1,0 +1,35 @@
+sudo: required
+
+language: node_js
+
+node_js: 10
+
+jobs:
+  include:
+
+  - stage: install, check code style and coverage
+    if: tag IS blank
+    services:
+    - mongodb
+    addons:
+      hosts:
+      - localhost
+      - dev-controller
+      - kubernetes.default
+    before_script:
+    - npm install -g grunt-cli
+    script:
+    - if [ "$TRAVIS_BRANCH" != "master" ]; then grunt test; fi
+    - if [ "$TRAVIS_BRANCH" = "master" ]; then grunt coverage; fi
+
+  - stage: Publish to npm
+    if: branch =~ /(release)/
+    script:
+    - echo "PUBLISH npm"
+    deploy:
+      provider: npm
+      email: $NPM_EMAIL
+      api_key: $NPM_TOKEN
+      on:
+        all_branches: true
+        condition: $TRAVIS_BRANCH =~ ^(release)*
