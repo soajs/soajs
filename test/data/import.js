@@ -1,7 +1,7 @@
 'use strict';
 const fs = require("fs");
 const async = require("async");
-let Mongo = require("soajs").mongo;
+let Mongo = require("soajs.core.modules").mongo;
 
 
 let lib = {
