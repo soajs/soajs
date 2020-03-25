@@ -8,16 +8,11 @@
  * found in the LICENSE file at the root of this repository
  */
 
-function Urac(param) {
+function Urac() {
 	let _self = this;
 	
-	_self.soajs = param.soajs;
 	_self.userRecord = null;
 	_self.user_ACL = null;
-	_self.id = null;
-	if (param._id) {
-		_self.id = param._id;
-	}
 }
 
 /**

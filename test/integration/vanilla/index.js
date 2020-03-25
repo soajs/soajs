@@ -56,6 +56,4 @@ describe("Integration for vanilla", function () {
 			done();
 		});
 	});
-	
-	
 });

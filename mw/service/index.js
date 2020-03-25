@@ -196,7 +196,7 @@ module.exports = function (configuration) {
 		if (obj.req.soajs.urac && obj.req.soajs.urac._id) {
 			urac_id = obj.req.soajs.urac._id;
 		}
-		obj.req.soajs.uracDriver = new uracDriver({"soajs": obj.req.soajs, "_id": urac_id});
+		obj.req.soajs.uracDriver = new uracDriver();
 		
 		if (obj.req.soajs.param.urac_Profile && obj.req.soajs.param.urac_ACL) {
 			obj.req.soajs.uracDriver.userRecord = obj.req.soajs.urac;

@@ -33,6 +33,7 @@ describe("Starting Unit test", () => {
 		
 		require("./mw/response/index.js");
 		require("./mw/service/index.js");
+		require("./mw/service/urac.js");
 		require("./mw/soajs/index.js");
 		
 		done();
