@@ -1,4 +1,11 @@
 "use strict";
+/**
+ * @license
+ * Copyright SOAJS All Rights Reserved.
+ *
+ * Use of this source code is governed by an Apache license that can be
+ * found in the LICENSE file at the root of this repository
+ */
 
 const helper = require("../../../helper.js");
 const UracDriver = helper.requireModule('./mw/service/urac.js');
@@ -58,6 +65,7 @@ describe("Unit test for: mw - mt URAC", () => {
 		});
 		it("test getAcl", (done) => {
 			let a = uracDriver.getAcl();
+			assert.ok(a);
 			done();
 		});
 		it("test getGroups", (done) => {

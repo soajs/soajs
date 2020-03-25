@@ -1,4 +1,12 @@
-"use strict"
+"use strict";
+/**
+ * @license
+ * Copyright SOAJS All Rights Reserved.
+ *
+ * Use of this source code is governed by an Apache license that can be
+ * found in the LICENSE file at the root of this repository
+ */
+
 const helper = require("../../helper.js");
 
 let utils = helper.requireModule('./utilities/utils.js');
@@ -22,7 +30,7 @@ describe("Testing utilities", () => {
 		soajs: {
 			log: {
 				error: (input) => {
-					// console.error(input);
+					console.error(input);
 				}
 			},
 			buildResponse: (input) => {
@@ -35,19 +43,19 @@ describe("Testing utilities", () => {
 	};
 	
 	it("logErrors - number error", (done) => {
-		utils.logErrors(123, req, res, (error) => {
+		utils.logErrors(123, req, res, () => {
 			done();
 		});
 	});
 	
 	it("logErrors - object, no code no message", (done) => {
-		utils.logErrors({}, req, res, (error) => {
+		utils.logErrors({}, req, res, () => {
 			done();
 		});
 	});
 	
 	it("logErrors - string error", (done) => {
-		utils.logErrors("error", req, res, (error) => {
+		utils.logErrors("error", req, res, () => {
 			done();
 		});
 	});
