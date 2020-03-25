@@ -31,6 +31,8 @@ describe("Starting Unit test", () => {
 		require("./classes/http.js");
 		require("./classes/MultiTenantSession.js");
 		
+		require("./mw/inputmask/index.js");
+		require("./mw/inputmask/inputmask.js");
 		require("./mw/response/index.js");
 		require("./mw/service/index.js");
 		require("./mw/service/urac.js");
