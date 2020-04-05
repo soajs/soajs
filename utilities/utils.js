@@ -73,7 +73,7 @@ function serviceClientErrorHandler(err, req, res, next) {
  * @param res
  * @param next
  */
-function serviceErrorHandler(err, req, res) {
+function serviceErrorHandler(err, req, res, next) {
 	if (err && err.status) {
 		res.status(err.status);
 	} else {
@@ -94,7 +94,7 @@ function serviceErrorHandler(err, req, res) {
 		}
 	} else {
 		let obj = req.soajs.buildResponse(core.error.getError(err));
-		if (req.is('xml')) {
+		if (req.is('xml') && next) {
 			res.header('Content-Type', 'text/xml');
 			let objJSON = {
 				"result": obj.result,

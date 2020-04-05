@@ -15,7 +15,8 @@ process.on('uncaughtException', (e) => {
  */
 module.exports = {
 	"server": {
-		"service": require("./servers/service.js")
+		"service": require("./servers/service.js"),
+		"daemon": require("./servers/daemon.js")
 	},
 	"es": coreModules.es,
 	"mail": coreModules.mail,

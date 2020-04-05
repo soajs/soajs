@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * @license
  * Copyright SOAJS All Rights Reserved.
@@ -6,7 +8,6 @@
  * found in the LICENSE file at the root of this repository
  */
 
-"use strict";
 const imported = require("../data/import.js");
 
 
@@ -26,6 +27,7 @@ describe("starting integration tests", () => {
 	});
 	
 	it("loading tests", (done) => {
+		require ("./inputmask/index.js");
 		require ("./vanilla/index.js");
 		done();
 	});
