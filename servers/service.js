@@ -24,6 +24,7 @@ let autoRegHost = process.env.SOAJS_SRV_AUTOREGISTERHOST || true;
 if (autoRegHost && typeof(autoRegHost) !== 'boolean') {
 	autoRegHost = (autoRegHost === 'true');
 }
+let manualdeploy = !!process.env.SOAJS_DEPLOY_MANUAL;
 
 function Service(param) {
 	let _self = this;
@@ -55,6 +56,7 @@ function Service(param) {
 			param[defaultParam[i]] = true;
 		}
 	}
+	param.mw = manualdeploy;
 	
 	let soajs = {};
 	soajs.param = param;
@@ -402,6 +404,9 @@ Service.prototype.start = function (cb) {
 		
 		//calculate the data port value
 		let finalDataPort = _self.app.soajs.serviceConf.info.port;
+		if (_self.app.soajs.serviceConf.info.oport){
+			finalDataPort = _self.app.soajs.serviceConf.info.oport;
+		}
 		if (!process.env.SOAJS_DEPLOY_HA) {
 			if (process.env.SOAJS_SRVPORT) {
 				finalDataPort = parseInt(process.env.SOAJS_SRVPORT);
@@ -482,6 +487,9 @@ Service.prototype.start = function (cb) {
 		*/
 		//calculate the maintenance port value
 		let maintenancePort = _self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
+		if (_self.app.soajs.serviceConf.info.oport){
+			maintenancePort = _self.app.soajs.serviceConf.info.oport + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
+		}
 		if (!process.env.SOAJS_DEPLOY_HA) {
 			if (process.env.SOAJS_SRVPORT) {
 				let envPort = parseInt(process.env.SOAJS_SRVPORT);
