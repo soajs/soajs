@@ -106,7 +106,7 @@ module.exports = (grunt) => {
 			mochaTest: {
 				SOAJS_IMPORTER_DROPDB: true,
 				SOAJS_ENV: "dashboard",
-				SOAJS_DAEMON_GRP_CONF: "",
+				SOAJS_DAEMON_GRP_CONF: 'group1',
 				SOAJS_SRVIP: "127.0.0.1",
 				SOAJS_TEST: true,
 				APP_DIR_FOR_CODE_COVERAGE: '../'
@@ -114,7 +114,7 @@ module.exports = (grunt) => {
 			coverage: {
 				SOAJS_IMPORTER_DROPDB: true,
 				SOAJS_ENV: "dashboard",
-				SOAJS_DAEMON_GRP_CONF: "",
+				SOAJS_DAEMON_GRP_CONF: 'group1',
 				SOAJS_SRVIP: "127.0.0.1",
 				SOAJS_TEST: true,
 				APP_DIR_FOR_CODE_COVERAGE: '../test/coverage/instrument/'

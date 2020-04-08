@@ -60,6 +60,30 @@ describe("Testing utilities", () => {
 		});
 	});
 	
+	it("logErrors - error obj", (done) => {
+		let err = new Error ("this is an error");
+		err.code = "404";
+		utils.logErrors(err, req, res, () => {
+			done();
+		});
+	});
+	it("logErrors - error obj with msg", (done) => {
+		let err = {};
+		err.code = "404";
+		err.msg = "this is an error";
+		utils.logErrors(err, req, res, () => {
+			done();
+		});
+	});
+	it("logErrors - error obj with OAuth2Error", (done) => {
+		let err = new Error ("this is an error from OAuth2Error");
+		err.code = "404";
+		err.name = "OAuth2Error";
+		utils.logErrors(err, req, res, () => {
+			done();
+		});
+	});
+	
 	it("serviceClientErrorHandler - request without xhr", (done) => {
 		utils.serviceClientErrorHandler(null, req, res, () => {
 			done();

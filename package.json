@@ -44,7 +44,7 @@
     "merge": "1.2.1",
     "method-override": "3.0.0",
     "soajs.core.libs": "1.2.0",
-    "soajs.core.modules": "4.0.0",
+    "soajs.core.modules": "4.0.1",
     "soajs.urac.driver": "2.1.15",
     "validator": "12.2.0"
   }

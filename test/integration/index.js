@@ -27,6 +27,7 @@ describe("starting integration tests", () => {
 	});
 	
 	it("loading tests", (done) => {
+		require ("./daemon/index.js");
 		require ("./inputmask/index.js");
 		require ("./vanilla/index.js");
 		done();

@@ -349,6 +349,23 @@ let custom = {
 						}
 					},
 					function (cb) {
+						//check for custom registry data
+						if (fs.existsSync(dataPath + "daemon_grpconf/")) {
+							let config = {
+								"colName": "daemon_grpconf",
+								"condAnchor": "hellodaemon",
+								"objId": "_id",
+								"delete": cleanDataBefore
+							};
+							if (templates.daemon_grpconf && typeof templates.daemon_grpconf === "function") {
+								config.docManipulation = templates.daemon_grpconf;
+							}
+							return lib.basic(config, dataPath + "daemon_grpconf/", mongoConnection, cb);
+						} else {
+							return cb(null);
+						}
+					},
+					function (cb) {
 						//check for environment data
 						let doImport = (path) => {
 							let config = {

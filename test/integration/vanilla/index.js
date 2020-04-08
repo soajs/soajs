@@ -12,6 +12,8 @@ const helper = require("../../helper.js");
 const soajs = helper.requireModule('./index.js');
 const requester = require('../requester');
 
+const assert = require('assert');
+
 describe("Integration for vanilla", function () {
 	
 	let config = require('./config.js');
@@ -43,7 +45,7 @@ describe("Integration for vanilla", function () {
 		});
 	});
 	
-	it("Get permissions - no logged in user", function (done) {
+	it("Get /hello", function (done) {
 		let options = {
 			uri: 'http://127.0.0.1:4107/hello',
 			headers: {
@@ -51,8 +53,37 @@ describe("Integration for vanilla", function () {
 			}
 		};
 		requester('get', options, (error, body) => {
-			console.log(error);
-			console.log(body.errors);
+			assert.ok(body);
+			assert.ok(body.errors);
+			assert.deepEqual(body.errors.codes, [142]);
+			done();
+		});
+	});
+	
+	it("Get /heartbeat", function (done) {
+		let options = {
+			uri: 'http://127.0.0.1:5107/heartbeat',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		};
+		requester('get', options, (error, body) => {
+			assert.ok(body);
+			assert.deepEqual(body.result, true);
+			done();
+		});
+	});
+	
+	it("Get /resourceInfo", function (done) {
+		let options = {
+			uri: 'http://127.0.0.1:5107/resourceInfo',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		};
+		requester('get', options, (error, body) => {
+			assert.ok(body);
+			assert.deepEqual(body.result, true);
 			done();
 		});
 	});
