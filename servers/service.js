@@ -404,7 +404,7 @@ Service.prototype.start = function (cb) {
 		
 		//calculate the data port value
 		let finalDataPort = _self.app.soajs.serviceConf.info.port;
-		if (_self.app.soajs.serviceConf.info.oport){
+		if (_self.app.soajs.serviceConf.info.oport) {
 			finalDataPort = _self.app.soajs.serviceConf.info.oport;
 		}
 		if (!process.env.SOAJS_DEPLOY_HA) {
@@ -467,7 +467,7 @@ Service.prototype.start = function (cb) {
 					}
 				});
 			}
-			if (cb) {
+			if (cb && typeof cb === "function") {
 				cb(err);
 			}
 		});
@@ -487,7 +487,7 @@ Service.prototype.start = function (cb) {
 		*/
 		//calculate the maintenance port value
 		let maintenancePort = _self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
-		if (_self.app.soajs.serviceConf.info.oport){
+		if (_self.app.soajs.serviceConf.info.oport) {
 			maintenancePort = _self.app.soajs.serviceConf.info.oport + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
 		}
 		if (!process.env.SOAJS_DEPLOY_HA) {
