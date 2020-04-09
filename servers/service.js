@@ -465,10 +465,14 @@ Service.prototype.start = function (cb) {
 					} else {
 						_self.log.info("Service auto register for awareness, skipped.");
 					}
+					if (cb && typeof cb === "function") {
+						cb(err);
+					}
 				});
-			}
-			if (cb && typeof cb === "function") {
-				cb(err);
+			} else {
+				if (cb && typeof cb === "function") {
+					cb(err);
+				}
 			}
 		});
 		
