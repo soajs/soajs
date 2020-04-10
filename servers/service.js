@@ -136,6 +136,7 @@ Service.prototype.init = function (callback) {
 	soajs.param.urac_GroupConfig = soajs.param.urac_GroupConfig || false;
 	soajs.param.tenant_Profile = soajs.param.tenant_Profile || false;
 	soajs.param.provision_ACL = soajs.param.provision_ACL || false;
+	soajs.param.interConnect = soajs.param.interConnect || null;
 	if (!soajs.param.hasOwnProperty("oauth")) {
 		soajs.param.oauth = true;
 	}
@@ -244,7 +245,8 @@ Service.prototype.init = function (callback) {
 			"provision_ACL": soajs.param.provision_ACL,
 			"oauth": soajs.param.oauth,
 			"apiList": soajs.apiList,
-			"maintenance": soajs.param.maintenance
+			"maintenance": soajs.param.maintenance,
+			"interConnect": soajs.param.interConnect
 		}, function (reg) {
 			registry = reg;
 			
@@ -454,7 +456,8 @@ Service.prototype.start = function (cb) {
 							"serviceVersion": _self.app.soajs.param.serviceVersion,
 							"serviceHATask": _self.app.soajs.param.serviceHATask,
 							"what": "services",
-							"mw": _self.app.soajs.param.mw || false
+							"mw": _self.app.soajs.param.mw || false,
+							"interConnect": _self.app.soajs.param.interConnect
 						}, function (err, registered) {
 							if (err) {
 								_self.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
