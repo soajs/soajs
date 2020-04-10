@@ -51,7 +51,10 @@ describe("Unit test for: MW Service", function () {
 		
 		functionMw(req, res, function () {
 			assert.deepEqual(req.soajs.tenant, what2expect);
-			done();
+			req.soajs.awareness.getHost("urac", "2", (host) => {
+				assert.deepEqual(host, "127.0.0.1:4000/urac/v2/");
+				done();
+			});
 		});
 	});
 	

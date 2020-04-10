@@ -10,7 +10,7 @@
 
 let MultiTenantSession = require("../../classes/MultiTenantSession");
 let async = require("async");
-let uracDriver = require("./urac.js");
+let UracDriver = require("./urac.js");
 
 let regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
@@ -122,13 +122,16 @@ module.exports = function (configuration) {
 						}
 						
 						let host = input.awareness.host;
-						
-						if (serviceName && serviceName.toLowerCase() !== 'controller') {
+						let gatewayServiceName = "controller";
+						if (req.soajs && req.soajs.registry && req.soajs.registry.services && req.soajs.registry.services.controller && req.soajs.registry.services.controller.name) {
+							gatewayServiceName = req.soajs.registry.services.controller.name;
+						}
+						if (serviceName && serviceName.toLowerCase() !== gatewayServiceName) {
 							host += ":" + input.awareness.port + "/";
 							host += serviceName;
 							
 							if (version) {
-								host += "v" + version + "/";
+								host += "/v" + version + "/";
 							}
 						}
 						
@@ -165,8 +168,7 @@ module.exports = function (configuration) {
 			'geo': obj.req.soajs.geo,
 			'req': obj.req
 		};
-		let mtSession = new MultiTenantSession(mtSessionParam);
-		obj.req.soajs.session = mtSession;
+		obj.req.soajs.session = new MultiTenantSession(mtSessionParam);
 		return cb(null, obj);
 	}
 	
@@ -192,11 +194,7 @@ module.exports = function (configuration) {
 	 * @param cb
 	 */
 	function uracCheck(obj, cb) {
-		let urac_id = null;
-		if (obj.req.soajs.urac && obj.req.soajs.urac._id) {
-			urac_id = obj.req.soajs.urac._id;
-		}
-		obj.req.soajs.uracDriver = new uracDriver();
+		obj.req.soajs.uracDriver = new UracDriver();
 		
 		if (obj.req.soajs.param.urac_Profile && obj.req.soajs.param.urac_ACL) {
 			obj.req.soajs.uracDriver.userRecord = obj.req.soajs.urac;

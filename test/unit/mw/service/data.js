@@ -19,6 +19,13 @@ module.exports = {
 			"debug": function (msg) {
 				console.log(msg);
 			}
+		},
+		"registry": {
+			"services": {
+				"controller": {
+					"name": "controller"
+				}
+			}
 		}
 	},
 	"headers": {
