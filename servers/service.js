@@ -140,6 +140,8 @@ Service.prototype.init = function (callback) {
 	if (!soajs.param.hasOwnProperty("oauth")) {
 		soajs.param.oauth = true;
 	}
+	
+	/*
 	//automatically add maintenance to service
 	if (!soajs.param.maintenance) {
 		soajs.param.maintenance = {};
@@ -155,7 +157,7 @@ Service.prototype.init = function (callback) {
 		"icon": "fas fa-undo"
 	});
 	soajs.param.maintenance.commands.push({"label": "Resource Info", "path": "/resourceInfo", "icon": "fas fa-info"});
-	
+	*/
 	
 	let fetchedHostIp = null;
 	let serviceIpNotDetected = false;

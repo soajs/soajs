@@ -83,7 +83,7 @@ Daemon.prototype.init = function (callback) {
 	_self.soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
 	_self.soajs.param.serviceHATask = null;
 	
-	
+	/*
 	//automatically add maintenance to service
 	if (!_self.soajs.param.maintenance) {
 		_self.soajs.param.maintenance = {};
@@ -109,6 +109,7 @@ Daemon.prototype.init = function (callback) {
 		"path": "/reloadDaemonConf",
 		"icon": "Configuration"
 	});
+	*/
 	
 	let fetchedHostIp = null;
 	let serviceIpNotDetected = false;
