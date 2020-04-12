@@ -141,24 +141,6 @@ Service.prototype.init = function (callback) {
 		soajs.param.oauth = true;
 	}
 	
-	/*
-	//automatically add maintenance to service
-	if (!soajs.param.maintenance) {
-		soajs.param.maintenance = {};
-	}
-	soajs.param.maintenance.port = {"type": "maintenance"};
-	soajs.param.maintenance.readiness = "/heartbeat";
-	if (!soajs.param.maintenance.commands) {
-		soajs.param.maintenance.commands = [];
-	}
-	soajs.param.maintenance.commands.push({
-		"label": "Releoad Registry",
-		"path": "/reloadRegistry",
-		"icon": "fas fa-undo"
-	});
-	soajs.param.maintenance.commands.push({"label": "Resource Info", "path": "/resourceInfo", "icon": "fas fa-info"});
-	*/
-	
 	let fetchedHostIp = null;
 	let serviceIpNotDetected = false;
 	if (!autoRegHost && !process.env.SOAJS_DEPLOY_HA) {
