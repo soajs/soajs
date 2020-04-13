@@ -45,8 +45,6 @@ function Service(param) {
 	if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true") {
 		param.extKeyRequired = false;
 		param.session = false;
-		param.awareness = false;
-		param.awarenessEnv = false;
 	}
 	
 	let defaultParam = ["bodyParser", "methodOverride", "cookieParser", "inputmask"];
@@ -124,7 +122,6 @@ Service.prototype.init = function (callback) {
 	soajs.param.extKeyRequired = soajs.param.extKeyRequired || false;
 	soajs.param.requestTimeout = soajs.param.requestTimeout || null;
 	soajs.param.requestTimeoutRenewal = soajs.param.requestTimeoutRenewal || null;
-	soajs.param.awarenessEnv = soajs.param.awarenessEnv || false;
 	soajs.param.serviceIp = process.env.SOAJS_SRVIP || null;
 	soajs.param.serviceHATask = null;
 	soajs.param.swagger = soajs.param.swagger || false;
@@ -249,7 +246,7 @@ Service.prototype.init = function (callback) {
 			}
 			
 			if (process.env.SOAJS_SOLO && process.env.SOAJS_SOLO === "true") {
-				_self.log.info("SOAJS is in SOLO mode, the following got turned OFF [extKeyRequired, session, oauth, awareness, awarenessEnv].");
+				_self.log.info("SOAJS is in SOLO mode, the following got turned OFF [extKeyRequired, session, oauth].");
 			}
 			if (soajs.param.oldStyleConfiguration) {
 				_self.log.warn("Old style configuration detected. Please start using the new way of passing param when creating a new service.");

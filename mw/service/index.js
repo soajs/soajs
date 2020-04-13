@@ -101,7 +101,6 @@ module.exports = function (configuration) {
 					getHost: function () {
 						let serviceName, version, cb;
 						cb = arguments[arguments.length - 1];
-						
 						switch (arguments.length) {
 							//controller, cb
 							case 2:
@@ -120,7 +119,6 @@ module.exports = function (configuration) {
 								version = arguments[1];
 								break;
 						}
-						
 						let host = input.awareness.host;
 						let gatewayServiceName = "controller";
 						if (req.soajs && req.soajs.registry && req.soajs.registry.services && req.soajs.registry.services.controller && req.soajs.registry.services.controller.name) {
@@ -129,12 +127,10 @@ module.exports = function (configuration) {
 						if (serviceName && serviceName.toLowerCase() !== gatewayServiceName) {
 							host += ":" + input.awareness.port + "/";
 							host += serviceName;
-							
 							if (version) {
 								host += "/v" + version + "/";
 							}
 						}
-						
 						return cb(host);
 					}
 				};
