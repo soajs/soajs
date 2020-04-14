@@ -95,46 +95,102 @@ module.exports = function (configuration) {
 			output.param = input.param || {};
 		}
 		
-		if (input.awareness) {
-			if (!req.soajs.awareness) {
-				req.soajs.awareness = {
-					getHost: function () {
-						let serviceName, version, cb;
-						cb = arguments[arguments.length - 1];
-						switch (arguments.length) {
-							//controller, cb
-							case 2:
-								serviceName = arguments[0];
+		if (!req.soajs.awareness) {
+			req.soajs.awareness = {};
+			req.soajs.awareness.getHost = function () {
+				let host = null;
+				if (!input.awareness && !input.awareness.host) {
+					return host;
+				}
+				let serviceName = null, version = null, cb = arguments[arguments.length - 1];
+				switch (arguments.length) {
+					//controller, cb
+					case 2:
+						serviceName = arguments[0];
+						break;
+					
+					//controller, 1, cb
+					case 3:
+						serviceName = arguments[0];
+						version = arguments[1];
+						break;
+					
+					//controller, 1, dash, cb [dash is ignored]
+					case 4:
+						serviceName = arguments[0];
+						version = arguments[1];
+						break;
+				}
+				host = input.awareness.host;
+				let gatewayServiceName = "controller";
+				if (req.soajs && req.soajs.registry && req.soajs.registry.services && req.soajs.registry.services.controller && req.soajs.registry.services.controller.name) {
+					gatewayServiceName = req.soajs.registry.services.controller.name;
+				}
+				if (serviceName && serviceName.toLowerCase() !== gatewayServiceName) {
+					host += ":" + input.awareness.port + "/";
+					host += serviceName;
+					if (version) {
+						host += "/v" + version + "/";
+					}
+				}
+				return cb(host);
+			};
+			req.soajs.awareness.connect = function () {
+				let response = null;
+				if (!input.awareness && !input.awareness.host) {
+					return response;
+				}
+				let serviceName = null, version = null, cb = arguments[arguments.length - 1];
+				switch (arguments.length) {
+					//controller, cb
+					case 2:
+						serviceName = arguments[0];
+						break;
+					
+					//controller, 1, cb
+					case 3:
+						serviceName = arguments[0];
+						version = arguments[1];
+						break;
+				}
+				response = {};
+				if (process.env.SOAJS_DEPLOY_HA && serviceName && param.interConnect && input.awareness.interConnect && Array.isArray(input.awareness.interConnect) && input.awareness.interConnect.length > 0) {
+					for (let i = 0; i < input.awareness.interConnect.length; i++) {
+						let serviceObj = input.awareness.interConnect[i];
+						if (serviceObj.name === serviceName) {
+							if (!version && serviceObj.version === serviceObj.latest) {
+								response.host = serviceObj.host + ":" + serviceObj.port;
 								break;
-							
-							//controller, 1, cb
-							case 3:
-								serviceName = arguments[0];
-								version = arguments[1];
-								break;
-							
-							//controller, 1, dash, cb [dash is ignored]
-							case 4:
-								serviceName = arguments[0];
-								version = arguments[1];
-								break;
-						}
-						let host = input.awareness.host;
-						let gatewayServiceName = "controller";
-						if (req.soajs && req.soajs.registry && req.soajs.registry.services && req.soajs.registry.services.controller && req.soajs.registry.services.controller.name) {
-							gatewayServiceName = req.soajs.registry.services.controller.name;
-						}
-						if (serviceName && serviceName.toLowerCase() !== gatewayServiceName) {
-							host += ":" + input.awareness.port + "/";
-							host += serviceName;
-							if (version) {
-								host += "/v" + version + "/";
+							} else {
+								if (version === serviceObj.version) {
+									response.host = serviceObj.host + ":" + serviceObj.port;
+									break;
+								}
 							}
 						}
-						return cb(host);
 					}
-				};
-			}
+					if (response.host) {
+						response.headers = {};
+						response.headers.soajsinjectobj = req.headers.soajsinjectobj;
+						return cb(response);
+					}
+				}
+				if (!response.host) {
+					req.soajs.awareness.getHost(serviceName, version, (host) => {
+						response.host = host;
+						if ((output.key && output.key.eKey) || (req.query && req.query.access_token)) {
+							response.headers = {};
+							if (output.key && output.key.eKey) {
+								response.headers.key = output.key.eKey;
+							}
+							if (req.query && req.query.access_token) {
+								response.headers.access_token = req.query.access_token;
+							}
+						}
+						return cb(response);
+					});
+				}
+			};
 		}
 		
 		return output;
