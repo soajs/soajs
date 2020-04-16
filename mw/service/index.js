@@ -99,7 +99,7 @@ module.exports = function (configuration) {
 			req.soajs.awareness = {};
 			req.soajs.awareness.getHost = function () {
 				let host = null;
-				if (!input.awareness && !input.awareness.host) {
+				if (!input.awareness || !input.awareness.host) {
 					return host;
 				}
 				let serviceName = null, version = null, cb = arguments[arguments.length - 1];
@@ -130,14 +130,16 @@ module.exports = function (configuration) {
 					host += ":" + input.awareness.port + "/";
 					host += serviceName;
 					if (version) {
-						host += "/v" + version + "/";
+						host += "/v" + version;
 					}
+				} else {
+					host += ":" + input.awareness.port;
 				}
 				return cb(host);
 			};
 			req.soajs.awareness.connect = function () {
 				let response = null;
-				if (!input.awareness && !input.awareness.host) {
+				if (!input.awareness || !input.awareness.host) {
 					return response;
 				}
 				let serviceName = null, version = null, cb = arguments[arguments.length - 1];

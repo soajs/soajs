@@ -47,7 +47,7 @@ describe("Unit test for: MW Service", function () {
 				}
 		};
 		let what2expect_connect = {
-			host: '127.0.0.1:4000/urac/v2/',
+			host: '127.0.0.1:4000/urac/v2',
 			headers:
 				{
 					key:
@@ -59,7 +59,7 @@ describe("Unit test for: MW Service", function () {
 		functionMw(req, res, function () {
 			assert.deepEqual(req.soajs.tenant, what2expect);
 			req.soajs.awareness.getHost("urac", "2", (host) => {
-				assert.deepEqual(host, "127.0.0.1:4000/urac/v2/");
+				assert.deepEqual(host, "127.0.0.1:4000/urac/v2");
 				req.soajs.awareness.connect("urac", "2", (response) => {
 					assert.deepEqual(response, what2expect_connect);
 					done();
@@ -97,7 +97,7 @@ describe("Unit test for: MW Service", function () {
 		};
 		
 		let what2expect_connect_version_not_found = {
-			host: '127.0.0.1:4000/urac/v2/',
+			host: '127.0.0.1:4000/urac/v2',
 			headers:
 				{
 					key:
@@ -110,15 +110,21 @@ describe("Unit test for: MW Service", function () {
 		functionMw(req, res, function () {
 			assert.deepEqual(req.soajs.tenant, what2expect);
 			req.soajs.awareness.getHost("urac", "2", (host) => {
-				assert.deepEqual(host, "127.0.0.1:4000/urac/v2/");
-				req.soajs.awareness.connect("urac", "2", (response) => {
-					assert.deepEqual(response, what2expect_connect_version_not_found);
-					req.soajs.awareness.connect("urac", "3", (response) => {
-						assert.equal(response.host, '127.0.0.2:4001');
-						req.soajs.awareness.connect("urac", (response) => {
-							delete process.env.SOAJS_DEPLOY_HA;
-							assert.equal(response.host, '127.0.0.2:4001');
-							done();
+				assert.deepEqual(host, "127.0.0.1:4000/urac/v2");
+				req.soajs.awareness.getHost("urac", (host) => {
+					assert.deepEqual(host, "127.0.0.1:4000/urac");
+					req.soajs.awareness.getHost((host) => {
+						assert.deepEqual(host, "127.0.0.1:4000");
+						req.soajs.awareness.connect("urac", "2", (response) => {
+							assert.deepEqual(response, what2expect_connect_version_not_found);
+							req.soajs.awareness.connect("urac", "3", (response) => {
+								assert.equal(response.host, '127.0.0.2:4001');
+								req.soajs.awareness.connect("urac", (response) => {
+									delete process.env.SOAJS_DEPLOY_HA;
+									assert.equal(response.host, '127.0.0.2:4001');
+									done();
+								});
+							});
 						});
 					});
 				});
