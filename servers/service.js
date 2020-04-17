@@ -403,8 +403,8 @@ Service.prototype.start = function (cb) {
 		
 		_self.app.httpServer = _self.app.listen(finalDataPort, function (err) {
 			if (err) {
-				_self.log.error(core.error.generate(141));
-				_self.log.error(err);
+				_self.log.error(core.error.generate(141).message);
+				_self.log.error(err.message);
 			} else if (!process.env.SOAJS_DEPLOY_HA) {
 				core.registry.registerHost({
 					"serviceName": _self.app.soajs.param.serviceName,
@@ -536,7 +536,7 @@ Service.prototype.start = function (cb) {
 		});
 		_self.appMaintenance.httpServer = _self.appMaintenance.listen(maintenancePort, (err) => {
 			if (err) {
-				_self.log.error(err);
+				_self.log.error(err.message);
 			}
 			_self.log.info(_self.app.soajs.param.serviceName + " service maintenance is listening on port: " + maintenancePort);
 		});
@@ -554,7 +554,7 @@ Service.prototype.stop = function (cb) {
 	_self.log.info('stopping service[' + _self.app.soajs.param.serviceName + '] on port:', _self.app.soajs.serviceConf.info.port);
 	_self.app.httpServer.close((err) => {
 		if (err) {
-			_self.log.error(err);
+			_self.log.error(err.message);
 		}
 		_self.appMaintenance.httpServer.close((err) => {
 			if (cb) {

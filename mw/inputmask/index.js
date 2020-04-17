@@ -14,7 +14,9 @@ module.exports = (config, inputmaskSrc, core) => {
 	let inputmask = require("./inputmask.js");
 	
 	let returnErrorResponse = (err, req, res) => {
-		req.soajs.log.error(err);
+		if (err) {
+			req.soajs.log.error(err.message || err.msg);
+		}
 		let response = req.soajs.buildResponse(err);
 		return res.jsonp(response);
 	};

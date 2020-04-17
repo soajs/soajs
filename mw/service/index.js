@@ -234,7 +234,7 @@ module.exports = function (configuration) {
 	function persistSession(obj, cb) {
 		obj.req.sessionStore.set(obj.req.sessionID, obj.req.session, (err) => {
 			if (err) {
-				obj.req.soajs.log.error(err);
+				obj.req.soajs.log.error(err.message);
 				return cb(163);
 			}
 			core.security.authorization.set(obj.res, obj.req.sessionID);
@@ -257,7 +257,7 @@ module.exports = function (configuration) {
 		
 		obj.req.soajs.uracDriver.init((error) => {
 			if (error) {
-				obj.req.soajs.log.error(error);
+				obj.req.soajs.log.error(error.message);
 			}
 			return cb(null, obj);
 		});

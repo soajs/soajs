@@ -567,7 +567,7 @@ Daemon.prototype.start = function (cb) {
 				});
 				_self.appMaintenance.httpServer = _self.appMaintenance.listen(maintenancePort, function (err) {
 					if (err) {
-						_self.soajs.log.error(err);
+						_self.soajs.log.error(err.message);
 					}
 					_self.soajs.log.info(_self.soajs.param.serviceName + " daemon service maintenance is listening on port: " + maintenancePort);
 				});

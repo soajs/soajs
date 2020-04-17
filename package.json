@@ -43,7 +43,7 @@
     "merge": "1.2.1",
     "method-override": "3.0.0",
     "soajs.core.libs": "1.2.0",
-    "soajs.core.modules": "4.0.6",
+    "soajs.core.modules": "4.0.8",
     "validator": "12.2.0"
   }
 }
