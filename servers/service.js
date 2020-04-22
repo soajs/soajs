@@ -424,7 +424,8 @@ Service.prototype.start = function (cb) {
 						_self.log.info("Initiating service auto register for awareness ...");
 						core.registry.autoRegisterService({
 							"name": _self.app.soajs.param.serviceName,
-							"port": finalDataPort,
+							"group": _self.app.soajs.param.serviceGroup,
+							"port": _self.app.soajs.param.servicePort,
 							"oauth": _self.app.soajs.param.oauth,
 							"urac": _self.app.soajs.param.urac,
 							"urac_Profile": _self.app.soajs.param.urac_Profile,
@@ -433,12 +434,17 @@ Service.prototype.start = function (cb) {
 							"urac_GroupConfig": _self.app.soajs.param.urac_GroupConfig,
 							"tenant_Profile": _self.app.soajs.param.tenant_Profile,
 							"provision_ACL": _self.app.soajs.param.provision_ACL,
+							"extKeyRequired": _self.app.soajs.param.extKeyRequired,
+							"requestTimeout": _self.app.soajs.param.requestTimeout,
+							"requestTimeoutRenewal": _self.app.soajs.param.requestTimeoutRenewal,
 							"serviceIp": _self.app.soajs.param.serviceIp,
 							"serviceVersion": _self.app.soajs.param.serviceVersion,
 							"serviceHATask": _self.app.soajs.param.serviceHATask,
 							"what": "services",
 							"mw": _self.app.soajs.param.mw || false,
-							"interConnect": _self.app.soajs.param.interConnect
+							"interConnect": _self.app.soajs.param.interConnect,
+							"apiList": _self.app.soajs.apiList,
+							"maintenance": _self.app.soajs.param.maintenance
 						}, function (err, registered) {
 							if (err) {
 								_self.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
