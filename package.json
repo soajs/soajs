@@ -1,7 +1,7 @@
 {
   "name": "soajs",
   "description": "soajs framework",
-  "version": "3.0.10",
+  "version": "3.0.11",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -43,7 +43,7 @@
     "merge": "1.2.1",
     "method-override": "3.0.0",
     "soajs.core.libs": "1.2.0",
-    "soajs.core.modules": "4.0.11",
+    "soajs.core.modules": "4.0.12",
     "validator": "12.2.0"
   }
 }
