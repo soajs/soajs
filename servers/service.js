@@ -426,6 +426,7 @@ Service.prototype.start = function (cb) {
 							"name": _self.app.soajs.param.serviceName,
 							"group": _self.app.soajs.param.serviceGroup,
 							"port": _self.app.soajs.param.servicePort,
+							"portHost": finalDataPort,
 							"oauth": _self.app.soajs.param.oauth,
 							"urac": _self.app.soajs.param.urac,
 							"urac_Profile": _self.app.soajs.param.urac_Profile,
