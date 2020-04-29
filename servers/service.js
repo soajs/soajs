@@ -15,7 +15,6 @@ const coreModules = require("soajs.core.modules");
 const core = coreModules.core;
 const lib = require("soajs.core.libs");
 
-//const express = require("./../classes/express");
 const express = require('express');
 
 const utils = require("./../utilities/utils");
@@ -386,10 +385,7 @@ Service.prototype.start = function (cb) {
 		_self.log.info("Starting Service ...");
 		
 		//calculate the data port value
-		let finalDataPort = _self.app.soajs.serviceConf.info.port;
-		if (_self.app.soajs.serviceConf.info.oport) {
-			finalDataPort = _self.app.soajs.serviceConf.info.oport;
-		}
+		let finalDataPort = _self.app.soajs.param.servicePort;
 		if (!process.env.SOAJS_DEPLOY_HA) {
 			if (process.env.SOAJS_SRVPORT) {
 				finalDataPort = parseInt(process.env.SOAJS_SRVPORT);
@@ -469,22 +465,9 @@ Service.prototype.start = function (cb) {
 		
 		//MAINTENANCE Service Routes
 		_self.log.info("Adding Service Maintenance Routes ...");
-		/*
-		let loadVersion = () => {
-			let rootPath = process.cwd();
-			let version = null;
-			if (fs.existsSync(rootPath + "/package.json")) {
-				let packageJson = require(rootPath + "/package.json");
-				version = packageJson.version;
-			}
-			return version;
-		};
-		*/
+
 		//calculate the maintenance port value
-		let maintenancePort = _self.app.soajs.serviceConf.info.port + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
-		if (_self.app.soajs.serviceConf.info.oport) {
-			maintenancePort = _self.app.soajs.serviceConf.info.oport + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
-		}
+		let maintenancePort = _self.app.soajs.param.servicePort + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
 		if (!process.env.SOAJS_DEPLOY_HA) {
 			if (process.env.SOAJS_SRVPORT) {
 				let envPort = parseInt(process.env.SOAJS_SRVPORT);
