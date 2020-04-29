@@ -8,13 +8,10 @@
  * found in the LICENSE file at the root of this repository
  */
 
-const validator = require('validator');
-
 /**
  *
  * @param result
  * @param data
- * @param serviceErrorCode
  * @constructor
  */
 function Response(result, data) {
@@ -39,7 +36,7 @@ Response.prototype.addErrorCode = function (code, message) {
 	}
 	let errorCode = {
 		"code": code,
-		"message": validator.trim(message)
+		"message": message.trim()
 	};
 	
 	if (!this.errors) {
