@@ -26,15 +26,30 @@ module.exports = function (configuration) {
 		req.soajs.buildResponse = (error, data) => {
 			let response = null;
 			if (error) {
+				let http_code = null;
 				response = new soajsRes(false);
 				if (Array.isArray(error)) {
 					let len = error.length;
 					for (let i = 0; i < len; i++) {
 						response.addErrorCode(error[i].code, error[i].msg);
+						if (error[i].status) {
+							http_code = error[i].status;
+						} else if (status && status[error[i].code]) {
+							http_code = status[error[i].code];
+						}
 					}
 				} else {
 					response.addErrorCode(error.code, error.msg);
+					if (error.status) {
+						http_code = error.status;
+					} else if (status && status[error.code]) {
+						http_code = status[error.code];
+					}
 				}
+				if (!http_code) {
+					http_code = 500;
+				}
+				res.status(http_code);
 			} else {
 				response = new soajsRes(true, data);
 			}

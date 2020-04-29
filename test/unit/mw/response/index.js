@@ -5,11 +5,15 @@ const helper = require("../../../helper.js");
 const mw = helper.requireModule('./mw/response/index');
 
 describe("Unit test for: mw - response", function () {
-	let req = {};
+	let req = {
+	};
 	let res = {
 		"writeHead": () => {
 		},
 		"end": () => {
+		},
+		"status": () => {
+		
 		}
 	};
 	
@@ -24,7 +28,7 @@ describe("Unit test for: mw - response", function () {
 			req.soajs.buildResponse([{"code": 200, "msg": "dummy200"}, {"code": 220, "msg": "dummy220"}]);
 			req.soajs.buildResponse(null, "hello world");
 			let errObj = req.soajs.getError(400);
-			assert.deepEqual(errObj,{ code: 400, msg: 'Business logic required data are missing' });
+			assert.deepEqual(errObj, {code: 400, msg: 'Business logic required data are missing'});
 			done();
 		});
 	});
