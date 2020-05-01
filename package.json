@@ -16,7 +16,9 @@
     "node": "*"
   },
   "scripts": {
-    "test": "grunt test"
+    "test": "grunt test",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "devDependencies": {
     "grunt": "1.0.4",
@@ -43,6 +45,8 @@
     "merge": "1.2.1",
     "method-override": "3.0.0",
     "soajs.core.libs": "1.2.0",
-    "soajs.core.modules": "4.0.13"
-  }
+    "soajs.core.modules": "4.0.13",
+    "snyk": "^1.316.1"
+  },
+  "snyk": true
 }
