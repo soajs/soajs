@@ -18,6 +18,7 @@ module.exports = {
 		"service": require("./servers/service.js"),
 		"daemon": require("./servers/daemon.js")
 	},
+	"extractAPIsList": require("./utilities/utils.js").extractAPIsList,
 	"es": coreModules.es,
 	"mail": coreModules.mail,
 	"mongo": coreModules.mongo,

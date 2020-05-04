@@ -12,6 +12,48 @@ const coreModules = require("soajs.core.modules");
 const jsonxml = require('jsontoxml');
 let core = coreModules.core;
 
+
+function extractAPIsList(schema) {
+	let excluded = ['commonFields'];
+	let METHOD = ['get', 'post', 'put', 'delete'];
+	let apiList = [];
+	
+	let processRoute = (routeObj, routeName, method) => {
+		let oneApi = {
+			'l': routeObj._apiInfo.l,
+			'v': routeName,
+			'm': method
+		};
+		
+		if (routeObj._apiInfo.group) {
+			oneApi.group = routeObj._apiInfo.group;
+		}
+		
+		if (routeObj._apiInfo.groupMain) {
+			oneApi.groupMain = routeObj._apiInfo.groupMain;
+		}
+		return (oneApi);
+	};
+	let processRoutes = (routes, method) => {
+		for (let route in routes) {
+			if (Object.hasOwnProperty.call(routes, route)) {
+				if (excluded.indexOf(route) !== -1) {
+					continue;
+				}
+				
+				if (METHOD.indexOf(route) !== -1) {
+					processRoutes(routes[route], route);
+				} else {
+					let oneApi = processRoute(routes[route], route, method);
+					apiList.push(oneApi);
+				}
+			}
+		}
+	};
+	processRoutes(schema, "");
+	return apiList;
+}
+
 //-------------------------- ERROR Handling MW - service & controller
 /**
  *
@@ -112,5 +154,6 @@ function serviceErrorHandler(err, req, res, next) {
 module.exports = {
 	logErrors, // common for service and controllers
 	serviceClientErrorHandler,
-	serviceErrorHandler
+	serviceErrorHandler,
+	extractAPIsList
 };

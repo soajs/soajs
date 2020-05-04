@@ -62,7 +62,7 @@ function Service(param) {
 	
 	_self.app.soajs = soajs;
 }
-
+/*
 function extractAPIsList(schema) {
 	let excluded = ['commonFields'];
 	let METHOD = ['get', 'post', 'put', 'delete'];
@@ -103,7 +103,7 @@ function extractAPIsList(schema) {
 	processRoutes(schema, "");
 	return apiList;
 }
-
+*/
 Service.prototype.init = function (callback) {
 	let _self = this;
 	let registry = null;
@@ -204,7 +204,7 @@ Service.prototype.init = function (callback) {
 	}
 	
 	function resume() {
-		soajs.apiList = extractAPIsList(soajs.param.schema);
+		soajs.apiList = utils.extractAPIsList(soajs.param.schema);
 		
 		core.registry.load({
 			"serviceName": soajs.param.serviceName,
