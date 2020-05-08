@@ -33,10 +33,10 @@ function castType(value, type, cfg) {
 			value = castTypeSimpleData(value, type);
 			break;
 		case 'array':
-			doArray(value, cfg.items);
+			value = doArray(value, cfg.items);
 			break;
 		case 'object':
-			doObject(value, cfg);
+			value = doObject(value, cfg);
 			break;
 		default:
 			break;
@@ -57,9 +57,21 @@ function castType(value, type, cfg) {
 				}
 			}
 		}
+		return arr;
 	}
 	
 	function doObject(obj, cfg) {
+		if (obj) {
+			let tempObj = null;
+			try {
+				tempObj = decodeURIComponent(obj);
+				tempObj = JSON.parse(tempObj);
+			} catch (e) {
+			}
+			if (tempObj && typeof tempObj === "object") {
+				obj = tempObj;
+			}
+		}
 		let objCfg = null;
 		if (cfg && (cfg.properties || (cfg.additionalProperties && typeof(cfg.additionalProperties) === 'object'))) {
 			objCfg = cfg.properties || cfg.additionalProperties;
@@ -91,6 +103,7 @@ function castType(value, type, cfg) {
 				}
 			}
 		}
+		return obj;
 	}
 	
 	function castTypeSimpleData(value, type) {
