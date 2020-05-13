@@ -116,7 +116,7 @@ Daemon.prototype.init = function (callback) {
 			"designatedPort": _self.soajs.param.servicePort,
 			"serviceIp": _self.soajs.param.serviceIp,
 			"jobList": _self.soajs.jobList,
-			"maintenance": _self.soajs.param.maintenance,
+			"maintenance": _self.soajs.param.maintenance
 		}, function (reg) {
 			registry = reg;
 			_self.soajs.daemonServiceConf = lib.registry.getDaemonServiceConf(_self.soajs.param.serviceName, registry);

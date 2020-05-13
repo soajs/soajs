@@ -61,7 +61,7 @@ function castType(value, type, cfg) {
 	}
 	
 	function doObject(obj, cfg) {
-		if (obj) {
+		if (obj && typeof obj !== "object") {
 			let tempObj = null;
 			try {
 				tempObj = decodeURIComponent(obj);
