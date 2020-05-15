@@ -13,6 +13,8 @@ const imported = require("../data/import.js");
 
 describe("starting integration tests", () => {
 	
+	let controller;
+	
 	before((done) => {
 		let rootPath = process.cwd();
 		imported.runPath(rootPath + "/test/data/soajs_profile.js", rootPath + "/test/data/integration/", true, null, (err, msg) => {
@@ -22,14 +24,20 @@ describe("starting integration tests", () => {
 			if (msg) {
 				console.log(msg);
 			}
-			done();
+			console.log("Starting Controller ...");
+			controller = require("soajs.controller/_index.js");
+			controller.runService(() => {
+				setTimeout(function () {
+					done();
+				}, 5000);
+			});
 		});
 	});
 	
 	it("loading tests", (done) => {
-		require ("./daemon/index.js");
-		require ("./inputmask/index.js");
-		require ("./vanilla/index.js");
+		require("./daemon/index.js");
+		require("./inputmask/index.js");
+		require("./vanilla/index.js");
 		done();
 	});
 	

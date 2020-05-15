@@ -18,6 +18,7 @@ const lib = require("soajs.core.libs");
 const express = require('express');
 
 const utils = require("./../utilities/utils");
+const registryModule = require("./../modules/registry");
 
 let autoRegHost = process.env.SOAJS_SRV_AUTOREGISTERHOST || true;
 if (autoRegHost && typeof(autoRegHost) !== 'boolean') {
@@ -62,52 +63,13 @@ function Service(param) {
 	
 	_self.app.soajs = soajs;
 }
-/*
-function extractAPIsList(schema) {
-	let excluded = ['commonFields'];
-	let METHOD = ['get', 'post', 'put', 'delete'];
-	let apiList = [];
-	
-	let processRoute = (routeObj, routeName, method) => {
-		let oneApi = {
-			'l': routeObj._apiInfo.l,
-			'v': routeName,
-			'm': method
-		};
-		
-		if (routeObj._apiInfo.group) {
-			oneApi.group = routeObj._apiInfo.group;
-		}
-		
-		if (routeObj._apiInfo.groupMain) {
-			oneApi.groupMain = routeObj._apiInfo.groupMain;
-		}
-		return (oneApi);
-	};
-	let processRoutes = (routes, method) => {
-		for (let route in routes) {
-			if (Object.hasOwnProperty.call(routes, route)) {
-				if (excluded.indexOf(route) !== -1) {
-					continue;
-				}
-				
-				if (METHOD.indexOf(route) !== -1) {
-					processRoutes(routes[route], route);
-				} else {
-					let oneApi = processRoute(routes[route], route, method);
-					apiList.push(oneApi);
-				}
-			}
-		}
-	};
-	processRoutes(schema, "");
-	return apiList;
-}
-*/
+
 Service.prototype.init = function (callback) {
 	let _self = this;
 	let registry = null;
 	let soajs = _self.app.soajs;
+	
+	soajs.param.type = soajs.param.type.toLowerCase();
 	
 	soajs.param.serviceName = soajs.param.serviceName.toLowerCase();
 	soajs.param.serviceGroup = soajs.param.serviceGroup || "No Group Service";
@@ -206,27 +168,15 @@ Service.prototype.init = function (callback) {
 	function resume() {
 		soajs.apiList = utils.extractAPIsList(soajs.param.schema);
 		
-		core.registry.load({
-			"serviceName": soajs.param.serviceName,
-			"serviceGroup": soajs.param.serviceGroup,
-			"serviceVersion": soajs.param.serviceVersion,
-			"designatedPort": soajs.param.servicePort,
-			"extKeyRequired": soajs.param.extKeyRequired,
+		registryModule.load({
+			"type": soajs.param.type,
+			"name": soajs.param.serviceName,
+			"group": soajs.param.serviceGroup,
+			"port": soajs.param.servicePort,
+			"version": soajs.param.serviceVersion,
 			"requestTimeout": soajs.param.requestTimeout,
 			"requestTimeoutRenewal": soajs.param.requestTimeoutRenewal,
-			"serviceIp": soajs.param.serviceIp,
-			"swagger": soajs.param.swagger,
-			"urac": soajs.param.urac,
-			"urac_Profile": soajs.param.urac_Profile,
-			"urac_ACL": soajs.param.urac_ACL,
-			"urac_Config": soajs.param.urac_Config,
-			"urac_GroupConfig": soajs.param.urac_GroupConfig,
-			"tenant_Profile": soajs.param.tenant_Profile,
-			"provision_ACL": soajs.param.provision_ACL,
-			"oauth": soajs.param.oauth,
-			"apiList": soajs.apiList,
-			"maintenance": soajs.param.maintenance,
-			"interConnect": soajs.param.interConnect
+			"extKeyRequired": soajs.param.extKeyRequired
 		}, function (reg) {
 			registry = reg;
 			
@@ -351,12 +301,11 @@ Service.prototype.init = function (callback) {
 			
 			//Expose some core function after init
 			_self.getCustomRegistry = function () {
-				return core.registry.getCustom();
+				return registryModule.getCustom();
 			};
 			
 			_self.registry = {
-				"loadByEnv": core.registry.loadByEnv,
-				"get": core.registry.get
+				"get": registryModule.get
 			};
 			
 			callback();
@@ -371,7 +320,6 @@ Service.prototype.start = function (cb) {
 	let _self = this;
 	if (_self.app && _self.app.soajs) {
 		_self.log.info("Service about to start ...");
-		let registry = core.registry.get();
 		_self.app.all('*', function (req, res, next) {
 			req.soajs.log.error(151, 'Unknown API : ' + req.path);
 			return next(151);
@@ -402,60 +350,52 @@ Service.prototype.start = function (cb) {
 				_self.log.error(core.error.generate(141).message);
 				_self.log.error(err.message);
 			} else if (!process.env.SOAJS_DEPLOY_HA) {
-				core.registry.registerHost({
-					"serviceName": _self.app.soajs.param.serviceName,
-					"servicePort": finalDataPort,//_self.app.soajs.param.servicePort,
-					"serviceVersion": _self.app.soajs.param.serviceVersion,
-					"serviceIp": _self.app.soajs.param.serviceIp,
-					"serviceHATask": _self.app.soajs.param.serviceHATask
-				}, registry, function (registered) {
-					if (registered) {
-						_self.log.info("Host IP [" + _self.app.soajs.param.serviceIp + "] for service [" + _self.app.soajs.param.serviceName + "@" + _self.app.soajs.param.serviceVersion + "] successfully registered.");
-					} else {
-						_self.log.warn("Unable to register host IP [" + _self.app.soajs.param.serviceIp + "] for service [" + _self.app.soajs.param.serviceName + "@" + _self.app.soajs.param.serviceVersion + "]");
-					}
-					_self.log.info(_self.app.soajs.param.serviceName + " service started on port: " + finalDataPort);
-					
-					if (autoRegHost) {
-						_self.log.info("Initiating service auto register for awareness ...");
-						core.registry.autoRegisterService({
-							"name": _self.app.soajs.param.serviceName,
-							"group": _self.app.soajs.param.serviceGroup,
-							"port": _self.app.soajs.param.servicePort,
-							"portHost": finalDataPort,
-							"oauth": _self.app.soajs.param.oauth,
-							"urac": _self.app.soajs.param.urac,
-							"urac_Profile": _self.app.soajs.param.urac_Profile,
-							"urac_ACL": _self.app.soajs.param.urac_ACL,
-							"urac_Config": _self.app.soajs.param.urac_Config,
-							"urac_GroupConfig": _self.app.soajs.param.urac_GroupConfig,
-							"tenant_Profile": _self.app.soajs.param.tenant_Profile,
-							"provision_ACL": _self.app.soajs.param.provision_ACL,
-							"extKeyRequired": _self.app.soajs.param.extKeyRequired,
-							"requestTimeout": _self.app.soajs.param.requestTimeout,
-							"requestTimeoutRenewal": _self.app.soajs.param.requestTimeoutRenewal,
-							"serviceIp": _self.app.soajs.param.serviceIp,
-							"serviceVersion": _self.app.soajs.param.serviceVersion,
-							"serviceHATask": _self.app.soajs.param.serviceHATask,
-							"what": "services",
-							"mw": _self.app.soajs.param.mw || false,
-							"interConnect": _self.app.soajs.param.interConnect,
-							"apiList": _self.app.soajs.apiList,
-							"maintenance": _self.app.soajs.param.maintenance
-						}, function (err, registered) {
-							if (err) {
-								_self.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
-							} else if (registered) {
-								_self.log.info('The autoRegisterService @ controllers for [' + _self.app.soajs.param.serviceName + '@' + _self.app.soajs.param.serviceIp + '] successfully finished.');
-							}
-						});
-					} else {
-						_self.log.info("Service auto register for awareness, skipped.");
-					}
-					if (cb && typeof cb === "function") {
-						cb(err);
-					}
-				});
+				if (autoRegHost) {
+					_self.log.info("Initiating service auto register for awareness ...");
+					registryModule.autoRegisterService({
+						"name": _self.app.soajs.param.serviceName,
+						"description": _self.app.soajs.param.description,
+						"type": _self.app.soajs.param.type,
+						"subType": _self.app.soajs.param.subType,
+						"group": _self.app.soajs.param.serviceGroup,
+						"port": _self.app.soajs.param.servicePort,
+						"portHost": finalDataPort,
+						"ip": _self.app.soajs.param.serviceIp,
+						"version": _self.app.soajs.param.serviceVersion,
+						
+						"oauth": _self.app.soajs.param.oauth,
+						"urac": _self.app.soajs.param.urac,
+						"urac_Profile": _self.app.soajs.param.urac_Profile,
+						"urac_ACL": _self.app.soajs.param.urac_ACL,
+						"urac_Config": _self.app.soajs.param.urac_Config,
+						"urac_GroupConfig": _self.app.soajs.param.urac_GroupConfig,
+						"tenant_Profile": _self.app.soajs.param.tenant_Profile,
+						"provision_ACL": _self.app.soajs.param.provision_ACL,
+						"extKeyRequired": _self.app.soajs.param.extKeyRequired,
+						"requestTimeout": _self.app.soajs.param.requestTimeout,
+						"requestTimeoutRenewal": _self.app.soajs.param.requestTimeoutRenewal,
+						"interConnect": _self.app.soajs.param.interConnect,
+						
+						"apiList": _self.app.soajs.apiList,
+						"maintenance": _self.app.soajs.param.maintenance,
+						
+						"mw": _self.app.soajs.param.mw || false,
+						"serviceHATask": _self.app.soajs.param.serviceHATask
+					}, function (err, registered) {
+						if (err) {
+							_self.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);
+						} else if (registered) {
+							_self.log.info('The autoRegisterService @ controllers for [' + _self.app.soajs.param.serviceName + '@' + _self.app.soajs.param.serviceIp + '] successfully finished.');
+						}
+					});
+				} else {
+					_self.log.info("Service auto register for awareness, skipped.");
+				}
+				
+				_self.log.info(_self.app.soajs.param.serviceName + " service started on port: " + finalDataPort);
+				if (cb && typeof cb === "function") {
+					cb(err);
+				}
 			} else {
 				if (cb && typeof cb === "function") {
 					cb(err);
@@ -465,7 +405,7 @@ Service.prototype.start = function (cb) {
 		
 		//MAINTENANCE Service Routes
 		_self.log.info("Adding Service Maintenance Routes ...");
-
+		
 		//calculate the maintenance port value
 		let maintenancePort = _self.app.soajs.param.servicePort + _self.app.soajs.serviceConf._conf.ports.maintenanceInc;
 		if (!process.env.SOAJS_DEPLOY_HA) {
@@ -486,15 +426,15 @@ Service.prototype.start = function (cb) {
 			res.jsonp(response);
 		});
 		_self.appMaintenance.get("/reloadRegistry", (req, res) => {
-			core.registry.reload({
-				"serviceName": _self.app.soajs.param.serviceName,
-				"serviceGroup": _self.app.soajs.param.serviceGroup,
-				"serviceVersion": _self.app.soajs.param.serviceVersion,
-				"designatedPort": _self.app.soajs.param.servicePort,
+			registryModule.reload({
+				"type": _self.app.soajs.param.type,
+				"name": _self.app.soajs.param.serviceName,
+				"group": _self.app.soajs.param.serviceGroup,
+				"port": _self.app.soajs.param.servicePort,
+				"version": _self.app.soajs.param.serviceVersion,
 				"extKeyRequired": _self.app.soajs.param.extKeyRequired,
 				"requestTimeout": _self.app.soajs.param.requestTimeout,
-				"requestTimeoutRenewal": _self.app.soajs.param.requestTimeoutRenewal,
-				"serviceIp": _self.app.soajs.param.serviceIp
+				"requestTimeoutRenewal": _self.app.soajs.param.requestTimeoutRenewal
 			}, function (err, reg) {
 				if (err) {
 					_self.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);

@@ -10,6 +10,7 @@
 
 
 module.exports = {
+	"type": "mdaemon",
     "serviceName": "helloDaemon",
     "servicePort": 4200,
     "awarenessEnv" : true,
