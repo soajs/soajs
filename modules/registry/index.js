@@ -194,6 +194,21 @@ let registryModule = {
 		} else {
 			return cb(new Error("Unable to find any controller host"), false);
 		}
+	},
+	"loadByEnv": (param, cb) => {
+		let options = {
+			"reload": true,
+			"envCode": param.envCode.toLowerCase()
+		};
+		if (!param.hasOwnProperty("donotBbuildSpecificRegistry")) {
+			options.donotBbuildSpecificRegistry = true;
+		}
+		return getRegistry(param, options, (err, reg) => {
+			if (err) {
+				return cb(err);
+			}
+			return cb(null, reg);
+		});
 	}
 };
 
