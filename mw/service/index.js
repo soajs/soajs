@@ -156,7 +156,7 @@ module.exports = function (configuration) {
 						break;
 				}
 				response = {};
-				if (process.env.SOAJS_DEPLOY_HA && serviceName && param.interConnect && input.awareness.interConnect && Array.isArray(input.awareness.interConnect) && input.awareness.interConnect.length > 0) {
+				if (serviceName && param.interConnect && input.awareness.interConnect && Array.isArray(input.awareness.interConnect) && input.awareness.interConnect.length > 0) {
 					for (let i = 0; i < input.awareness.interConnect.length; i++) {
 						let serviceObj = input.awareness.interConnect[i];
 						if (serviceObj.name === serviceName) {
