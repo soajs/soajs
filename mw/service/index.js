@@ -163,11 +163,9 @@ module.exports = function (configuration) {
 							if (!version && serviceObj.version === serviceObj.latest) {
 								response.host = serviceObj.host + ":" + serviceObj.port;
 								break;
-							} else {
-								if (version === serviceObj.version) {
-									response.host = serviceObj.host + ":" + serviceObj.port;
-									break;
-								}
+							} else if (version === serviceObj.version) {
+								response.host = serviceObj.host + ":" + serviceObj.port;
+								break;
 							}
 						}
 					}
