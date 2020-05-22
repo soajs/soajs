@@ -201,7 +201,7 @@ let registryModule = {
 			"envCode": param.envCode.toLowerCase()
 		};
 		if (options.envCode === regEnvironment && registry_struct[options.envCode]) {
-			return cb(null, registry_struct[options.envCode])
+			return cb(null, registry_struct[options.envCode]);
 		}
 		if (!param.hasOwnProperty("donotBbuildSpecificRegistry")) {
 			options.donotBbuildSpecificRegistry = true;
