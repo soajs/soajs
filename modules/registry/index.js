@@ -147,40 +147,6 @@ let registryModule = {
 					};
 					requestOptions.qs = {};
 					requestOptions.body = param;
-					/*
-					requestOptions.body = {
-						"name": param.name,
-						"description": param.description,
-						"type": param.type,
-						"subType": param.subType,
-						"group": param.group,
-						"port": param.port,
-						"portHost": param.portHost,
-						"ip": param.ip,
-						"version": param.version,
-						"maintenance": param.maintenance
-					};
-					
-					if (param.type === "mdaemon") {
-						requestOptions.body.jobList = param.jobList;
-					} else {
-						requestOptions.body.oauth = param.oauth;
-						requestOptions.body.urac = param.urac;
-						requestOptions.body.urac_Profile = param.urac_Profile;
-						requestOptions.body.urac_ACL = param.urac_ACL;
-						requestOptions.body.urac_Config = param.urac_Config;
-						requestOptions.body.urac_GroupConfig = param.urac_GroupConfig;
-						requestOptions.body.tenant_Profile = param.tenant_Profile;
-						requestOptions.body.provision_ACL = param.provision_ACL;
-						requestOptions.body.extKeyRequired = param.extKeyRequired;
-						requestOptions.body.requestTimeout = param.requestTimeout;
-						requestOptions.body.requestTimeoutRenewal = param.requestTimeoutRenewal;
-						requestOptions.body.interConnect = param.interConnect;
-						requestOptions.body.apiList = param.apiList;
-						
-						requestOptions.body.mw = param.mw;
-					}
-					*/
 					if (param.serviceHATask) {
 						requestOptions.qs.serviceHATask = param.serviceHATask;
 					}
@@ -197,7 +163,7 @@ let registryModule = {
 	},
 	"loadByEnv": (param, cb) => {
 		let options = {
-			"reload": true,
+			"reload": false,
 			"envCode": param.envCode.toLowerCase()
 		};
 		if (options.envCode === regEnvironment && registry_struct[options.envCode]) {
