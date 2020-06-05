@@ -1,0 +1,63 @@
+{
+  "timeLoaded": 1589459548667,
+  "name": "solo",
+  "environment": "solo",
+  "serviceConfig": {
+    "awareness": {
+      "cacheTTL": 3600000,
+      "healthCheckInterval": 5000,
+      "autoRelaodRegistry": 86400000,
+      "maxLogCount": 5,
+      "autoRegisterService": true
+    },
+    "logger": {
+      "src": false,
+      "level": "error",
+      "formatter": {
+        "levelInString": false,
+        "outputMode": "short"
+      }
+    },
+    "oauth": {
+      "grants": [
+        "password",
+        "refresh_token"
+      ],
+      "debug": false,
+      "accessTokenLifetime": 43200,
+      "refreshTokenLifetime": 1209600,
+      "getUserFromToken": true
+    },
+    "ports": {
+      "controller": 4000,
+      "maintenanceInc": 1000,
+      "randomInc": 100
+    },
+    "cookie": {
+      "secret": "3f6ca4cd-ed7f-40c3-b233-2d88e4f8a190"
+    },
+    "session": {
+    },
+    "key": {
+      "algorithm": "aes256",
+      "password": "41bb4814-5ca8-4b74-b736-ac058e809262"
+    }
+  },
+  "deployer": {
+  },
+  "custom": {},
+  "resources": {
+  },
+  "services": {
+    "controller": {
+      "name": "controller",
+      "group": "SOAJS Core Service",
+      "version": "1",
+      "maxPoolSize": 100,
+      "authorization": true,
+      "port": 4000,
+      "requestTimeout": 30,
+      "requestTimeoutRenewal": 0
+    }
+  }
+}

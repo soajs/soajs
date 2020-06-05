@@ -95,7 +95,7 @@ module.exports = (grunt) => {
 				}
 			},
 			files: {
-				src: ['index.js', 'config.js', 'Gruntfile.js', 'classes/*.js', 'mw/**/*.js', 'servers/*.js', 'utilities/*.js', 'test/helper.js', 'test/unit/**/*.js']
+				src: ['index.js', 'config.js', 'Gruntfile.js', 'classes/*.js', 'modules/**/*.js', 'mw/**/*.js', 'servers/*.js', 'utilities/*.js', 'test/helper.js', 'test/unit/**/*.js']
 			},
 			gruntfile: {
 				src: 'Gruntfile.js'
@@ -109,7 +109,9 @@ module.exports = (grunt) => {
 				SOAJS_DAEMON_GRP_CONF: 'group1',
 				SOAJS_SRVIP: "127.0.0.1",
 				SOAJS_TEST: true,
-				APP_DIR_FOR_CODE_COVERAGE: '../'
+				APP_DIR_FOR_CODE_COVERAGE: '../',
+				SOAJS_DEPLOY_MANUAL: true,
+				SOAJS_REGISTRY_API: '127.0.0.1:5000'
 			},
 			coverage: {
 				SOAJS_IMPORTER_DROPDB: true,
@@ -117,7 +119,9 @@ module.exports = (grunt) => {
 				SOAJS_DAEMON_GRP_CONF: 'group1',
 				SOAJS_SRVIP: "127.0.0.1",
 				SOAJS_TEST: true,
-				APP_DIR_FOR_CODE_COVERAGE: '../test/coverage/instrument/'
+				APP_DIR_FOR_CODE_COVERAGE: '../test/coverage/instrument/',
+				SOAJS_DEPLOY_MANUAL: true,
+				SOAJS_REGISTRY_API: '127.0.0.1:5000'
 			}
 		},
 		
@@ -146,7 +150,7 @@ module.exports = (grunt) => {
 		
 		
 		instrument: {
-			src: ['index.js', 'config.js', 'classes/*.js', 'mw/**/*.js', 'servers/*.js', 'utilities/*.js',],
+			src: ['index.js', 'config.js', 'classes/*.js', 'modules/**/*.js',  'mw/**/*.js', 'servers/*.js', 'utilities/*.js',],
 			options: {
 				lazy: false,
 				basePath: 'test/coverage/instrument/'

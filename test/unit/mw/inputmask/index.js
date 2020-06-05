@@ -52,7 +52,7 @@ describe("Testing inputmask index", function () {
 		try {
 			index(config, inputmaskSrc, core);
 		} catch (exception) {
-			assert.equal(exception.toString(), "Error: Inputmask error: Invalid configuration: instance.serviceName is required,instance.servicePort is required");
+			assert.equal(exception.toString(), "Error: Inputmask error: Invalid configuration: instance requires property \"serviceName\",instance requires property \"servicePort\"");
 			done();
 		}
 	});

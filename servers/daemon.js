@@ -9,12 +9,16 @@ const lib = require("soajs.core.libs");
 
 const express = require("express");
 
+const registryModule = require("./../modules/registry");
+
 let struct_jobs = {};
 
 let autoRegHost = process.env.SOAJS_SRV_AUTOREGISTERHOST || true;
 if (autoRegHost && typeof(autoRegHost) !== 'boolean') {
 	autoRegHost = (autoRegHost === 'true');
 }
+
+let manualdeploy = !!process.env.SOAJS_DEPLOY_MANUAL;
 
 function extractJOBsList(schema) {
 	let jobList = {};
@@ -58,6 +62,7 @@ function Daemon(param) {
 		delete param.config;
 	}
 	
+	param.mw = manualdeploy;
 	_self.soajs = {};
 	_self.soajs.param = param;
 	_self.daemonStats = {
@@ -71,6 +76,8 @@ function Daemon(param) {
 Daemon.prototype.init = function (callback) {
 	let _self = this;
 	let registry = null;
+	
+	_self.soajs.param.type = _self.soajs.param.type.toLowerCase();
 	
 	_self.soajs.param.serviceName = _self.soajs.param.serviceName.toLowerCase();
 	_self.soajs.param.serviceGroup = _self.soajs.param.serviceGroup || "No Group Daemon";
@@ -108,15 +115,12 @@ Daemon.prototype.init = function (callback) {
 	
 	function resume() {
 		_self.soajs.jobList = extractJOBsList(_self.soajs.param.schema);
-		core.registry.load({
-			"type": "daemon",
-			"serviceName": _self.soajs.param.serviceName,
-			"serviceGroup": _self.soajs.param.serviceGroup,
-			"serviceVersion": _self.soajs.param.serviceVersion,
-			"designatedPort": _self.soajs.param.servicePort,
-			"serviceIp": _self.soajs.param.serviceIp,
-			"jobList": _self.soajs.jobList,
-			"maintenance": _self.soajs.param.maintenance
+		registryModule.load({
+			"type": _self.soajs.param.type,
+			"name": _self.soajs.param.serviceName,
+			"group": _self.soajs.param.serviceGroup,
+			"port": _self.soajs.param.servicePort,
+			"version": _self.soajs.param.serviceVersion
 		}, function (reg) {
 			registry = reg;
 			_self.soajs.daemonServiceConf = lib.registry.getDaemonServiceConf(_self.soajs.param.serviceName, registry);
@@ -156,7 +160,7 @@ Daemon.prototype.init = function (callback) {
 			
 			//Expose some core function after init
 			_self.getCustomRegistry = function () {
-				return core.registry.getCustom();
+				return registryModule.getCustom();
 			};
 			
 			//exposing provision functionality to generate keys
@@ -164,10 +168,6 @@ Daemon.prototype.init = function (callback) {
 				"init": provision.init,
 				"generateInternalKey": provision.generateInternalKey,
 				"generateExtKey": provision.generateExtKey
-			};
-			
-			_self.registry = {
-				"loadByEnv": core.registry.loadByEnv
 			};
 			
 			callback();
@@ -192,34 +192,20 @@ Daemon.prototype.start = function (cb) {
 	if (_self.soajs) {
 		_self.soajs.log.info("Daemon Service about to start ...");
 		
-		let registry = core.registry.get();
+		let registry = registryModule.get();
 		_self.soajs.log.info("Loading Daemon Service Provision ...");
 		provision.init(registry.coreDB.provision, _self.soajs.log);
 		provision.loadProvision(function (loaded) {
+			let maintenancePort = _self.soajs.param.servicePort;
 			if (loaded) {
 				_self.soajs.log.info("Daemon Service provision loaded.");
 				_self.soajs.log.info("Starting Daemon Service ...");
-				
-				if (!process.env.SOAJS_DEPLOY_HA) {
-					core.registry.registerHost({
-						"serviceName": _self.soajs.param.serviceName,
-						"serviceVersion": _self.soajs.param.serviceVersion,
-						"serviceIp": _self.soajs.param.serviceIp,
-						"serviceHATask": _self.soajs.param.serviceHATask
-					}, registry, function (registered) {
-						if (registered) {
-							_self.soajs.log.info("Host IP [" + _self.soajs.param.serviceIp + "] for daemon service [" + _self.soajs.param.serviceName + "@" + _self.soajs.param.serviceVersion + "] successfully registered.");
-						} else {
-							_self.soajs.log.warn("Unable to register host IP [" + _self.soajs.param.serviceIp + "] for daemon service [" + _self.soajs.param.serviceName + "@" + _self.soajs.param.serviceVersion + "]");
-						}
-					});
-				}
 				
 				//MAINTENANCE Service Routes
 				_self.soajs.log.info("Adding Daemon Service Maintenance Routes ...");
 				
 				//calculate the maintenance port value
-				let maintenancePort = _self.soajs.daemonServiceConf.info.port + _self.soajs.daemonServiceConf._conf.ports.maintenanceInc;
+				maintenancePort = _self.soajs.daemonServiceConf.info.port + _self.soajs.daemonServiceConf._conf.ports.maintenanceInc;
 				if (!process.env.SOAJS_DEPLOY_HA) {
 					if (process.env.SOAJS_SRVPORT) {
 						let envPort = parseInt(process.env.SOAJS_SRVPORT);
@@ -386,7 +372,7 @@ Daemon.prototype.start = function (cb) {
 								};
 								
 								//Build soajs object to be passed to all the registered jobs
-								jobThread.soajs.registry = core.registry.get();
+								jobThread.soajs.registry = registryModule.get();
 								jobThread.soajs.log = _self.soajs.log;
 								
 								afterMWLoaded();
@@ -512,13 +498,12 @@ Daemon.prototype.start = function (cb) {
 					res.jsonp(response);
 				});
 				_self.appMaintenance.get("/reloadRegistry", function (req, res) {
-					core.registry.reload({
-						"type": "daemon",
-						"serviceName": _self.soajs.param.serviceName,
-						"serviceGroup": _self.soajs.param.serviceGroup,
-						"serviceVersion": _self.soajs.param.serviceVersion,
-						"designatedPort": _self.soajs.param.servicePort,
-						"serviceIp": _self.soajs.param.serviceIp
+					registryModule.reload({
+						"type": _self.soajs.param.type,
+						"name": _self.soajs.param.serviceName,
+						"group": _self.soajs.param.serviceGroup,
+						"port": _self.soajs.param.servicePort,
+						"version": _self.soajs.param.serviceVersion
 					}, function (err, reg) {
 						if (err) {
 							_self.soajs.log.warn("Failed to load registry. reusing from previous load. Reason: " + err.message);
@@ -583,12 +568,22 @@ Daemon.prototype.start = function (cb) {
 			}
 			if (autoRegHost && !process.env.SOAJS_DEPLOY_HA) {
 				_self.soajs.log.info("Initiating service auto register for awareness ...");
-				core.registry.autoRegisterService({
+				registryModule.autoRegisterService({
 					"name": _self.soajs.param.serviceName,
-					"serviceIp": _self.soajs.param.serviceIp,
-					"serviceVersion": _self.soajs.param.serviceVersion,
-					"serviceHATask": _self.soajs.param.serviceHATask,
-					"what": "daemons"
+					"description": _self.soajs.param.description,
+					"type": _self.soajs.param.type,
+					"subType": _self.soajs.param.subType,
+					"group": _self.soajs.param.serviceGroup,
+					"port": _self.soajs.param.servicePort,
+					"portHost": maintenancePort,
+					"ip": _self.soajs.param.serviceIp,
+					"version": _self.soajs.param.serviceVersion,
+					
+					"jobList": _self.soajs.jobList,
+					"maintenance": _self.soajs.param.maintenance,
+					
+					"mw": _self.soajs.param.mw || false,
+					"serviceHATask": _self.soajs.param.serviceHATask
 				}, function (err, registered) {
 					if (err) {
 						_self.soajs.log.warn('Unable to trigger autoRegisterService awareness for controllers: ' + err);

@@ -99,9 +99,6 @@ module.exports = function (configuration) {
 			req.soajs.awareness = {};
 			req.soajs.awareness.getHost = function () {
 				let host = null;
-				if (!input.awareness || !input.awareness.host) {
-					return host;
-				}
 				let serviceName = null, version = null, cb = arguments[arguments.length - 1];
 				switch (arguments.length) {
 					//controller, cb
@@ -121,6 +118,9 @@ module.exports = function (configuration) {
 						version = arguments[1];
 						break;
 				}
+				if (!input.awareness || !input.awareness.host) {
+					return cb(host);
+				}
 				host = input.awareness.host;
 				let gatewayServiceName = "controller";
 				if (req.soajs && req.soajs.registry && req.soajs.registry.services && req.soajs.registry.services.controller && req.soajs.registry.services.controller.name) {
@@ -138,10 +138,6 @@ module.exports = function (configuration) {
 				return cb(host);
 			};
 			req.soajs.awareness.connect = function () {
-				let response = null;
-				if (!input.awareness || !input.awareness.host) {
-					return response;
-				}
 				let serviceName = null, version = null, cb = arguments[arguments.length - 1];
 				switch (arguments.length) {
 					//controller, cb
@@ -155,19 +151,20 @@ module.exports = function (configuration) {
 						version = arguments[1];
 						break;
 				}
-				response = {};
-				if (process.env.SOAJS_DEPLOY_HA && serviceName && param.interConnect && input.awareness.interConnect && Array.isArray(input.awareness.interConnect) && input.awareness.interConnect.length > 0) {
+				let response = {};
+				if (!input.awareness || !input.awareness.host) {
+					return cb(response);
+				}
+				if (serviceName && param.interConnect && input.awareness.interConnect && Array.isArray(input.awareness.interConnect) && input.awareness.interConnect.length > 0) {
 					for (let i = 0; i < input.awareness.interConnect.length; i++) {
 						let serviceObj = input.awareness.interConnect[i];
 						if (serviceObj.name === serviceName) {
 							if (!version && serviceObj.version === serviceObj.latest) {
 								response.host = serviceObj.host + ":" + serviceObj.port;
 								break;
-							} else {
-								if (version === serviceObj.version) {
-									response.host = serviceObj.host + ":" + serviceObj.port;
-									break;
-								}
+							} else if (version === serviceObj.version) {
+								response.host = serviceObj.host + ":" + serviceObj.port;
+								break;
 							}
 						}
 					}

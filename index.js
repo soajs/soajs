@@ -4,6 +4,10 @@ require("./classes/http");
 const coreModules = require("soajs.core.modules");
 const coreLibs = require("soajs.core.libs");
 
+//NOTE: backward compatibility for multitenant
+const registryModule = require("./modules/registry");
+coreModules.core.registry = registryModule;
+
 process.on('uncaughtException', (e) => {
 	console.log(new Date().toISOString(), e.stack || e);
 	process.exit(1);

@@ -8,6 +8,8 @@
  * found in the LICENSE file at the root of this repository
  */
 
+const registryModule = require("./../../modules/registry");
+
 /**
  *
  * @param configuration
@@ -22,7 +24,7 @@ module.exports = (configuration) => {
 			req.soajs = {};
 		}
 		req.soajs.log = log;
-		req.soajs.registry = core.registry.get();
+		req.soajs.registry = registryModule.get();
 		req.soajs.meta = core.meta;
 		req.soajs.validator = core.validator;
 		return next();

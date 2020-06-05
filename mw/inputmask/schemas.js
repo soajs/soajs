@@ -27,7 +27,7 @@ let schemas = [
 			"type": "object",
 			"properties": {
 				"source": {'type': 'array', 'minItems': 1, 'items': {'type': 'string'}},
-				"description": {'type': 'string', 'required': false},
+				"description": {'type': 'string'},
 				"default": {"type": ["string", "number", "boolean", "array", "object"]},
 				"required": {"type": "boolean"},
 				"validation": {"type": "object"}
@@ -52,10 +52,11 @@ let schemas = [
 				"_apiInfo": {
 					"type": "object",
 					"properties": {
-						"l": {"type": "string", required: true},
-						"group": {"type": "string", required: false},
-						"groupMain": {"type": "boolean", required: false}
-					}
+						"l": {"type": "string"},
+						"group": {"type": "string"},
+						"groupMain": {"type": "boolean"}
+					},
+					"required": ["l"]
 				},
 				"_authorization": {"type": "string"},
 				"responses": {
@@ -95,12 +96,12 @@ let schemas = [
 		'schema': {
 			"type": "object",
 			"properties": {
-				"serviceName": {"type": "string", "required": true},
-				"serviceVersion": {"type": "string", "required": false},
-				"serviceGroup": {"type": "string", "required": false},
+				"serviceName": {"type": "string"},
+				"serviceVersion": {"type": "string"},
+				"serviceGroup": {"type": "string"},
 				"type": {"type": "string", "enum": ['service', 'daemon', 'static', 'multi']},
-				"extKeyRequired": {"type": "boolean", "required": false},
-				"servicePort": {"type": "integer", "required": true},
+				"extKeyRequired": {"type": "boolean"},
+				"servicePort": {"type": "integer"},
 				"errors": {"$ref": "/soajs/Errors"},
 				"schema": {
 					"properties": {
@@ -115,7 +116,8 @@ let schemas = [
 					},
 					"additionalProperties": false
 				}
-			}
+			},
+			"required": ["serviceName", "servicePort"]
 		}
 	}
 ];
