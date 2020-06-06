@@ -44,7 +44,6 @@ function castType(value, type, cfg) {
 	return value;
 	
 	function doArray(arr, cfg) {
-		console.log(arr)
 		if (arr && !Array.isArray(arr)) {
 			let tempArr = null;
 			try {
@@ -56,7 +55,6 @@ function castType(value, type, cfg) {
 				arr = tempArr;
 			}
 		}
-		console.log(arr)
 		if (cfg) {
 			for (let i = 0; i < arr.length; i++) {
 				if (cfg.type) {
