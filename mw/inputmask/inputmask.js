@@ -44,6 +44,19 @@ function castType(value, type, cfg) {
 	return value;
 	
 	function doArray(arr, cfg) {
+		console.log(arr)
+		if (arr && !Array.isArray(arr)) {
+			let tempArr = null;
+			try {
+				tempArr = decodeURIComponent(arr);
+				tempArr = JSON.parse(tempArr);
+			} catch (e) {
+			}
+			if (tempArr && Array.isArray(tempArr)) {
+				arr = tempArr;
+			}
+		}
+		console.log(arr)
 		if (cfg) {
 			for (let i = 0; i < arr.length; i++) {
 				if (cfg.type) {
