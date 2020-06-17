@@ -128,8 +128,8 @@ let registryModule = {
 				}
 			}
 			if (envArray.length > 0) {
-				async.mapSeries(envArray, (a) => {
-					getRegistry(a.param, a.options);
+				async.mapSeries(envArray, (a, cb) => {
+					getRegistry(a.param, a.options, cb);
 				}, () => {
 				});
 			}
