@@ -55,6 +55,9 @@ function castType(value, type, cfg) {
 				arr = tempArr;
 			}
 		}
+		if (arr && !Array.isArray(arr)) {
+			arr = [arr];
+		}
 		if (cfg) {
 			for (let i = 0; i < arr.length; i++) {
 				if (cfg.type) {
