@@ -58,15 +58,17 @@ function castType(value, type, cfg) {
 		if (arr && !Array.isArray(arr)) {
 			arr = [arr];
 		}
-		if (cfg) {
-			for (let i = 0; i < arr.length; i++) {
-				if (cfg.type) {
-					if (cfg.type === 'array' && cfg.items) {
-						doArray(arr[i], cfg.items);
-					} else if (cfg.type === 'object' && cfg) {
-						doObject(arr[i], cfg);
-					} else {
-						arr[i] = castTypeSimpleData(arr[i], cfg.type);
+		if (Array.isArray(arr)) {
+			if (cfg) {
+				for (let i = 0; i < arr.length; i++) {
+					if (cfg.type) {
+						if (cfg.type === 'array' && cfg.items) {
+							doArray(arr[i], cfg.items);
+						} else if (cfg.type === 'object' && cfg) {
+							doObject(arr[i], cfg);
+						} else {
+							arr[i] = castTypeSimpleData(arr[i], cfg.type);
+						}
 					}
 				}
 			}
@@ -86,32 +88,34 @@ function castType(value, type, cfg) {
 				obj = tempObj;
 			}
 		}
-		let objCfg = null;
-		if (cfg && (cfg.properties || (cfg.additionalProperties && typeof(cfg.additionalProperties) === 'object'))) {
-			objCfg = cfg.properties || cfg.additionalProperties;
-			for (let key in obj) {
-				if (Object.hasOwnProperty.call(obj, key)) {
-					if (Object.hasOwnProperty.call(objCfg, key)) {
-						if (objCfg[key].type === 'array') {
-							doArray(obj[key], objCfg[key].items);
-						} else if (objCfg[key].type === 'object' || objCfg[key].patternProperties) {
-							doObject(obj[key], objCfg[key]);
-						} else if (objCfg[key].type) {
-							obj[key] = castTypeSimpleData(obj[key], objCfg[key].type);
+		if (typeof obj === "object") {
+			let objCfg = null;
+			if (cfg && (cfg.properties || (cfg.additionalProperties && typeof(cfg.additionalProperties) === 'object'))) {
+				objCfg = cfg.properties || cfg.additionalProperties;
+				for (let key in obj) {
+					if (Object.hasOwnProperty.call(obj, key)) {
+						if (Object.hasOwnProperty.call(objCfg, key)) {
+							if (objCfg[key].type === 'array') {
+								doArray(obj[key], objCfg[key].items);
+							} else if (objCfg[key].type === 'object' || objCfg[key].patternProperties) {
+								doObject(obj[key], objCfg[key]);
+							} else if (objCfg[key].type) {
+								obj[key] = castTypeSimpleData(obj[key], objCfg[key].type);
+							}
 						}
 					}
 				}
 			}
-		}
-		if (cfg && (cfg.patternProperties && typeof(cfg.patternProperties) === 'object')) {
-			objCfg = cfg.patternProperties;
-			let patterns = Object.keys(objCfg);
-			for (let i = 0; i < patterns.length; i++) {
-				let regexp = new RegExp(patterns[i]);
-				for (let key2 in obj) {
-					if (Object.hasOwnProperty.call(obj, key2)) {
-						if (regexp.test(key2)) {
-							doObject(obj[key2], objCfg[patterns[i]]);
+			if (cfg && (cfg.patternProperties && typeof(cfg.patternProperties) === 'object')) {
+				objCfg = cfg.patternProperties;
+				let patterns = Object.keys(objCfg);
+				for (let i = 0; i < patterns.length; i++) {
+					let regexp = new RegExp(patterns[i]);
+					for (let key2 in obj) {
+						if (Object.hasOwnProperty.call(obj, key2)) {
+							if (regexp.test(key2)) {
+								doObject(obj[key2], objCfg[patterns[i]]);
+							}
 						}
 					}
 				}
