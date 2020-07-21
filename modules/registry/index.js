@@ -102,7 +102,8 @@ let registryModule = {
 	"load": (param, cb) => {
 		let options = {
 			"reload": false,
-			"envCode": regEnvironment
+			"envCode": regEnvironment,
+			"setBy": "load"
 		};
 		return getRegistry(param, options, (err, reg) => {
 			if (err) {
@@ -115,7 +116,8 @@ let registryModule = {
 	"reload": (param, cb) => {
 		let options = {
 			"reload": true,
-			"envCode": regEnvironment
+			"envCode": regEnvironment,
+			"setBy": "reload"
 		};
 		getRegistry(param, options, (err, reg) => {
 			cb(err, reg);
@@ -123,7 +125,10 @@ let registryModule = {
 			for (let envCode in registry_struct) {
 				if (registry_struct.hasOwnProperty(envCode)) {
 					if (envCode !== regEnvironment && registry_struct[envCode]) {
-						envArray.push({"options": {"reload": true, "envCode": envCode}, "param": param});
+						envArray.push({
+							"options": {"reload": true, "envCode": envCode, "setBy": "reload"},
+							"param": param
+						});
 					}
 				}
 			}
@@ -163,8 +168,9 @@ let registryModule = {
 	},
 	"loadByEnv": (param, cb) => {
 		let options = {
-			"reload": false,
-			"envCode": param.envCode.toLowerCase()
+			"reload": true,
+			"envCode": param.envCode.toLowerCase(),
+			"setBy": "loadByEnv"
 		};
 		if (options.envCode === regEnvironment && registry_struct[options.envCode]) {
 			return cb(null, registry_struct[options.envCode]);

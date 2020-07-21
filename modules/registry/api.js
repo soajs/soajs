@@ -25,7 +25,7 @@ let model = {
 		let reg = null;
 		
 		let requestOption = {
-			"url": "http://" + process.env.SOAJS_REGISTRY_API + "/getRegistry?env=" + options.envCode + "&name=" + param.name + "&type=" + param.type,
+			"url": "http://" + process.env.SOAJS_REGISTRY_API + "/getRegistry?env=" + options.envCode + "&name=" + param.name + "&type=" + param.type + "&setBy=" + options.setBy,
 			"json": true
 		};
 		request(requestOption, function (error, response, body) {
