@@ -28,9 +28,9 @@
     "grunt-istanbul": "0.8.0",
     "grunt-jsdoc": "2.4.0",
     "grunt-mocha-test": "0.13.3",
-    "lodash": "4.17.19",
+    "lodash": "4.17.20",
     "mocha": "6.2.2",
-    "soajs.controller": "4.0.22"
+    "soajs.controller": "4.0.27"
   },
   "dependencies": {
     "async": "3.2.0",
