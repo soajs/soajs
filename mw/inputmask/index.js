@@ -7,12 +7,13 @@
  * Use of this source code is governed by an Apache license that can be
  * found in the LICENSE file at the root of this repository
  */
+
 const main_schema = require("./main-schema.js");
+const inputmask = require("./inputmask.js");
 
 module.exports = (config, inputmaskSrc, core) => {
-	let validator = core.validator;
-	let configSchemaValidator = require('./schemas.js')(validator);
-	let inputmask = require("./inputmask.js");
+	const validator = core.validator;
+	const configSchemaValidator = require('./schemas.js')(validator);
 	
 	let returnErrorResponse = (err, req, res) => {
 		let response = req.soajs.buildResponse(err);
