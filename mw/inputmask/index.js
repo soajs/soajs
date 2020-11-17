@@ -7,6 +7,7 @@
  * Use of this source code is governed by an Apache license that can be
  * found in the LICENSE file at the root of this repository
  */
+const main_schema = require("./main-schema.js");
 
 module.exports = (config, inputmaskSrc, core) => {
 	let validator = core.validator;
@@ -27,7 +28,7 @@ module.exports = (config, inputmaskSrc, core) => {
 		throw new Error("Inputmask error: Empty configuration");
 	}
 	
-	let configValidate = configSchemaValidator.validate(config, "/soajs");
+	let configValidate = configSchemaValidator.validate(config, main_schema.schema);
 	if (!configValidate.valid) {
 		//configValidate.errors is an array
 		let errMsgs = [];
