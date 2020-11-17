@@ -1,7 +1,7 @@
 {
   "name": "soajs",
   "description": "soajs framework",
-  "version": "4.0.18",
+  "version": "4.0.19",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -30,7 +30,7 @@
     "grunt-mocha-test": "0.13.3",
     "lodash": "4.17.20",
     "mocha": "6.2.2",
-    "soajs.controller": "4.0.27"
+    "soajs.controller": "4.0.30"
   },
   "dependencies": {
     "async": "3.2.0",
