@@ -40,10 +40,10 @@
     "express": "4.17.1",
     "express-session": "1.17.1",
     "jsontoxml": "1.0.1",
-    "merge": "1.2.1",
+    "merge": "2.1.0",
     "method-override": "3.0.0",
     "request": "2.88.2",
     "soajs.core.libs": "1.2.0",
-    "soajs.core.modules": "5.0.7"
+    "soajs.core.modules": "5.0.8"
   }
 }
