@@ -46,6 +46,9 @@ module.exports = function (configuration) {
 				locked: input.tenant.locked,
 				type: input.tenant.type
 			};
+			if (input.tenant.name) {
+				output.tenant.name = input.tenant.name;
+			}
 			if (input.tenant.main) {
 				output.tenant.main = input.tenant.main;
 			}
