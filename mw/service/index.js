@@ -187,6 +187,10 @@ module.exports = function (configuration) {
 							}
 							if (req.query && req.query.access_token) {
 								response.headers.access_token = req.query.access_token;
+							} else if (req.headers && req.headers.access_token) {
+								response.headers.access_token = req.headers.access_token;
+							} else if (req.headers && req.headers.Authorization) {
+								response.headers.Authorization = req.headers.Authorization;
 							}
 						}
 						return cb(response);
