@@ -162,7 +162,7 @@ module.exports = {
 			sourceProblem = true;
 		} else {
 			for (let i = 0; i < obj.inputmaskSrc.length; i++) {
-				if (Object.hasOwnProperty.call(obj.req, obj.inputmaskSrc[i])) {
+				if (Object.hasOwnProperty.call(obj.req, obj.inputmaskSrc[i]) || obj.req[obj.inputmaskSrc[i]]) {
 					sources[obj.inputmaskSrc[i]] = utils.cloneObj(obj.req[obj.inputmaskSrc[i]]);
 					if (typeof sources[obj.inputmaskSrc[i]] !== "object") {
 						sourceProblem = true;
