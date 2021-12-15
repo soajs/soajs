@@ -26,8 +26,6 @@ let res = {
 		
 	    },
 	    URLParam: {
-		    maxPoolSize: 2,
-		    bufferMaxEntries: 0,
 		    useUnifiedTopology: true
 	    },
         timeConnected: 1552747598093
