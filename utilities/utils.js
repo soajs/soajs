@@ -19,8 +19,11 @@ function extractAPIsList(schema) {
 	let apiList = [];
 	
 	let processRoute = (routeObj, routeName, method) => {
+		if (!routeObj._apiInfo) {
+			routeObj._apiInfo = {};
+		}
 		let oneApi = {
-			'l': routeObj._apiInfo.l,
+			'l': routeObj._apiInfo.l || 'No label',
 			'v': routeName,
 			'm': method
 		};
