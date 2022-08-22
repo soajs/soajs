@@ -30,7 +30,7 @@ let model = {
 		};
 		request(requestOption, function (error, response, body) {
 			if (!error) {
-				if (body.result) {
+				if (body && body.result) {
 					reg = body.data;
 				}
 			}
