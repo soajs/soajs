@@ -19,31 +19,31 @@
     "test": "grunt test"
   },
   "devDependencies": {
-    "grunt": "1.0.4",
-    "grunt-contrib-clean": "2.0.0",
+    "grunt": "1.6.1",
+    "grunt-contrib-clean": "2.0.1",
     "grunt-contrib-copy": "1.0.0",
-    "grunt-contrib-jshint": "2.1.0",
+    "grunt-contrib-jshint": "3.2.0",
     "grunt-coveralls": "2.0.0",
     "grunt-env": "1.0.1",
     "grunt-istanbul": "0.8.0",
-    "grunt-jsdoc": "2.4.0",
+    "grunt-jsdoc": "2.4.1",
     "grunt-mocha-test": "0.13.3",
     "lodash": "4.17.21",
-    "mocha": "6.2.2",
-    "soajs.controller": "4.2.15"
+    "mocha": "10.7.3",
+    "soajs.controller": "4.2.16"
   },
   "dependencies": {
-    "async": "3.2.5",
-    "body-parser": "1.20.2",
-    "cookie-parser": "1.4.6",
+    "async": "3.2.6",
+    "body-parser": "1.20.3",
+    "cookie-parser": "1.4.7",
     "cron": "3.1.7",
-    "express": "4.18.2",
-    "express-session": "1.17.3",
+    "express": "4.21.1",
+    "express-session": "1.18.1",
     "jsontoxml": "1.0.1",
     "merge": "2.1.1",
     "method-override": "3.0.0",
     "request": "2.88.2",
     "soajs.core.libs": "1.2.0",
-    "soajs.core.modules": "5.2.11"
+    "soajs.core.modules": "5.2.12"
   }
 }
