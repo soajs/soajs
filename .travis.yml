@@ -21,17 +21,17 @@ jobs:
     - if [ "$TRAVIS_BRANCH" != "master" ]; then grunt test; fi
     - if [ "$TRAVIS_BRANCH" = "master" ]; then grunt coverage; fi
 
-  - stage: Publish to npm
-    if: branch =~ /(release)/
-    script:
-    - echo "PUBLISH npm"
-    deploy:
-      provider: npm
-      email: $NPM_EMAIL
-      api_key: $NPM_TOKEN
-      on:
-        all_branches: true
-        condition: $TRAVIS_BRANCH =~ ^(release)*
+  # - stage: Publish to npm
+  #   if: branch =~ /(release)/
+  #   script:
+  #   - echo "PUBLISH npm"
+  #   deploy:
+  #     provider: npm
+  #     email: $NPM_EMAIL
+  #     api_key: $NPM_TOKEN
+  #     on:
+  #       all_branches: true
+  #       condition: $TRAVIS_BRANCH =~ ^(release)*
 
   - stage: Tag and release
     if: branch =~ /(release)/
