@@ -1,53 +1,57 @@
-language: node_js
-node_js: 18
-cache: false
 dist: focal
+language: node_js
+node_js: 20
 
 jobs:
   include:
+    - stage: install, check code style and coverage
+      if: tag IS blank
+      services:
+        - mongodb
+      addons:
+        hosts:
+          - localhost
+          - dev-controller
+          - kubernetes.default
+      before_script:
+        - npm install -g grunt-cli
+      script:
+        - if [ "$TRAVIS_BRANCH" != "master" ]; then grunt test; fi
+        - if [ "$TRAVIS_BRANCH" = "master" ]; then grunt coverage; fi
 
-  - stage: install, check code style and coverage
-    if: tag IS blank
-    services:
-    - mongodb
-    addons:
-      hosts:
-      - localhost
-      - dev-controller
-      - kubernetes.default
-    before_script:
-    - npm install -g grunt-cli
-    script:
-    - if [ "$TRAVIS_BRANCH" != "master" ]; then grunt test; fi
-    - if [ "$TRAVIS_BRANCH" = "master" ]; then grunt coverage; fi
+    # - stage: Publish to npm
+    #   if: branch =~ /(release)/
+    #   script:
+    #   - echo "PUBLISH npm"
+    #   deploy:
+    #     provider: npm
+    #     email: $NPM_EMAIL
+    #     api_key: $NPM_TOKEN
+    #     on:
+    #       all_branches: true
+    #       condition: $TRAVIS_BRANCH =~ ^(release)*
 
-  # - stage: Publish to npm
-  #   if: branch =~ /(release)/
-  #   script:
-  #   - echo "PUBLISH npm"
-  #   deploy:
-  #     provider: npm
-  #     email: $NPM_EMAIL
-  #     api_key: $NPM_TOKEN
-  #     on:
-  #       all_branches: true
-  #       condition: $TRAVIS_BRANCH =~ ^(release)*
+    - stage: Tag and release
+      if: branch =~ /(release)/
+      script:
+        - echo "Tagging"
+        - export PACKAGE_VERSION=$(cat package.json | grep version | head -1 | awk -Fn '{ print $2 }' | sed 's/[n:",]//g' | tr -d '[[:space:]]')
+        - export MAJOR_VERSION=$(echo ${PACKAGE_VERSION} | awk -F. '{ print $1 }')
+        - echo Package version ${PACKAGE_VERSION}
+        - echo Major version ${MAJOR_VERSION}
 
-  - stage: Tag and release
-    if: branch =~ /(release)/
-    script:
-    - echo "Tagging"
-    - export PACKAGE_VERSION=$(cat package.json | grep version | head -1 | awk -Fn '{ print $2 }' | sed 's/[n:",]//g' | tr -d '[[:space:]]')
-    - export MAJOR_VERSION=$(echo ${PACKAGE_VERSION} | awk -F. '{ print $1 }')
-    - echo Package version ${PACKAGE_VERSION}
-    - echo Major version ${MAJOR_VERSION}
-
-    - git config --local user.name ${GIT_USER}
-    - git config --local user.email ${GIT_EMAIL}
-    - git tag ${PACKAGE_VERSION}
-    deploy:
-      on:
-        all_branches: true
-      provider: releases
-      api_key: ${GIT_TOKEN}
-      skip_cleanup: true
+        - git config --local user.name ${GIT_USER}
+        - git config --local user.email ${GIT_EMAIL}
+        - git tag ${PACKAGE_VERSION}
+      before_deploy:
+        - yes | gem update --system --force
+        - gem install bundler
+        - gem install faraday-net_http -v '3.3.0'
+        - gem install uri
+        - gem install logger
+      deploy:
+        on:
+          all_branches: true
+        provider: releases
+        api_key: ${GIT_TOKEN}
+        skip_cleanup: true

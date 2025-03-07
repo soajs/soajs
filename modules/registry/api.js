@@ -13,7 +13,7 @@ const request = require('request');
 if (!process.env.SOAJS_REGISTRY_API || process.env.SOAJS_REGISTRY_API.indexOf(":") === -1) {
 	throw new Error('Invalid format for SOAJS_REGISTRY_API [hostname:port]: ' + process.env.SOAJS_REGISTRY_API);
 } else {
-	let portFromEnv = process.env.SOAJS_REGISTRY_API.substr(process.env.SOAJS_REGISTRY_API.indexOf(":") + 1);
+	let portFromEnv = process.env.SOAJS_REGISTRY_API.substring(process.env.SOAJS_REGISTRY_API.indexOf(":") + 1);
 	let port = parseInt(portFromEnv);
 	if (isNaN(port)) {
 		throw new Error('port must be integer: [' + portFromEnv + ']');
