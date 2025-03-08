@@ -9,7 +9,8 @@
  */
 
 const async = require('async');
-const request = require('request');
+// const request = require('request');
+const { httpRequestLight } = require("../../utilities/request.js");
 
 let regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
@@ -55,7 +56,7 @@ function getRegistry(param, options, cb) {
 						};
 					}
 				}
-				
+
 				if (registry && registry.serviceConfig.awareness.autoRelaodRegistry) {
 					let autoReload = () => {
 						getRegistry(param, options, () => {
@@ -70,7 +71,7 @@ function getRegistry(param, options, cb) {
 					}
 					autoReloadTimeout[options.envCode].timeout = setTimeout(autoReload, registry.serviceConfig.awareness.autoRelaodRegistry);
 				}
-				
+
 				registry_struct[options.envCode] = registry;
 			} else {
 				registry_struct[options.envCode] = null;
@@ -126,7 +127,7 @@ let registryModule = {
 				if (registry_struct.hasOwnProperty(envCode)) {
 					if (envCode !== regEnvironment && registry_struct[envCode]) {
 						envArray.push({
-							"options": {"reload": true, "envCode": envCode, "setBy": "reload"},
+							"options": { "reload": true, "envCode": envCode, "setBy": "reload" },
 							"param": param
 						});
 					}
@@ -151,14 +152,22 @@ let registryModule = {
 						"method": "post"
 					};
 					requestOptions.qs = {};
-					requestOptions.body = param;
+					requestOptions.data = param;
 					if (param.serviceHATask) {
 						requestOptions.qs.serviceHATask = param.serviceHATask;
 					}
-					request(requestOptions, (error) => {
-						return (error) ? callback(error) : callback(null);
-					});
-					
+					httpRequestLight(requestOptions)
+						.then(() => {
+							return callback(null);
+						})
+						.catch((error) => {
+							return callback(error);
+						});
+
+					// request(requestOptions, (error) => {
+					// 	return (error) ? callback(error) : callback(null);
+					// });
+
 				}, (err) => {
 					return (err) ? cb(err, false) : cb(null, true);
 				});
