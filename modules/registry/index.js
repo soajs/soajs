@@ -156,12 +156,12 @@ let registryModule = {
 					if (param.serviceHATask) {
 						requestOptions.qs.serviceHATask = param.serviceHATask;
 					}
-					httpRequestLight(requestOption)
+					httpRequestLight(requestOptions)
 						.then(() => {
-							return cb(null);
+							return callback(null);
 						})
 						.catch((error) => {
-							return cb(error);
+							return callback(error);
 						});
 
 					// request(requestOptions, (error) => {
