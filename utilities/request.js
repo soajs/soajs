@@ -29,12 +29,25 @@ function httpRequestLight({ uri, data = null, qs = null, method = 'GET', headers
                 },
             };
             if (qs) {
-                const mergedQueryParams = new URLSearchParams({
-                    ...Object.fromEntries(new URLSearchParams(options.path.split('?')[1] || '')), //existing query params
-                    ...qs,
+                // Merge query parameters into the path
+                const existingParams = new URLSearchParams(options.path.split('?')[1] || '');
+                const mergedParams = new URLSearchParams();
+
+                // Add existing params
+                existingParams.forEach((value, key) => {
+                    mergedParams.append(key, value);
                 });
-                const queryString = mergedQueryParams.toString();
+
+                // Add/override queryParams
+                for (const key in qs) {
+                    if (qs.hasOwnProperty(key)) {
+                        mergedParams.set(key, qs[key]);
+                    }
+                }
+
+                const queryString = mergedParams.toString();
                 const basePath = options.path.split('?')[0];
+
                 options.path = basePath + (queryString ? `?${queryString}` : '');
             }
             if (headers) {
@@ -132,12 +145,25 @@ function httpRequest({ uri, data = null, qs = null, method = 'GET', headers = nu
                 },
             };
             if (qs) {
-                const mergedQueryParams = new URLSearchParams({
-                    ...Object.fromEntries(new URLSearchParams(options.path.split('?')[1] || '')), //existing query params
-                    ...qs,
+                // Merge query parameters into the path
+                const existingParams = new URLSearchParams(options.path.split('?')[1] || '');
+                const mergedParams = new URLSearchParams();
+
+                // Add existing params
+                existingParams.forEach((value, key) => {
+                    mergedParams.append(key, value);
                 });
-                const queryString = mergedQueryParams.toString();
+
+                // Add/override queryParams
+                for (const key in qs) {
+                    if (qs.hasOwnProperty(key)) {
+                        mergedParams.set(key, qs[key]);
+                    }
+                }
+
+                const queryString = mergedParams.toString();
                 const basePath = options.path.split('?')[0];
+
                 options.path = basePath + (queryString ? `?${queryString}` : '');
             }
             if (headers) {
