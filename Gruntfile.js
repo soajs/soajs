@@ -66,7 +66,7 @@ module.exports = (grunt) => {
 				"curly": true,
 				"eqeqeq": true,
 				"eqnull": true,
-				"esversion": 6,
+				"esversion": 9,
 				"forin": true,
 				"latedef": "nofunc",
 				"leanswitch": true,
