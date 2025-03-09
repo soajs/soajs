@@ -18,7 +18,7 @@ const http = require('http');
 
 function httpRequest({ uri, data = null, body = null, qs = null, method = 'GET', headers = null, json = true }) {
 	return new Promise((resolve, reject) => {
-        data = data || body; // to be compatible with request package
+		data = data || body; // to be compatible with request package
 
 		let onResponse = false;
 		let options = {};
