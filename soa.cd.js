@@ -16,11 +16,12 @@ let SOAJS_env_list;
 const http = require('http');
 // const request = require("request");
 
-function httpRequest({ uri, body = null, qs = null, method = 'GET', headers = null, json = true }) {
+function httpRequest({ uri, data = null, body = null, qs = null, method = 'GET', headers = null, json = true }) {
 	return new Promise((resolve, reject) => {
+        data = data || body; // to be compatible with request package
+
 		let onResponse = false;
 		let options = {};
-		let data = body;
 
 		const requestDataString = data ? (json ? JSON.stringify(data) : data.toString()) : '';
 		try {
@@ -185,8 +186,8 @@ let utils = {
 				.then((body) => {
 					cb(null, body);
 				})
-				.catch((error) => {
-					cb(error.body || error.error, null);
+				.catch(({ error, body }) => {
+					cb(body || error, null);
 				});
 			// request.put(params, cb);
 		});
