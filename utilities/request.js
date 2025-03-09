@@ -10,8 +10,10 @@
 
 const http = require('http');
 
-function httpRequestLight({ uri, data = null, qs = null, method = 'GET', headers = null, json = true }) {
+function httpRequestLight({ uri, data = null, body = null, qs = null, method = 'GET', headers = null, json = true }) {
     return new Promise((resolve, reject) => {
+        data = data || body; // to be compatible with request package
+
         let onResponse = false;
         let options = {};
         const requestDataString = data ? (json ? JSON.stringify(data) : data.toString()) : '';
@@ -125,8 +127,10 @@ function httpRequestLight({ uri, data = null, qs = null, method = 'GET', headers
     });
 }
 
-function httpRequest({ uri, data = null, qs = null, method = 'GET', headers = null, json = true }) {
+function httpRequest({ uri, data = null, body = null, qs = null, method = 'GET', headers = null, json = true }) {
     return new Promise((resolve, reject) => {
+        data = data || body; // to be compatible with request package
+
         let onResponse = false;
         let options = {};
 
