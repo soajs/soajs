@@ -13,52 +13,50 @@ const SOAJS_img_tag = process.env.SOAJS_img_tag;
 
 let SOAJS_env_list;
 
-const http = require('http');
-// const request = require("request");
+const https = require("https");
+const http = require("http");
 
-function httpRequest({ uri, data = null, body = null, qs = null, method = 'GET', headers = null, json = true }) {
+function httpRequest({ uri, data = null, body = null, qs = null, method = "GET", headers = null, json = true }) {
 	return new Promise((resolve, reject) => {
 		data = data || body; // to be compatible with request package
 
 		let onResponse = false;
 		let options = {};
+		let urlObj = {};
 
-		const requestDataString = data ? (json ? JSON.stringify(data) : data.toString()) : '';
+		const requestDataString = data ? (json ? JSON.stringify(data) : data.toString()) : "";
 		try {
-			const urlObj = new URL(uri);
+			urlObj = new URL(uri);
 
-			options = {
-				"hostname": urlObj.hostname,
-				"port": urlObj.port,
-				"path": urlObj.pathname + urlObj.search,
-				"method": method.toUpperCase(),
-				"headers": {
-					'Content-Type': json ? 'application/json' : 'application/x-www-form-urlencoded',
-					'Content-Length': data ? Buffer.byteLength(requestDataString) : 0,
-				},
-			};
 			if (qs) {
 				// Merge query parameters into the path
-				const existingParams = new URLSearchParams(options.path.split('?')[1] || '');
+				const existingParams = new URLSearchParams(urlObj.search);
 				const mergedParams = new URLSearchParams();
 
 				// Add existing params
 				existingParams.forEach((value, key) => {
 					mergedParams.append(key, value);
 				});
-
 				// Add/override queryParams
 				for (const key in qs) {
 					if (qs.hasOwnProperty(key)) {
 						mergedParams.set(key, qs[key]);
 					}
 				}
-
-				const queryString = mergedParams.toString();
-				const basePath = options.path.split('?')[0];
-
-				options.path = basePath + (queryString ? `?${queryString}` : '');
+				urlObj.search = mergedParams.toString();
 			}
+
+			options = {
+				"hostname": urlObj.hostname,
+				"port": urlObj.port || 443,
+				"path": urlObj.pathname + urlObj.search,
+				"method": method.toUpperCase(),
+				"headers": {
+					"Content-Type": json ? "application/json" : "application/x-www-form-urlencoded",
+					"Content-Length": data ? Buffer.byteLength(requestDataString) : 0,
+				},
+			};
+
 			if (headers) {
 				for (const key in headers) {
 					if (headers.hasOwnProperty(key)) {
@@ -72,16 +70,21 @@ function httpRequest({ uri, data = null, body = null, qs = null, method = 'GET',
 				return reject({ error: error, body: null }); // Reject with error and null data for request errors
 			}
 		}
-		const req = http.request(options);
+		let req = null;
+		if (urlObj.protocol === "https:") {
+			req = https.request(options);
+		} else {
+			req = http.request(options);
+		}
 
-		req.on('response', (res) => { // Listen for the 'response' event
-			let responseData = '';
+		req.on("response", (res) => { // Listen for the "response" event
+			let responseData = "";
 
-			res.on('data', (chunk) => {
+			res.on("data", (chunk) => {
 				responseData += chunk;
 			});
 
-			res.on('end', () => {
+			res.on("end", () => {
 				if (!onResponse) {
 					onResponse = true;
 					if (res.statusCode < 200 || res.statusCode >= 300) {
@@ -103,13 +106,13 @@ function httpRequest({ uri, data = null, body = null, qs = null, method = 'GET',
 				}
 			});
 
-			res.on('close', () => {
+			res.on("close", () => {
 				if (!onResponse) {
 					onResponse = true;
 					return reject({ error: new Error("Closed"), body: null }); // Reject with error and null data for request errors
 				}
 			});
-			res.on('error', (error) => {
+			res.on("error", (error) => {
 				if (!onResponse) {
 					onResponse = true;
 					return reject({ error: error, body: null }); // Reject with error and null data for request errors
@@ -117,13 +120,13 @@ function httpRequest({ uri, data = null, body = null, qs = null, method = 'GET',
 			});
 		});
 
-		req.on('close', () => {
+		req.on("close", () => {
 			if (!onResponse) {
 				onResponse = true;
 				return reject({ error: new Error("Closed"), body: null }); // Reject with error and null data for request errors
 			}
 		});
-		req.on('error', (error) => {
+		req.on("error", (error) => {
 			if (!onResponse) {
 				onResponse = true;
 				return reject({ error: error, body: null }); // Reject with error and null data for request errors
@@ -173,7 +176,7 @@ let utils = {
 		//example export SOAJS_env_list=dashboard,dev
 		if (process.env.SOAJS_env_list) {
 			try {
-				SOAJS_env_list = process.env.SOAJS_env_list.split(',');
+				SOAJS_env_list = process.env.SOAJS_env_list.split(",");
 			} catch (e) {
 				console.log("Malformed SOAJS_env_list environment variable!");
 				process.exit(-1);
@@ -210,7 +213,7 @@ let utils = {
 			}
 		}
 
-		if (soa.type === 'multi') {
+		if (soa.type === "multi") {
 			console.log("Service of type multi is not supported!");
 			process.exit(-1);
 		}
