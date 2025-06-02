@@ -237,7 +237,7 @@ Service.prototype.init = function (callback) {
 			_self.app.use(response_mw({"errors": soajs.param.errors, "status": soajs.param.status}));
 			
 			if (soajs.param.bodyParser) {
-				let bodyParser = require('body-parser');
+				// let bodyParser = require('body-parser');
 				let options = (soajs.param.bodyParser.limit) ? {limit: soajs.param.bodyParser.limit} : null;
 				_self.app.use(express.json(options));
 				_self.app.use(express.urlencoded({extended: true}));
