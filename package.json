@@ -29,21 +29,21 @@
     "grunt-jsdoc": "2.4.1",
     "grunt-mocha-test": "0.13.3",
     "lodash": "4.17.21",
-    "mocha": "11.1.0",
+    "mocha": "11.5.0",
     "request": "2.88.2",
-    "soajs.controller": "4.2.31"
+    "soajs.controller": "4.2.36"
   },
   "dependencies": {
     "async": "3.2.6",
-    "body-parser": "1.20.3",
+    "body-parser": "2.2.0",
     "cookie-parser": "1.4.7",
-    "cron": "4.1.0",
+    "cron": "4.3.1",
     "express": "4.21.2",
     "express-session": "1.18.1",
     "jsontoxml": "1.0.1",
     "merge": "2.1.1",
     "method-override": "3.0.0",
     "soajs.core.libs": "1.2.1",
-    "soajs.core.modules": "5.2.13"
+    "soajs.core.modules": "5.2.15"
   }
 }
