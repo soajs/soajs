@@ -239,8 +239,8 @@ Service.prototype.init = function (callback) {
 			if (soajs.param.bodyParser) {
 				let bodyParser = require('body-parser');
 				let options = (soajs.param.bodyParser.limit) ? {limit: soajs.param.bodyParser.limit} : null;
-				_self.app.use(bodyParser.json(options));
-				_self.app.use(bodyParser.urlencoded({extended: true}));
+				_self.app.use(express.json(options));
+				_self.app.use(express.urlencoded({extended: true}));
 				_self.log.info("Body-Parse middleware initialization done.");
 			} else {
 				_self.log.info("Body-Parser middleware initialization skipped.");
