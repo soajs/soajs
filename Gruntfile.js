@@ -95,7 +95,7 @@ module.exports = (grunt) => {
 				}
 			},
 			files: {
-				src: ['index.js', 'config.js', 'Gruntfile.js', 'classes/*.js', 'modules/**/*.js', 'mw/**/*.js', 'servers/*.js', 'utilities/*.js', 'test/helper.js', 'test/unit/**/*.js']
+				src: ['soa.cd.js', 'index.js', 'config.js', 'Gruntfile.js', 'classes/*.js', 'modules/**/*.js', 'mw/**/*.js', 'servers/*.js', 'utilities/*.js', 'test/helper.js', 'test/unit/**/*.js']
 			},
 			gruntfile: {
 				src: 'Gruntfile.js'
