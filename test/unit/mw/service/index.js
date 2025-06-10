@@ -57,11 +57,12 @@ describe("Unit test for: MW Service", function () {
 		};
 		let functionMw = serviceIndex(configuration);
 		functionMw(req, res, function () {
-			assert.deepEqual(req.soajs.tenant, what2expect);
+			assert.strictEqual(req.soajs.urac.firstName, "owner3'sèį");
+			assert.deepStrictEqual(req.soajs.tenant, what2expect);
 			req.soajs.awareness.getHost("urac", "2", (host) => {
-				assert.deepEqual(host, "127.0.0.1:4000/urac/v2");
+				assert.deepStrictEqual(host, "127.0.0.1:4000/urac/v2");
 				req.soajs.awareness.connect("urac", "2", (response) => {
-					assert.deepEqual(response, what2expect_connect);
+					assert.deepStrictEqual(response, what2expect_connect);
 					done();
 				});
 			});

@@ -11,6 +11,7 @@
 let MultiTenantSession = require("../../classes/MultiTenantSession");
 let async = require("async");
 let UracDriver = require("./urac.js");
+const { decodeHeaderValue } = require("../../utilities/header.js");
 
 let regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
@@ -25,20 +26,20 @@ module.exports = function (configuration) {
 	let param = configuration.param;
 	let app = configuration.app;
 	let core = configuration.core;
-	
+
 	function mapInjectedObject(req) {
-		
+
 		let input = req.headers.soajsinjectobj;
 		if (typeof input === 'string') {
 			input = JSON.parse(input);
 		}
-		
+
 		if (!input) {
 			return null;
 		}
-		
+
 		let output = {};
-		
+
 		if (input.tenant) {
 			output.tenant = {
 				id: input.tenant.id,
@@ -56,7 +57,7 @@ module.exports = function (configuration) {
 				output.tenant.profile = input.tenant.profile;
 			}
 		}
-		
+
 		if (input.key) {
 			output.key = {
 				config: input.key.config,
@@ -64,7 +65,7 @@ module.exports = function (configuration) {
 				eKey: input.key.eKey
 			};
 		}
-		
+
 		if (input.application) {
 			output.application = {
 				product: input.application.product,
@@ -74,30 +75,38 @@ module.exports = function (configuration) {
 				acl_all_env: input.application.acl_all_env || null
 			};
 		}
-		
+
 		if (input.package) {
 			output.package = {
 				acl: input.package.acl || null,
 				acl_all_env: input.package.acl_all_env || null
 			};
 		}
-		
+
 		if (input.device) {
 			output.device = input.device || {};
 		}
-		
+
 		if (input.geo) {
 			output.geo = input.geo || {};
 		}
-		
+
 		if (input.urac) {
 			output.urac = input.urac || null;
+			if (output.urac) {
+				if (output.urac.firstName) {
+					output.urac.firstName = decodeHeaderValue(output.urac.firstName);
+				}
+				if (output.urac.lastName) {
+					output.urac.lastName = decodeHeaderValue(output.urac.lastName);
+				}
+			}
 		}
-		
+
 		if (input.param) {
 			output.param = input.param || {};
 		}
-		
+
 		if (!req.soajs.awareness) {
 			req.soajs.awareness = {};
 			req.soajs.awareness.getHost = function () {
@@ -108,13 +117,13 @@ module.exports = function (configuration) {
 					case 2:
 						serviceName = arguments[0];
 						break;
-					
+
 					//controller, 1, cb
 					case 3:
 						serviceName = arguments[0];
 						version = arguments[1];
 						break;
-					
+
 					//controller, 1, dash, cb [dash is ignored]
 					case 4:
 						serviceName = arguments[0];
@@ -147,7 +156,7 @@ module.exports = function (configuration) {
 					case 2:
 						serviceName = arguments[0];
 						break;
-					
+
 					//controller, 1, cb
 					case 3:
 						serviceName = arguments[0];
@@ -198,10 +207,10 @@ module.exports = function (configuration) {
 				}
 			};
 		}
-		
+
 		return output;
 	}
-	
+
 	/**
 	 *
 	 * @param obj
@@ -221,7 +230,7 @@ module.exports = function (configuration) {
 				'package': obj.req.soajs.tenant.application.package,
 				'appId': obj.req.soajs.tenant.application.appId
 			},
-			'request': {'service': obj.app.soajs.param.serviceName, 'api': obj.req.route.path},
+			'request': { 'service': obj.app.soajs.param.serviceName, 'api': obj.req.route.path },
 			'device': obj.req.soajs.device,
 			'geo': obj.req.soajs.geo,
 			'req': obj.req
@@ -229,7 +238,7 @@ module.exports = function (configuration) {
 		obj.req.soajs.session = new MultiTenantSession(mtSessionParam);
 		return cb(null, obj);
 	}
-	
+
 	/**
 	 *
 	 * @param obj
@@ -245,7 +254,7 @@ module.exports = function (configuration) {
 			return cb(null, obj);
 		});
 	}
-	
+
 	/**
 	 *
 	 * @param obj
@@ -253,12 +262,12 @@ module.exports = function (configuration) {
 	 */
 	function uracCheck(obj, cb) {
 		obj.req.soajs.uracDriver = new UracDriver();
-		
+
 		if (obj.req.soajs.param.urac_Profile && obj.req.soajs.param.urac_ACL) {
 			obj.req.soajs.uracDriver.userRecord = obj.req.soajs.urac;
-			obj.req.soajs.uracDriver.user_ACL = {"acl": obj.req.soajs.urac.acl};
+			obj.req.soajs.uracDriver.user_ACL = { "acl": obj.req.soajs.urac.acl };
 		}
-		
+
 		obj.req.soajs.uracDriver.init((error) => {
 			if (error) {
 				obj.req.soajs.log.error(error.message);
@@ -266,7 +275,7 @@ module.exports = function (configuration) {
 			return cb(null, obj);
 		});
 	}
-	
+
 	return (req, res, next) => {
 		let injectObj = mapInjectedObject(req);
 		if (injectObj && injectObj.application && injectObj.application.package && injectObj.key && injectObj.tenant) {
@@ -285,7 +294,7 @@ module.exports = function (configuration) {
 			req.soajs.device = injectObj.device;
 			req.soajs.geo = injectObj.geo;
 			req.soajs.param = injectObj.param;
-			
+
 			let serviceCheckArray = [(cb) => {
 				cb(null, {
 					"app": app,
@@ -293,12 +302,12 @@ module.exports = function (configuration) {
 					"req": req
 				});
 			}];
-			
+
 			if (param.session) {
 				serviceCheckArray.push(sessionCheck);
 				serviceCheckArray.push(persistSession);
 			}
-			
+
 			if (param.uracDriver && req.soajs.urac) {
 				serviceCheckArray.push(uracCheck);
 			}
