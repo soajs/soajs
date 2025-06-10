@@ -1,7 +1,7 @@
 {
   "name": "soajs",
   "description": "soajs framework",
-  "version": "4.1.14",
+  "version": "4.1.15",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -31,7 +31,7 @@
     "lodash": "4.17.21",
     "mocha": "11.5.0",
     "request": "2.88.2",
-    "soajs.controller": "4.2.36"
+    "soajs.controller": "4.2.37"
   },
   "dependencies": {
     "async": "3.2.6",
