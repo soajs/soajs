@@ -8,6 +8,8 @@
  * found in the LICENSE file at the root of this repository
  */
 
+const logger = require("../utilities/logger");
+
 let regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
 
@@ -141,6 +143,46 @@ MultiTenantSession.prototype.setSERVICE = function (obj, cb) {
 	if (cb && (typeof cb === "function")) {
 		this.req.sessionStore.set(this.req.sessionID, this.session, cb);
 	}
+};
+
+/**
+ * Security: Regenerate session ID after authentication to prevent session fixation attacks
+ * This should be called after successful authentication/login
+ * @param cb
+ */
+MultiTenantSession.prototype.regenerateSession = function (cb) {
+	if (!this.req.session) {
+		if (cb && (typeof cb === "function")) {
+			return cb(new Error("No session available to regenerate"));
+		}
+		return;
+	}
+
+	// Store current session data
+	const oldSessionData = this.session;
+
+	// Regenerate session ID
+	this.req.session.regenerate((err) => {
+		if (err) {
+			logger.error('Security: Session regeneration failed', {
+				error: err.message
+			});
+			if (cb && (typeof cb === "function")) {
+				return cb(err);
+			}
+			return;
+		}
+
+		// Restore session data with new session ID
+		Object.assign(this.req.session, oldSessionData);
+		this.session = this.req.session;
+
+		logger.info('Security: Session regenerated successfully');
+
+		if (cb && (typeof cb === "function")) {
+			this.req.sessionStore.set(this.req.sessionID, this.session, cb);
+		}
+	});
 };
 
 /**

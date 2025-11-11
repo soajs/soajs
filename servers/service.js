@@ -237,15 +237,38 @@ Service.prototype.init = function (callback) {
 			_self.app.use(response_mw({"errors": soajs.param.errors, "status": soajs.param.status}));
 			
 			if (soajs.param.bodyParser) {
-				// let bodyParser = require('body-parser');
-				let options = (soajs.param.bodyParser.limit) ? {limit: soajs.param.bodyParser.limit} : null;
-				_self.app.use(express.json(options));
-				_self.app.use(express.urlencoded({extended: true}));
-				_self.log.info("Body-Parse middleware initialization done.");
+				// Security: Set default limits to prevent DoS attacks via large payloads
+				// Default limit of 1MB - can be overridden via configuration
+				const DEFAULT_BODY_LIMIT = '1mb';
+				const limit = (soajs.param.bodyParser.limit) ? soajs.param.bodyParser.limit : DEFAULT_BODY_LIMIT;
+
+				let jsonOptions = {
+					limit: limit,
+					// Security: Strict JSON parsing
+					strict: true
+				};
+
+				let urlencodedOptions = {
+					extended: true,
+					limit: limit,
+					// Security: Limit parameter count to prevent parameter pollution
+					parameterLimit: 1000
+				};
+
+				_self.app.use(express.json(jsonOptions));
+				_self.app.use(express.urlencoded(urlencodedOptions));
+				// Express v5: Initialize req.body as empty object if undefined
+				_self.app.use((req, res, next) => {
+					if (req.body === undefined) {
+						req.body = {};
+					}
+					next();
+				});
+				_self.log.info("Body-Parse middleware initialization done with limit: " + limit);
 			} else {
 				_self.log.info("Body-Parser middleware initialization skipped.");
 			}
-			
+
 			if (soajs.param.methodOverride) {
 				let methodOverride = require('method-override');
 				_self.app.use(methodOverride());
@@ -257,6 +280,13 @@ Service.prototype.init = function (callback) {
 			if (soajs.param.cookieParser) {
 				let cookieParser = require('cookie-parser');
 				_self.app.use(cookieParser(soajs.serviceConf._conf.cookie.secret));
+				// Express v5: Initialize req.cookies as empty object if undefined
+				_self.app.use((req, res, next) => {
+					if (req.cookies === undefined) {
+						req.cookies = {};
+					}
+					next();
+				});
 				_self.log.info("CookieParser middleware initialization done.");
 			} else {
 				_self.log.info("CookieParser middleware initialization skipped.");
@@ -320,7 +350,7 @@ Service.prototype.start = function (cb) {
 	let _self = this;
 	if (_self.app && _self.app.soajs) {
 		_self.log.info("Service about to start ...");
-		_self.app.all('*', function (req, res, next) {
+		_self.app.all('/*path', function (req, res, next) {
 			req.soajs.log.error(151, 'Unknown API : ' + req.path);
 			return next(151);
 			//res.jsonp(req.soajs.buildResponse(core.error.getError(151)));
@@ -459,7 +489,7 @@ Service.prototype.start = function (cb) {
 			response.data = data;
 			res.jsonp(response);
 		});
-		_self.appMaintenance.all('*', (req, res) => {
+		_self.appMaintenance.all('/*path', (req, res) => {
 			let response = _self.maintenanceResponse(req, "heartbeat");
 			response.result = true;
 			res.jsonp(response);

@@ -52,8 +52,9 @@ IMFV is based on json schema, support multiple sources with priority, and defaul
 4. Custom format, type and schemas
 
 ### 4. Security: oAuth, device and geo
-soajs offers two security mechanism to protect your APIs from outside and unwanted access:
+soajs offers comprehensive security mechanisms to protect your APIs from outside and unwanted access:
 
+#### Authentication & Authorization
 API access protection via oAuth 2.0
 
 1. Grant types: password, refresh_token
@@ -64,6 +65,33 @@ API access is key driven where each key is secured by:
 1. Expiration date
 2. Device access restriction
 3. Geo location access restriction
+
+#### Enhanced Security Features (v4.1.18+)
+
+**Input Protection:**
+- **ReDoS Protection** - Automatic validation against Regular Expression Denial of Service attacks
+- **Prototype Pollution Prevention** - Guards against `__proto__`, `constructor`, and `prototype` manipulation
+- **Request Size Limits** - Default 1MB body limit and 1000 parameter limit to prevent DoS attacks
+
+**Session Security:**
+- **Session Fixation Prevention** - Session regeneration after authentication
+- **Multi-tenant Session Management** - Isolated session handling per tenant and key
+
+**Secure Logging:**
+- **Automatic PII Redaction** - Sensitive data (passwords, tokens, credit cards, etc.) automatically redacted from logs
+- **Security Event Logging** - All security events logged for monitoring and audit
+
+**Error Handling:**
+- **Graceful Shutdown** - 5-second cleanup timeout on fatal errors
+- **Race Condition Prevention** - Atomic promise settlement in HTTP handlers
+- **Safe JSON Parsing** - All JSON operations wrapped with error handling
+
+**Modern Stack:**
+- **Express v5** - Latest Express framework with enhanced security
+- **Updated Dependencies** - All packages updated to patch known vulnerabilities
+- **No Deprecated Packages** - Replaced legacy packages (request → axios)
+
+For detailed security documentation, see [SECURITY.md](./SECURITY.md)
 
 ### 5. Multitenancy & productization
 Package your services with different permissions and access controls and offer them as commercial products. Now that your services are productized, you can sell those products to different clients.

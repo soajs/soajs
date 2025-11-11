@@ -9,7 +9,7 @@
 
 const assert = require('assert');
 const express = require('express');
-const request = require('request');
+const axios = require('axios');
 
 const helper = require("../../helper.js");
 helper.requireModule('./classes/http');
@@ -28,20 +28,17 @@ describe("Unit test for: classes - http", function () {
 			return res.end();
 		});
 		server.listen(port, function () {
-		
+
 		});
 		done();
 	});
-	it("Vanilla test", function (done) {
+	it("Vanilla test", async function () {
 		let requestOptions = {
-			'method': "get",
-			'uri': "http://127.0.0.1:" + port,
-			'timeout': 1000 * 3600,
-			'jar': false,
-			"headers": {"user-agent": "tony"}
+			method: "get",
+			url: "http://127.0.0.1:" + port,
+			timeout: 1000 * 3600,
+			headers: {"user-agent": "tony"}
 		};
-		request(requestOptions, () => {
-			done();
-		});
+		await axios(requestOptions);
 	});
 });

@@ -8,6 +8,7 @@
  * found in the LICENSE file at the root of this repository
  */
 
+const logger = require("./logger");
 
 /**
  * Encodes a string to be safely used as an HTTP header value.
@@ -42,7 +43,11 @@ function decodeHeaderValue(encodedValue) {
         return decodeURIComponent(encodedValue);
     } catch (e) {
         // This catches errors from malformed URI sequences (e.g., a lone '%').
-        console.error(`Failed to decode header value: "${encodedValue}"`, e);
+        // Logger automatically redacts sensitive data
+        logger.error('Failed to decode header value', {
+            error: e.message,
+            hasValue: !!encodedValue
+        });
         // Return the original, undecoded value so the app doesn't crash.
         return encodedValue;
     }
