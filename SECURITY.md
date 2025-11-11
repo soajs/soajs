@@ -1,6 +1,6 @@
 # Security Documentation
 
-This document outlines the security features, improvements, and best practices implemented in SOAJS framework v4.1.17+.
+This document outlines the security features, improvements, and best practices implemented in SOAJS framework v4.1.18+.
 
 ## Table of Contents
 
@@ -186,7 +186,7 @@ try {
 
 ## Security Improvements
 
-### Version 4.1.17+ Security Enhancements
+### Version 4.1.18+ Security Enhancements
 
 #### Critical Fixes (5)
 1. **ReDoS Vulnerability** - Added safe-regex validation for all user-provided regex patterns
@@ -424,7 +424,7 @@ For compliance documentation and security audit reports, contact: team@soajs.org
 
 ## Version History
 
-### v4.1.17+
+### v4.1.18+
 - Added ReDoS protection with safe-regex
 - Implemented prototype pollution prevention
 - Added graceful shutdown on fatal errors

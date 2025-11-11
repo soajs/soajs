@@ -66,7 +66,7 @@ API access is key driven where each key is secured by:
 2. Device access restriction
 3. Geo location access restriction
 
-#### Enhanced Security Features (v4.1.17+)
+#### Enhanced Security Features (v4.1.18+)
 
 **Input Protection:**
 - **ReDoS Protection** - Automatic validation against Regular Expression Denial of Service attacks
