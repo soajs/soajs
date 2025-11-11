@@ -70,17 +70,17 @@ module.exports = async (method, params, cb) => {
 	try {
 		const response = await axios(options);
 		// Don't assert on response.data - some responses (like DELETE) may have empty bodies
-		return cb(null, response.data);
+		// Return body, response object (for cookies, headers, etc.)
+		return cb(null, response.data, response);
 	} catch (error) {
 		// axios throws on non-2xx responses, but integration tests expect callback with data
 		if (error.response) {
 			// HTTP error response (any status code outside 2xx)
 			// Integration tests expect these responses to be passed through, not treated as errors
 			const body = error.response.data;
-			return cb(null, body);
+			return cb(null, body, error.response);
 		} else {
 			// Network or other error (no response received)
-			assert.ifError(error);
 			return cb(error);
 		}
 	}
