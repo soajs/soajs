@@ -37,7 +37,7 @@
     "async": "3.2.6",
     "cookie-parser": "1.4.7",
     "cron": "4.3.4",
-    "express": "4.21.2",
+    "express": "5.1.0",
     "express-session": "1.18.2",
     "jsontoxml": "1.0.1",
     "merge": "2.1.1",

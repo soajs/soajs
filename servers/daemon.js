@@ -545,7 +545,7 @@ Daemon.prototype.start = function (cb) {
 						res.jsonp(response);
 					});
 				});
-				_self.appMaintenance.all('*', function (req, res) {
+				_self.appMaintenance.all('/*path', function (req, res) {
 					let response = maintenanceResponse(req, "heartbeat");
 					response.result = true;
 					res.jsonp(response);
