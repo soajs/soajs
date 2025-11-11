@@ -237,11 +237,27 @@ Service.prototype.init = function (callback) {
 			_self.app.use(response_mw({"errors": soajs.param.errors, "status": soajs.param.status}));
 			
 			if (soajs.param.bodyParser) {
-				// let bodyParser = require('body-parser');
-				let options = (soajs.param.bodyParser.limit) ? {limit: soajs.param.bodyParser.limit} : null;
-				_self.app.use(express.json(options));
-				_self.app.use(express.urlencoded({extended: true}));
-				_self.log.info("Body-Parse middleware initialization done.");
+				// Security: Set default limits to prevent DoS attacks via large payloads
+				// Default limit of 1MB - can be overridden via configuration
+				const DEFAULT_BODY_LIMIT = '1mb';
+				const limit = (soajs.param.bodyParser.limit) ? soajs.param.bodyParser.limit : DEFAULT_BODY_LIMIT;
+
+				let jsonOptions = {
+					limit: limit,
+					// Security: Strict JSON parsing
+					strict: true
+				};
+
+				let urlencodedOptions = {
+					extended: true,
+					limit: limit,
+					// Security: Limit parameter count to prevent parameter pollution
+					parameterLimit: 1000
+				};
+
+				_self.app.use(express.json(jsonOptions));
+				_self.app.use(express.urlencoded(urlencodedOptions));
+				_self.log.info("Body-Parse middleware initialization done with limit: " + limit);
 			} else {
 				_self.log.info("Body-Parser middleware initialization skipped.");
 			}

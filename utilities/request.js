@@ -14,9 +14,23 @@ function httpRequestLight({ uri, data = null, body = null, qs = null, method = '
     return new Promise((resolve, reject) => {
         data = data || body; // to be compatible with request package
 
-        let onResponse = false;
+        let settled = false;
         let options = {};
         const requestDataString = data ? (json ? JSON.stringify(data) : data.toString()) : '';
+
+        // Atomic settlement helper to prevent race conditions
+        const settleOnce = (settler, value) => {
+            if (settled) {
+                console.warn('Security: Request handler - Attempted to settle promise multiple times', {
+                    value: value instanceof Error ? value.message : (typeof value === 'string' ? value : 'data'),
+                    timestamp: new Date().toISOString()
+                });
+                return false;
+            }
+            settled = true;
+            settler(value);
+            return true;
+        };
 
         try {
             const urlObj = new URL(uri);
@@ -60,19 +74,17 @@ function httpRequestLight({ uri, data = null, body = null, qs = null, method = '
                 }
             }
         } catch (error) {
-            if (!onResponse) {
-                onResponse = true;
-                return reject(error); // Reject with error and null data for request errors
-            }
+            settleOnce(reject, error);
+            return;
         }
 
         const req = http.request(options);
 
         req.on('response', (res) => { // Listen for the 'response' event
             if (res.statusCode < 200 || res.statusCode >= 300) {
-                onResponse = true;
                 res.resume();
-                return reject(new Error(`Status Code: ${res.statusCode}`));
+                settleOnce(reject, new Error(`Status Code: ${res.statusCode}`));
+                return;
             }
 
             let responseData = '';
@@ -82,43 +94,27 @@ function httpRequestLight({ uri, data = null, body = null, qs = null, method = '
             });
 
             res.on('end', () => {
-
-                if (!onResponse) {
-                    onResponse = true;
-                    try {
-                        const parsedData = json ? JSON.parse(responseData) : responseData;
-                        return resolve(parsedData);
-                    } catch (error) {
-                        return resolve(responseData);
-                    }
+                try {
+                    const parsedData = json ? JSON.parse(responseData) : responseData;
+                    settleOnce(resolve, parsedData);
+                } catch (error) {
+                    settleOnce(resolve, responseData);
                 }
             });
 
             res.on('error', (err) => {
-                if (!onResponse) {
-                    onResponse = true;
-                    return reject(err);
-                }
+                settleOnce(reject, err);
             });
             res.on('close', () => {
-                if (!onResponse) {
-                    onResponse = true;
-                    return reject(new Error("Closed"));
-                }
+                settleOnce(reject, new Error("Closed"));
             });
         });
 
         req.on('error', (err) => {
-            if (!onResponse) {
-                onResponse = true;
-                return reject(err);
-            }
+            settleOnce(reject, err);
         });
         req.on('close', () => {
-            if (!onResponse) {
-                onResponse = true;
-                return reject(new Error("Closed"));
-            }
+            settleOnce(reject, new Error("Closed"));
         });
 
         if (data) {
@@ -133,8 +129,22 @@ function httpRequest({ uri, data = null, body = null, qs = null, method = 'GET',
     return new Promise((resolve, reject) => {
         data = data || body; // to be compatible with request package
 
-        let onResponse = false;
+        let settled = false;
         let options = {};
+
+        // Atomic settlement helper to prevent race conditions
+        const settleOnce = (settler, value) => {
+            if (settled) {
+                console.warn('Security: Request handler - Attempted to settle promise multiple times', {
+                    value: value instanceof Error ? value.message : (typeof value === 'object' && value.error ? value.error.message : 'data'),
+                    timestamp: new Date().toISOString()
+                });
+                return false;
+            }
+            settled = true;
+            settler(value);
+            return true;
+        };
 
         const requestDataString = data ? (json ? JSON.stringify(data) : data.toString()) : '';
         try {
@@ -180,10 +190,8 @@ function httpRequest({ uri, data = null, body = null, qs = null, method = 'GET',
                 }
             }
         } catch (error) {
-            if (!onResponse) {
-                onResponse = true;
-                return reject({ error: error, body: null }); // Reject with error and null data for request errors
-            }
+            settleOnce(reject, { error: error, body: null });
+            return;
         }
         const req = http.request(options);
 
@@ -195,61 +203,44 @@ function httpRequest({ uri, data = null, body = null, qs = null, method = 'GET',
             });
 
             res.on('end', () => {
-                if (!onResponse) {
-                    onResponse = true;
-                    if (res.statusCode < 200 || res.statusCode >= 300) {
-                        const error = new Error(`Status Code: ${res.statusCode}`);
-                        try {
-                            const parsedData = json ? JSON.parse(responseData) : responseData;
-                            return reject({ error: error, body: parsedData }); // Reject with error and data
-                        } catch (parseError) {
-                            return reject({ error: error, body: responseData }); // Reject with error and raw data if parse fails
-                        }
-                    }
-
+                if (res.statusCode < 200 || res.statusCode >= 300) {
+                    const error = new Error(`Status Code: ${res.statusCode}`);
                     try {
                         const parsedData = json ? JSON.parse(responseData) : responseData;
-                        return resolve(parsedData);
+                        settleOnce(reject, { error: error, body: parsedData }); // Reject with error and data
                     } catch (parseError) {
-                        return resolve(responseData);
+                        settleOnce(reject, { error: error, body: responseData }); // Reject with error and raw data if parse fails
                     }
+                    return;
+                }
+
+                try {
+                    const parsedData = json ? JSON.parse(responseData) : responseData;
+                    settleOnce(resolve, parsedData);
+                } catch (parseError) {
+                    settleOnce(resolve, responseData);
                 }
             });
 
             res.on('close', () => {
-                if (!onResponse) {
-                    onResponse = true;
-                    return reject({ error: new Error("Closed"), body: null }); // Reject with error and null data for request errors
-                }
+                settleOnce(reject, { error: new Error("Closed"), body: null }); // Reject with error and null data for request errors
             });
             res.on('error', (error) => {
-                if (!onResponse) {
-                    onResponse = true;
-                    return reject({ error: error, body: null }); // Reject with error and null data for request errors
-                }
+                settleOnce(reject, { error: error, body: null }); // Reject with error and null data for request errors
             });
         });
 
         req.on('close', () => {
-            if (!onResponse) {
-                onResponse = true;
-                return reject({ error: new Error("Closed"), body: null }); // Reject with error and null data for request errors
-            }
+            settleOnce(reject, { error: new Error("Closed"), body: null }); // Reject with error and null data for request errors
         });
         req.on('error', (error) => {
-            if (!onResponse) {
-                onResponse = true;
-                return reject({ error: error, body: null }); // Reject with error and null data for request errors
-            }
+            settleOnce(reject, { error: error, body: null }); // Reject with error and null data for request errors
         });
 
         // Handle request timeout
         req.on('timeout', () => {
             req.destroy(); // IMPORTANT: Forcefully end the request
-            if (!onResponse) {
-                onResponse = true;
-                return reject(new Error('Request timed out'));
-            }
+            settleOnce(reject, new Error('Request timed out'));
         });
         // Set the timeout on the request
         req.setTimeout(timeout);

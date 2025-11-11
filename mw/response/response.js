@@ -34,11 +34,22 @@ Response.prototype.addErrorCode = function (code, message) {
 	if (!code) {
 		throw new TypeError('error code is required');
 	}
+
+	// Security: Validate message to prevent null/undefined crashes
+	if (message === null || message === undefined) {
+		message = '';
+	}
+
+	// Security: Ensure message is a string
+	if (typeof message !== 'string') {
+		message = String(message);
+	}
+
 	let errorCode = {
 		"code": code,
 		"message": message.trim()
 	};
-	
+
 	if (!this.errors) {
 		this.errors = {};
 	}

@@ -10,6 +10,56 @@
 
 const utils = require("soajs.core.libs").utils;
 const merge = require('merge');
+const safeRegex = require('safe-regex');
+
+/**
+ * Validates that a regex pattern is safe and won't cause ReDoS
+ * @param {string} pattern - The regex pattern to validate
+ * @returns {boolean} - True if safe, false otherwise
+ */
+function isRegexSafe(pattern) {
+	try {
+		// Check if pattern is safe using safe-regex module
+		if (!safeRegex(pattern)) {
+			return false;
+		}
+
+		// Additional checks for pattern complexity
+		if (pattern.length > 500) {
+			return false;
+		}
+
+		// Check for obviously dangerous nested quantifiers
+		const dangerousPatterns = [
+			/(\(.+[*+]\).+[*+])/,  // Nested quantifiers like (a+)+
+			/(\w+[*+]){2,}/,        // Multiple consecutive quantifiers
+		];
+
+		for (const dangerous of dangerousPatterns) {
+			if (dangerous.test(pattern)) {
+				return false;
+			}
+		}
+
+		return true;
+	} catch (e) {
+		return false;
+	}
+}
+
+/**
+ * Checks if a property key is dangerous and could lead to prototype pollution
+ * @param {string} key - The property key to check
+ * @returns {boolean} - True if dangerous, false otherwise
+ */
+function isDangerousKey(key) {
+	const dangerousKeys = [
+		'__proto__',
+		'constructor',
+		'prototype'
+	];
+	return dangerousKeys.includes(key);
+}
 
 function mergeCommonFields(params, commonFields) {
 	let _params = utils.cloneObj(params);
@@ -17,6 +67,14 @@ function mergeCommonFields(params, commonFields) {
 	
 	// Extend _params with commonFields
 	params.commonFields.forEach((field) => {
+		// Protect against prototype pollution
+		if (isDangerousKey(field)) {
+			console.error('Security: Prototype pollution attempt blocked in commonFields', {
+				field: field,
+				timestamp: new Date().toISOString()
+			});
+			return; // Skip dangerous keys
+		}
 		_params[field] = commonFields[field];
 	});
 	
@@ -50,6 +108,12 @@ function castType(value, type, cfg) {
 				tempArr = decodeURIComponent(arr);
 				tempArr = JSON.parse(tempArr);
 			} catch (e) {
+				// Security: Log failed parse attempts for monitoring
+				console.warn('Input validation: Failed to parse array input', {
+					error: e.message,
+					inputType: typeof arr,
+					timestamp: new Date().toISOString()
+				});
 			}
 			if (tempArr && Array.isArray(tempArr)) {
 				arr = tempArr;
@@ -83,6 +147,12 @@ function castType(value, type, cfg) {
 				tempObj = decodeURIComponent(obj);
 				tempObj = JSON.parse(tempObj);
 			} catch (e) {
+				// Security: Log failed parse attempts for monitoring
+				console.warn('Input validation: Failed to parse object input', {
+					error: e.message,
+					inputType: typeof obj,
+					timestamp: new Date().toISOString()
+				});
 			}
 			if (tempObj && typeof tempObj === "object") {
 				obj = tempObj;
@@ -94,6 +164,15 @@ function castType(value, type, cfg) {
 				objCfg = cfg.properties || cfg.additionalProperties;
 				for (let key in obj) {
 					if (Object.hasOwnProperty.call(obj, key)) {
+						// Protect against prototype pollution
+						if (isDangerousKey(key)) {
+							console.error('Security: Prototype pollution attempt blocked', {
+								key: key,
+								timestamp: new Date().toISOString()
+							});
+							continue; // Skip dangerous keys
+						}
+
 						if (Object.hasOwnProperty.call(objCfg, key)) {
 							if (objCfg[key].type === 'array') {
 								doArray(obj[key], objCfg[key].items);
@@ -110,9 +189,23 @@ function castType(value, type, cfg) {
 				objCfg = cfg.patternProperties;
 				let patterns = Object.keys(objCfg);
 				for (let i = 0; i < patterns.length; i++) {
+					// Validate regex pattern before using it
+					if (!isRegexSafe(patterns[i])) {
+						throw new Error(`Unsafe or invalid regex pattern detected: ${patterns[i].substring(0, 50)}`);
+					}
+
 					let regexp = new RegExp(patterns[i]);
 					for (let key2 in obj) {
 						if (Object.hasOwnProperty.call(obj, key2)) {
+							// Protect against prototype pollution
+							if (isDangerousKey(key2)) {
+								console.error('Security: Prototype pollution attempt blocked', {
+									key: key2,
+									timestamp: new Date().toISOString()
+								});
+								continue; // Skip dangerous keys
+							}
+
 							if (regexp.test(key2)) {
 								doObject(obj[key2], objCfg[patterns[i]]);
 							}
@@ -141,12 +234,24 @@ function castType(value, type, cfg) {
 					castedValue = (value.toString() === 'true');
 					break;
 				case 'regexp':
+					// Validate regex pattern before creating RegExp object
+					if (!isRegexSafe(value)) {
+						throw new Error(`Unsafe or invalid regex value: ${value.toString().substring(0, 50)}`);
+					}
 					castedValue = new RegExp(value);
 					break;
 				default:
 					break;
 			}
 		} catch (ex) {
+			// Log security-related errors
+			if (ex.message && ex.message.includes('Unsafe')) {
+				console.error('Security: Unsafe regex pattern blocked', {
+					error: ex.message,
+					type: type,
+					timestamp: new Date().toISOString()
+				});
+			}
 			castedValue = value;
 		}
 		return (castedValue !== null) ? castedValue : value;
@@ -214,6 +319,15 @@ module.exports = {
 		
 		for (let param in params) {
 			if (Object.hasOwnProperty.call(params, param)) {
+				// Protect against prototype pollution
+				if (isDangerousKey(param)) {
+					console.error('Security: Prototype pollution attempt blocked in mapFormatAndValidate', {
+						param: param,
+						timestamp: new Date().toISOString()
+					});
+					continue; // Skip dangerous keys
+				}
+
 				let force = false;
 				let fetched = null;
 				let paramConfig = params[param];

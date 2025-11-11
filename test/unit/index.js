@@ -33,6 +33,8 @@ describe("Starting Unit test", () => {
 		
 		require("./mw/inputmask/index.js");
 		require("./mw/inputmask/inputmask.js");
+		require("./mw/inputmask/redos-fix.js");
+		require("./mw/inputmask/prototype-pollution-fix.js");
 		require("./mw/response/index.js");
 		require("./mw/service/index.js");
 		require("./mw/service/urac.js");

@@ -31,7 +31,16 @@ module.exports = function (configuration) {
 
 		let input = req.headers.soajsinjectobj;
 		if (typeof input === 'string') {
-			input = JSON.parse(input);
+			try {
+				input = JSON.parse(input);
+			} catch (e) {
+				// Log malformed JSON attempt
+				console.error('Security: Malformed JSON in soajsinjectobj header', {
+					error: e.message,
+					timestamp: new Date().toISOString()
+				});
+				return null; // Return null for malformed JSON
+			}
 		}
 
 		if (!input) {

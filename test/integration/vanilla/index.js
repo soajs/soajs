@@ -62,7 +62,7 @@ describe("Integration for vanilla", function () {
 	
 	it("Get /heartbeat", function (done) {
 		let options = {
-			uri: 'http://127.0.0.1:5107/heartbeat',
+			uri: 'http://127.0.0.1:5108/heartbeat',
 			headers: {
 				'Content-Type': 'application/json'
 			}
@@ -76,7 +76,7 @@ describe("Integration for vanilla", function () {
 	
 	it("Get /resourceInfo", function (done) {
 		let options = {
-			uri: 'http://127.0.0.1:5107/resourceInfo',
+			uri: 'http://127.0.0.1:5108/resourceInfo',
 			headers: {
 				'Content-Type': 'application/json'
 			}

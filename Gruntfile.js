@@ -111,7 +111,7 @@ module.exports = (grunt) => {
 				SOAJS_TEST: true,
 				APP_DIR_FOR_CODE_COVERAGE: '../',
 				SOAJS_DEPLOY_MANUAL: true,
-				SOAJS_REGISTRY_API: '127.0.0.1:5000'
+				SOAJS_REGISTRY_API: '127.0.0.1:5001'
 			},
 			coverage: {
 				SOAJS_IMPORTER_DROPDB: true,
@@ -121,7 +121,7 @@ module.exports = (grunt) => {
 				SOAJS_TEST: true,
 				APP_DIR_FOR_CODE_COVERAGE: '../test/coverage/instrument/',
 				SOAJS_DEPLOY_MANUAL: true,
-				SOAJS_REGISTRY_API: '127.0.0.1:5000'
+				SOAJS_REGISTRY_API: '127.0.0.1:5001'
 			}
 		},
 		

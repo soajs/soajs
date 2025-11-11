@@ -44,7 +44,7 @@ describe("Daemon integration tests", function () {
 	
 	it('Testing /helloDaemon/heartbeat', function(done) {
 		requester('get', {
-			uri: 'http://localhost:5200/heartbeat'
+			uri: 'http://localhost:5201/heartbeat'
 		}, function(err, body) {
 			assert.ifError(err);
 			assert.deepEqual(body.result, true);
@@ -59,7 +59,7 @@ describe("Daemon integration tests", function () {
 	
 	it('Testing /helloDaemon/daemonStats', function(done) {
 		requester('get', {
-			uri: 'http://localhost:5200/daemonStats'
+			uri: 'http://localhost:5201/daemonStats'
 		}, function(err, body) {
 			assert.ifError(err);
 			assert.ok(body);
@@ -70,7 +70,7 @@ describe("Daemon integration tests", function () {
 	
 	it('Testing /helloDaemon/reloadDaemonConf', function(done) {
 		requester('get', {
-			uri: 'http://localhost:5200/reloadDaemonConf'
+			uri: 'http://localhost:5201/reloadDaemonConf'
 		}, function(err, body) {
 			assert.ifError(err);
 			assert.ok(body);
@@ -81,7 +81,7 @@ describe("Daemon integration tests", function () {
 	
 	it('Testing /helloDaemon/loadProvision', function(done) {
 		requester('get', {
-			uri: 'http://localhost:5200/loadProvision'
+			uri: 'http://localhost:5201/loadProvision'
 		}, function(err, body) {
 			assert.ifError(err);
 			assert.ok(body);

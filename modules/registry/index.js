@@ -57,7 +57,7 @@ function getRegistry(param, options, cb) {
 					}
 				}
 
-				if (registry && registry.serviceConfig.awareness.autoRelaodRegistry) {
+				if (registry && registry.serviceConfig.awareness.autoReloadRegistry) {
 					let autoReload = () => {
 						getRegistry(param, options, () => {
 							// cb(err, reg);
@@ -68,8 +68,9 @@ function getRegistry(param, options, cb) {
 					}
 					if (autoReloadTimeout[options.envCode].timeout) {
 						clearTimeout(autoReloadTimeout[options.envCode].timeout);
+						autoReloadTimeout[options.envCode].timeout = null; // Clear reference to prevent memory leak
 					}
-					autoReloadTimeout[options.envCode].timeout = setTimeout(autoReload, registry.serviceConfig.awareness.autoRelaodRegistry);
+					autoReloadTimeout[options.envCode].timeout = setTimeout(autoReload, registry.serviceConfig.awareness.autoReloadRegistry);
 				}
 
 				registry_struct[options.envCode] = registry;
