@@ -19,6 +19,7 @@
     "test": "grunt test"
   },
   "devDependencies": {
+    "axios": "1.13.2",
     "grunt": "1.6.1",
     "grunt-contrib-clean": "2.0.1",
     "grunt-contrib-copy": "1.0.0",
@@ -30,7 +31,6 @@
     "grunt-mocha-test": "0.13.3",
     "lodash": "4.17.21",
     "mocha": "11.7.5",
-    "request": "2.88.2",
     "soajs.controller": "4.2.41"
   },
   "dependencies": {
