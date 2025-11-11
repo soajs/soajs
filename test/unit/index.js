@@ -25,12 +25,15 @@ describe("Starting Unit test", () => {
 	});
 	
 	it("Unit test for BL", (done) => {
-		
+
 		require("./utilities/utils.js");
-		
+		require("./utilities/header.js");
+		require("./utilities/logger.js");
+		require("./utilities/request.js");
+
 		require("./classes/http.js");
 		require("./classes/MultiTenantSession.js");
-		
+
 		require("./mw/inputmask/index.js");
 		require("./mw/inputmask/inputmask.js");
 		require("./mw/inputmask/redos-fix.js");
@@ -39,7 +42,9 @@ describe("Starting Unit test", () => {
 		require("./mw/service/index.js");
 		require("./mw/service/urac.js");
 		require("./mw/soajs/index.js");
-		
+
+		require("./index-error-handlers.js");
+
 		done();
 	});
 	
