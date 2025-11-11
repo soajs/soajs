@@ -8,7 +8,6 @@
  * found in the LICENSE file at the root of this repository
  */
 
-// const request = require('request');
 const { httpRequestLight } = require("../../utilities/request.js");
 
 if (!process.env.SOAJS_REGISTRY_API || process.env.SOAJS_REGISTRY_API.indexOf(":") === -1) {

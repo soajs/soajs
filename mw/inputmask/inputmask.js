@@ -11,6 +11,7 @@
 const utils = require("soajs.core.libs").utils;
 const merge = require('merge');
 const safeRegex = require('safe-regex');
+const logger = require("../../utilities/logger");
 
 /**
  * Validates that a regex pattern is safe and won't cause ReDoS
@@ -69,9 +70,8 @@ function mergeCommonFields(params, commonFields) {
 	params.commonFields.forEach((field) => {
 		// Protect against prototype pollution
 		if (isDangerousKey(field)) {
-			console.error('Security: Prototype pollution attempt blocked in commonFields', {
-				field: field,
-				timestamp: new Date().toISOString()
+			logger.error('Security: Prototype pollution attempt blocked in commonFields', {
+				field: field
 			});
 			return; // Skip dangerous keys
 		}
@@ -109,10 +109,9 @@ function castType(value, type, cfg) {
 				tempArr = JSON.parse(tempArr);
 			} catch (e) {
 				// Security: Log failed parse attempts for monitoring
-				console.warn('Input validation: Failed to parse array input', {
+				logger.warn('Input validation: Failed to parse array input', {
 					error: e.message,
-					inputType: typeof arr,
-					timestamp: new Date().toISOString()
+					inputType: typeof arr
 				});
 			}
 			if (tempArr && Array.isArray(tempArr)) {
@@ -148,10 +147,9 @@ function castType(value, type, cfg) {
 				tempObj = JSON.parse(tempObj);
 			} catch (e) {
 				// Security: Log failed parse attempts for monitoring
-				console.warn('Input validation: Failed to parse object input', {
+				logger.warn('Input validation: Failed to parse object input', {
 					error: e.message,
-					inputType: typeof obj,
-					timestamp: new Date().toISOString()
+					inputType: typeof obj
 				});
 			}
 			if (tempObj && typeof tempObj === "object") {
@@ -166,9 +164,8 @@ function castType(value, type, cfg) {
 					if (Object.hasOwnProperty.call(obj, key)) {
 						// Protect against prototype pollution
 						if (isDangerousKey(key)) {
-							console.error('Security: Prototype pollution attempt blocked', {
-								key: key,
-								timestamp: new Date().toISOString()
+							logger.error('Security: Prototype pollution attempt blocked', {
+								key: key
 							});
 							continue; // Skip dangerous keys
 						}
@@ -199,9 +196,8 @@ function castType(value, type, cfg) {
 						if (Object.hasOwnProperty.call(obj, key2)) {
 							// Protect against prototype pollution
 							if (isDangerousKey(key2)) {
-								console.error('Security: Prototype pollution attempt blocked', {
-									key: key2,
-									timestamp: new Date().toISOString()
+								logger.error('Security: Prototype pollution attempt blocked', {
+									key: key2
 								});
 								continue; // Skip dangerous keys
 							}
@@ -246,10 +242,9 @@ function castType(value, type, cfg) {
 		} catch (ex) {
 			// Log security-related errors
 			if (ex.message && ex.message.includes('Unsafe')) {
-				console.error('Security: Unsafe regex pattern blocked', {
+				logger.error('Security: Unsafe regex pattern blocked', {
 					error: ex.message,
-					type: type,
-					timestamp: new Date().toISOString()
+					type: type
 				});
 			}
 			castedValue = value;
@@ -321,9 +316,8 @@ module.exports = {
 			if (Object.hasOwnProperty.call(params, param)) {
 				// Protect against prototype pollution
 				if (isDangerousKey(param)) {
-					console.error('Security: Prototype pollution attempt blocked in mapFormatAndValidate', {
-						param: param,
-						timestamp: new Date().toISOString()
+					logger.error('Security: Prototype pollution attempt blocked in mapFormatAndValidate', {
+						param: param
 					});
 					continue; // Skip dangerous keys
 				}

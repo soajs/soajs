@@ -12,6 +12,7 @@ let MultiTenantSession = require("../../classes/MultiTenantSession");
 let async = require("async");
 let UracDriver = require("./urac.js");
 const { decodeHeaderValue } = require("../../utilities/header.js");
+const logger = require("../../utilities/logger");
 
 let regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
@@ -34,10 +35,9 @@ module.exports = function (configuration) {
 			try {
 				input = JSON.parse(input);
 			} catch (e) {
-				// Log malformed JSON attempt
-				console.error('Security: Malformed JSON in soajsinjectobj header', {
-					error: e.message,
-					timestamp: new Date().toISOString()
+				// Log malformed JSON attempt (logger automatically redacts sensitive data)
+				logger.error('Security: Malformed JSON in soajsinjectobj header', {
+					error: e.message
 				});
 				return null; // Return null for malformed JSON
 			}

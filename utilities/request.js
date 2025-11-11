@@ -9,6 +9,7 @@
  */
 
 const http = require('http');
+const logger = require('./logger');
 
 function httpRequestLight({ uri, data = null, body = null, qs = null, method = 'GET', headers = null, json = true }) {
     return new Promise((resolve, reject) => {
@@ -21,9 +22,8 @@ function httpRequestLight({ uri, data = null, body = null, qs = null, method = '
         // Atomic settlement helper to prevent race conditions
         const settleOnce = (settler, value) => {
             if (settled) {
-                console.warn('Security: Request handler - Attempted to settle promise multiple times', {
-                    value: value instanceof Error ? value.message : (typeof value === 'string' ? value : 'data'),
-                    timestamp: new Date().toISOString()
+                logger.warn('Security: Request handler - Attempted to settle promise multiple times', {
+                    value: value instanceof Error ? value.message : (typeof value === 'string' ? value : 'data')
                 });
                 return false;
             }
@@ -135,9 +135,8 @@ function httpRequest({ uri, data = null, body = null, qs = null, method = 'GET',
         // Atomic settlement helper to prevent race conditions
         const settleOnce = (settler, value) => {
             if (settled) {
-                console.warn('Security: Request handler - Attempted to settle promise multiple times', {
-                    value: value instanceof Error ? value.message : (typeof value === 'object' && value.error ? value.error.message : 'data'),
-                    timestamp: new Date().toISOString()
+                logger.warn('Security: Request handler - Attempted to settle promise multiple times', {
+                    value: value instanceof Error ? value.message : (typeof value === 'object' && value.error ? value.error.message : 'data')
                 });
                 return false;
             }

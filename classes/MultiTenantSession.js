@@ -8,6 +8,8 @@
  * found in the LICENSE file at the root of this repository
  */
 
+const logger = require("../utilities/logger");
+
 let regEnvironment = (process.env.SOAJS_ENV || "dev");
 regEnvironment = regEnvironment.toLowerCase();
 
@@ -162,9 +164,8 @@ MultiTenantSession.prototype.regenerateSession = function (cb) {
 	// Regenerate session ID
 	this.req.session.regenerate((err) => {
 		if (err) {
-			console.error('Security: Session regeneration failed', {
-				error: err.message,
-				timestamp: new Date().toISOString()
+			logger.error('Security: Session regeneration failed', {
+				error: err.message
 			});
 			if (cb && (typeof cb === "function")) {
 				return cb(err);
@@ -176,9 +177,7 @@ MultiTenantSession.prototype.regenerateSession = function (cb) {
 		Object.assign(this.req.session, oldSessionData);
 		this.session = this.req.session;
 
-		console.info('Security: Session regenerated successfully', {
-			timestamp: new Date().toISOString()
-		});
+		logger.info('Security: Session regenerated successfully');
 
 		if (cb && (typeof cb === "function")) {
 			this.req.sessionStore.set(this.req.sessionID, this.session, cb);

@@ -9,7 +9,6 @@
  */
 
 const async = require('async');
-// const request = require('request');
 const { httpRequestLight } = require("../../utilities/request.js");
 
 let regEnvironment = (process.env.SOAJS_ENV || "dev");
