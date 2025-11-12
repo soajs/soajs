@@ -16,6 +16,7 @@ const core = coreModules.core;
 const lib = require("soajs.core.libs");
 
 const express = require('express');
+const qs = require('qs');
 
 const utils = require("./../utilities/utils");
 const registryModule = require("./../modules/registry");
@@ -60,7 +61,17 @@ function Service(param) {
 	soajs.param = param;
 	_self.app = express();
 	_self.appMaintenance = express();
-	
+
+	// Configure Express v5 to use qs for query string parsing (supports nested objects/arrays)
+	_self.app.set('query parser', function(str) {
+		return qs.parse(str, {
+			allowPrototypes: false,  // Security: prevent prototype pollution
+			depth: 10,               // Maximum depth for nested objects
+			parameterLimit: 1000,    // Match body parser limit
+			arrayLimit: 100          // Limit array size
+		});
+	});
+
 	_self.app.soajs = soajs;
 }
 

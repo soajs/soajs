@@ -26,9 +26,50 @@ scenarios.push({
 		}
 	},
 	tests: [
-		{u: '/ping?user=john', r: {result: true, data: {user: 'john'}}},
-		{u: '/ping', r: {"result": false, "errors": {"codes": [172], "details": [{"code": 172, "message": "Missing required field: user"}]}}},
-		{u: '/ping?user=john&email=john@test.com', r: {result: true, data: {user: 'john'}}}
+		{ u: '/ping?user=john', r: { result: true, data: { user: 'john' } } },
+		{ u: '/ping', r: { "result": false, "errors": { "codes": [172], "details": [{ "code": 172, "message": "Missing required field: user" }] } } },
+		{ u: '/ping?user=john&email=john@test.com', r: { result: true, data: { user: 'john' } } }
+	]
+});
+
+scenarios.push({
+	m: 'get',
+	u: '/bigQParam',
+	im: {
+		"_apiInfo": {
+			"l": "object and array as param"
+		},
+		"user": {
+			"source": ['query.user'],
+			"required": true,
+			"validation": {
+				"type": "string"
+			}
+		},
+		"config": {
+			"source": ['query.config'],
+			"required": true,
+			"validation": {
+				"type": "object",
+				"properties": {
+					"envs": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"uniqueItems": true,
+							"minItems": 1
+						}
+					},
+					"type": {
+						"type": "string",
+						"enum": ["granular", "apiGroup"]
+					}
+				}
+			}
+		}
+	},
+	tests: [
+		{ u: '/bigQParam', qs: {user: "john", config: {envs: ['dash'], type: "granular"}}, r: { result: true, data: { user: 'john', config: {envs: ['dash'], type: "granular"} } } }
 	]
 });
 
@@ -48,10 +89,10 @@ scenarios.push({
 		}
 	},
 	tests: [
-		{u: '/pingPost', p: {user: 'john'}, r: {result: true, data: {user: 'john'}}},
-		{u: '/pingPost', p: {}, r: {"result": false, "errors": {"codes": [172], "details": [{"code": 172, "message": "Missing required field: user"}]}}},
-		{u: '/pingPost', p: null, r: {"result": false, "errors": {"codes": [172], "details": [{"code": 172, "message": "Missing required field: user"}]}}},
-		{u: '/pingPost', p: {user: 'johnx', email: 'john@test.com'}, r: {result: true, data: {user: 'johnx'}}}
+		{ u: '/pingPost', p: { user: 'john' }, r: { result: true, data: { user: 'john' } } },
+		{ u: '/pingPost', p: {}, r: { "result": false, "errors": { "codes": [172], "details": [{ "code": 172, "message": "Missing required field: user" }] } } },
+		{ u: '/pingPost', p: null, r: { "result": false, "errors": { "codes": [172], "details": [{ "code": 172, "message": "Missing required field: user" }] } } },
+		{ u: '/pingPost', p: { user: 'johnx', email: 'john@test.com' }, r: { result: true, data: { user: 'johnx' } } }
 	]
 });
 
@@ -78,11 +119,11 @@ scenarios.push({
 		}
 	},
 	tests: [
-		{u: '/pingPostPath', p: {user: 'john'}, r: {"result": false, "errors": {"codes": [151], "details": [{"code": 151, "message": "You are trying to reach an unknown rest service!"}]}}},
-		{u: '/pingPostPath/p1', p: {user: 'john'}, r: {result: true, data: {user: 'john', path: "p1"}}},
-		{u: '/pingPostPath/p1', p: {}, r: {"result": false, "errors": {"codes": [172], "details": [{"code": 172, "message": "Missing required field: user"}]}}},
-		{u: '/pingPostPath/p1', p: null, r: {"result": false, "errors": {"codes": [172], "details": [{"code": 172, "message": "Missing required field: user"}]}}},
-		{u: '/pingPostPath/p1', p: {user: 'johnx', email: 'john@test.com'}, r: {result: true, data: {user: 'johnx', path: "p1"}}}
+		{ u: '/pingPostPath', p: { user: 'john' }, r: { "result": false, "errors": { "codes": [151], "details": [{ "code": 151, "message": "You are trying to reach an unknown rest service!" }] } } },
+		{ u: '/pingPostPath/p1', p: { user: 'john' }, r: { result: true, data: { user: 'john', path: "p1" } } },
+		{ u: '/pingPostPath/p1', p: {}, r: { "result": false, "errors": { "codes": [172], "details": [{ "code": 172, "message": "Missing required field: user" }] } } },
+		{ u: '/pingPostPath/p1', p: null, r: { "result": false, "errors": { "codes": [172], "details": [{ "code": 172, "message": "Missing required field: user" }] } } },
+		{ u: '/pingPostPath/p1', p: { user: 'johnx', email: 'john@test.com' }, r: { result: true, data: { user: 'johnx', path: "p1" } } }
 	]
 });
 
@@ -109,14 +150,14 @@ scenarios.push({
 		}
 	},
 	tests: [
-		{u: '/echo/john/name', r: {result: true, data: {xxx: 'john'}}},
-		{u: '/echo/john smith/name', r: {result: true, data: {xxx: 'john smith'}}},
-		{u: '/echo/john%20smith/name', r: {result: true, data: {xxx: 'john smith'}}},
-		{u: '/echo/john/name?xxx=smith', r: {result: true, data: {xxx: 'john', yyy: 'smith'}}},
-		{u: '/echo/0/name', r: {result: true, data: {xxx: '0'}}},
-		{u: '/echo/ /name', r: {result: true, data: {xxx: ' '}}},
-		{u: '/echo/%20/name', r: {result: true, data: {xxx: ' '}}},
-		{u: '/echo//name', r: {"result": false, "errors": {"codes": [151], "details": [{"code": 151, "message": "You are trying to reach an unknown rest service!"}]}}}
+		{ u: '/echo/john/name', r: { result: true, data: { xxx: 'john' } } },
+		{ u: '/echo/john smith/name', r: { result: true, data: { xxx: 'john smith' } } },
+		{ u: '/echo/john%20smith/name', r: { result: true, data: { xxx: 'john smith' } } },
+		{ u: '/echo/john/name?xxx=smith', r: { result: true, data: { xxx: 'john', yyy: 'smith' } } },
+		{ u: '/echo/0/name', r: { result: true, data: { xxx: '0' } } },
+		{ u: '/echo/ /name', r: { result: true, data: { xxx: ' ' } } },
+		{ u: '/echo/%20/name', r: { result: true, data: { xxx: ' ' } } },
+		{ u: '/echo//name', r: { "result": false, "errors": { "codes": [151], "details": [{ "code": 151, "message": "You are trying to reach an unknown rest service!" }] } } }
 	]
 });
 
@@ -136,14 +177,14 @@ scenarios.push({
 		}
 	},
 	tests: [
-		{u: '/pingPostObject', p: {user: {name: 'john'}}, r: {result: true, data: {name: 'john'}}},
+		{ u: '/pingPostObject', p: { user: { name: 'john' } }, r: { result: true, data: { name: 'john' } } },
 		{
 			only: true,
 			u: '/pingPostObject',
-			p: {user: {name: [1]}},
-			r: {"result": false, "errors": {"codes": [173], "details": [{"code": 173, "message": "Validation failed for field: name -> The parameter 'name' failed due to: instance is not of a type(s) string"}]}}
+			p: { user: { name: [1] } },
+			r: { "result": false, "errors": { "codes": [173], "details": [{ "code": 173, "message": "Validation failed for field: name -> The parameter 'name' failed due to: instance is not of a type(s) string" }] } }
 		},
-		{u: '/pingPostObject', p: {}, r: {"result": false, "errors": {"codes": [172], "details": [{"code": 172, "message": "Missing required field: name"}]}}},
+		{ u: '/pingPostObject', p: {}, r: { "result": false, "errors": { "codes": [172], "details": [{ "code": 172, "message": "Missing required field: name" }] } } },
 	]
 });
 
@@ -169,10 +210,10 @@ scenarios.push({
 		}
 	},
 	tests: [
-		{u: '/pingPut?user=john', r: {result: true, data: {user: 'john'}}},
-		{u: '/pingPut?user=john', p: {title: "Dr."}, r: {result: true, data: {user: 'john', title: "Dr."}}},
-		{u: '/pingPut', r: {"result": false, "errors": {"codes": [172], "details": [{"code": 172, "message": "Missing required field: user"}]}}},
-		{u: '/pingPut?user=john&email=john@test.com', r: {result: true, data: {user: 'john'}}}
+		{ u: '/pingPut?user=john', r: { result: true, data: { user: 'john' } } },
+		{ u: '/pingPut?user=john', p: { title: "Dr." }, r: { result: true, data: { user: 'john', title: "Dr." } } },
+		{ u: '/pingPut', r: { "result": false, "errors": { "codes": [172], "details": [{ "code": 172, "message": "Missing required field: user" }] } } },
+		{ u: '/pingPut?user=john&email=john@test.com', r: { result: true, data: { user: 'john' } } }
 	]
 });
 
@@ -198,10 +239,10 @@ scenarios.push({
 		}
 	},
 	tests: [
-		{u: '/pingDelete?user=john', r: {result: true, data: {user: 'john'}}},
-		{skip: true, desc: "body should be ignored with DELETE Verb", u: '/pingDelete?user=john', p: {title: "Dr."}, r: {result: true, data: {user: 'john'}}},
-		{u: '/pingDelete', r: {"result": false, "errors": {"codes": [172], "details": [{"code": 172, "message": "Missing required field: user"}]}}},
-		{u: '/pingDelete?user=john&email=john@test.com', r: {result: true, data: {user: 'john'}}}
+		{ u: '/pingDelete?user=john', r: { result: true, data: { user: 'john' } } },
+		{ skip: true, desc: "body should be ignored with DELETE Verb", u: '/pingDelete?user=john', p: { title: "Dr." }, r: { result: true, data: { user: 'john' } } },
+		{ u: '/pingDelete', r: { "result": false, "errors": { "codes": [172], "details": [{ "code": 172, "message": "Missing required field: user" }] } } },
+		{ u: '/pingDelete?user=john&email=john@test.com', r: { result: true, data: { user: 'john' } } }
 	]
 });
 
@@ -235,8 +276,8 @@ scenarios.push({
 		}
 	},
 	tests: [
-		{u: '/pingPostValidation', p: {user: 'john', isAdmin: true, age: 32}, r: {result: true, data: {bodyUser: 'john', bodyIsAdmin: true, bodyAge: 32}}},
-		{u: '/pingPostValidation', p: {user: 'john', isAdmin: false, age: 0}, r: {result: true, data: {bodyUser: 'john', bodyIsAdmin: false, bodyAge: 0}}}
+		{ u: '/pingPostValidation', p: { user: 'john', isAdmin: true, age: 32 }, r: { result: true, data: { bodyUser: 'john', bodyIsAdmin: true, bodyAge: 32 } } },
+		{ u: '/pingPostValidation', p: { user: 'john', isAdmin: false, age: 0 }, r: { result: true, data: { bodyUser: 'john', bodyIsAdmin: false, bodyAge: 0 } } }
 	]
 });
 
@@ -274,7 +315,7 @@ scenarios.push({
 			//skip: true,
 			desc: "Issue #11: QueryString variable does not support validation/formatting for non-string types",
 			u: '/pingGetValidation?user=john&isAdmin=true&age=32',
-			r: {result: true, data: {bodyUser: 'john', bodyIsAdmin: true, bodyAge: 32}}
+			r: { result: true, data: { bodyUser: 'john', bodyIsAdmin: true, bodyAge: 32 } }
 		}
 	]
 });
@@ -329,7 +370,7 @@ scenarios.push({
 					"last": {
 						"type": "string"
 					}
-					
+
 				}
 			}
 		},
@@ -352,9 +393,9 @@ scenarios.push({
 				'type': 'regexp'
 			}
 		},
-		'c': {"source": ['body.c'], 'validation': {'type': 'object', 'properties': {'c': {'type': 'object', 'properties': {'a': {'type': 'string'}}}}}},
-		'd': {"source": ['body.d'], 'validation': {'type': 'array', 'items': {'type': 'array', 'items': {'type': 'string'}}}},
-		'e': {"source": ['body.e'], 'validation': {'type': 'array', 'items': {'type': 'object', 'addtionalProperties': {'type': 'string'}}}},
+		'c': { "source": ['body.c'], 'validation': { 'type': 'object', 'properties': { 'c': { 'type': 'object', 'properties': { 'a': { 'type': 'string' } } } } } },
+		'd': { "source": ['body.d'], 'validation': { 'type': 'array', 'items': { 'type': 'array', 'items': { 'type': 'string' } } } },
+		'e': { "source": ['body.e'], 'validation': { 'type': 'array', 'items': { 'type': 'object', 'addtionalProperties': { 'type': 'string' } } } },
 		'f': {
 			'source': ['body.f'],
 			'validation': {
@@ -363,7 +404,7 @@ scenarios.push({
 					"^[a-z]+$": { //pattern to match an api route
 						"type": "object",
 						"properties": {
-							"access": {'type': 'array', items: {'type': 'string'}}
+							"access": { 'type': 'array', items: { 'type': 'string' } }
 						},
 						"additionalProperties": false
 					}
@@ -374,20 +415,20 @@ scenarios.push({
 	tests: [
 		{
 			u: '/pingPostValidation2',
-			p: {user: 'john', isAdmin: true, age: 32},
-			r: {result: true, data: {bodyUser: 'john', bodyIsAdmin: true, bodyAge: 32}}
+			p: { user: 'john', isAdmin: true, age: 32 },
+			r: { result: true, data: { bodyUser: 'john', bodyIsAdmin: true, bodyAge: 32 } }
 		},
 		{
 			desc: "Body variables sent as JSON success in array case",
 			u: '/pingPostValidation2',
-			p: {user: 'john', isAdmin: false, age: 0, favorites: [10, 200]},
-			r: {result: true, data: {bodyUser: 'john', bodyIsAdmin: false, bodyAge: 0, bodyFavorites: [10, 200]}}
+			p: { user: 'john', isAdmin: false, age: 0, favorites: [10, 200] },
+			r: { result: true, data: { bodyUser: 'john', bodyIsAdmin: false, bodyAge: 0, bodyFavorites: [10, 200] } }
 		},
 		{
 			desc: "Body variables sent as JSON success in object case",
 			u: '/pingPostValidation2',
-			p: {user: 'john', isAdmin: false, age: 10, name: {first: "john", last: "smith"}},
-			r: {result: true, data: {bodyUser: 'john', bodyIsAdmin: false, bodyAge: 10, bodyName: {first: "john", last: "smith"}}}
+			p: { user: 'john', isAdmin: false, age: 10, name: { first: "john", last: "smith" } },
+			r: { result: true, data: { bodyUser: 'john', bodyIsAdmin: false, bodyAge: 10, bodyName: { first: "john", last: "smith" } } }
 		},
 		{
 			desc: "Issue #12: Body variables sent as urlencoded-form-input",
@@ -399,10 +440,10 @@ scenarios.push({
 				points: 120,
 				'a': 'b',
 				'patt': '^[a-z]+$',
-				'c': {'c': {'a': 'b'}},
+				'c': { 'c': { 'a': 'b' } },
 				'd': [['a', 'b'], ['c', 'd']],
-				'e': [{'a': 'b'}],
-				'f': {'abc': {'access': ['admin', 'vip']}}
+				'e': [{ 'a': 'b' }],
+				'f': { 'abc': { 'access': ['admin', 'vip'] } }
 			},
 			r: {
 				result: true,
@@ -413,10 +454,10 @@ scenarios.push({
 					points: 120,
 					'a': 'b',
 					'patt': {},
-					'c': {'c': {'a': 'b'}},
+					'c': { 'c': { 'a': 'b' } },
 					'd': [['a', 'b'], ['c', 'd']],
-					'e': [{'a': 'b'}],
-					'f': {'abc': {'access': ['admin', 'vip']}}
+					'e': [{ 'a': 'b' }],
+					'f': { 'abc': { 'access': ['admin', 'vip'] } }
 				}
 			}
 		},
@@ -424,15 +465,15 @@ scenarios.push({
 			//skip: true,
 			desc: "Body variables sent as urlencoded-form-input success in array case",
 			u: '/pingPostValidation2',
-			pf: {user: 'john', isAdmin: false, age: 0, favorites: [10, 200]},
-			r: {result: true, data: {bodyUser: 'john', bodyIsAdmin: false, bodyAge: 0, bodyFavorites: [10, 200]}}
+			pf: { user: 'john', isAdmin: false, age: 0, favorites: [10, 200] },
+			r: { result: true, data: { bodyUser: 'john', bodyIsAdmin: false, bodyAge: 0, bodyFavorites: [10, 200] } }
 		},
 		{
 			//skip: true,
 			desc: "Body variables sent as urlencoded-form-input success in object case",
 			u: '/pingPostValidation2',
-			pf: {user: 'john', isAdmin: false, age: 10, name: {first: "john", last: "smith"}},
-			r: {result: true, data: {bodyUser: 'john', bodyIsAdmin: false, bodyAge: 10, bodyName: {first: "john", last: "smith"}}}
+			pf: { user: 'john', isAdmin: false, age: 10, name: { first: "john", last: "smith" } },
+			r: { result: true, data: { bodyUser: 'john', bodyIsAdmin: false, bodyAge: 10, bodyName: { first: "john", last: "smith" } } }
 		}]
 });
 

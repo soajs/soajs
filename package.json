@@ -1,7 +1,7 @@
 {
   "name": "soajs",
   "description": "soajs framework",
-  "version": "4.1.18",
+  "version": "4.1.19",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -42,6 +42,7 @@
     "jsontoxml": "1.0.1",
     "merge": "2.1.1",
     "method-override": "3.0.0",
+    "qs": "6.14.0",
     "safe-regex": "2.1.1",
     "soajs.core.libs": "1.2.1",
     "soajs.core.modules": "5.2.17"
