@@ -73,7 +73,8 @@ describe("Integration for inputmask", function () {
 						requester(((scenario.m === 'delete') ? 'del' : scenario.m), {
 							uri: 'http://localhost:' + config.servicePort + test.u,
 							body: test.p,
-							form: test.pf
+							form: test.pf,
+							qs: test.qs
 						}, function(err, body) {
 							assert.ifError(err);
 							assert.deepEqual(body, test.r);
@@ -85,7 +86,8 @@ describe("Integration for inputmask", function () {
 						requester(((scenario.m === 'delete') ? 'del' : scenario.m), {
 							uri: 'http://localhost:' + config.servicePort + test.u,
 							body: test.p,
-							form: test.pf
+							form: test.pf,
+							qs: test.qs
 						}, function(err, body) {
 							console.log(body)
 							assert.ifError(err);
