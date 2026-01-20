@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  push:
+    branches: [ release, release/* ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install grunt-cli
+        run: npm install -g grunt-cli
+
+      - name: Run linting
+        run: grunt
+
+      - name: Run tests
+        run: grunt test
+
+  release:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from package.json
+        id: version
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          MAJOR_VERSION=$(echo ${PACKAGE_VERSION} | awk -F. '{ print $1 }')
+          echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_OUTPUT
+          echo "MAJOR_VERSION=${MAJOR_VERSION}" >> $GITHUB_OUTPUT
+          echo "Package version: ${PACKAGE_VERSION}"
+          echo "Major version: ${MAJOR_VERSION}"
+
+      - name: Create Git tag
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.version.outputs.PACKAGE_VERSION }} || true
+
+      - name: Push tag
+        run: git push origin ${{ steps.version.outputs.PACKAGE_VERSION }} || true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.PACKAGE_VERSION }}
+          name: Release ${{ steps.version.outputs.PACKAGE_VERSION }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
