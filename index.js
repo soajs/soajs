@@ -43,7 +43,7 @@ process.on('uncaughtException', (e) => {
 });
 
 // Also handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason) => {
 	logger.error('FATAL: Unhandled Promise Rejection', {
 		reason: reason instanceof Error ? reason.message : reason
 	});
