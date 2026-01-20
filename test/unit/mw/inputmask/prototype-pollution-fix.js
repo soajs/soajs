@@ -1,4 +1,5 @@
 "use strict";
+/* jshint -W103 */ // Allow __proto__ usage - this file tests prototype pollution protection
 /**
  * @license
  * Copyright SOAJS All Rights Reserved.
@@ -366,7 +367,7 @@ describe("Testing Prototype Pollution vulnerability fix", function () {
 			apiName: 'testAPI'
 		};
 
-		inputmask.mapFormatAndValidate(obj, function (error, data) {
+		inputmask.mapFormatAndValidate(obj, function (error) {
 			assert.equal(error, null);
 
 			// Create another clean object after the test
