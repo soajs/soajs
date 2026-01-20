@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, develop, feature/*, features/* ]
+  pull_request:
+    branches: [ master, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install grunt-cli
+        run: npm install -g grunt-cli
+
+      - name: Run linting
+        run: grunt
+
+      - name: Run tests
+        if: github.ref != 'refs/heads/master'
+        run: grunt test
+
+      - name: Run coverage
+        if: github.ref == 'refs/heads/master'
+        run: grunt coverage

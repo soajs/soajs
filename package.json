@@ -1,7 +1,7 @@
 {
   "name": "soajs",
   "description": "soajs framework",
-  "version": "4.1.19",
+  "version": "4.1.20",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -31,18 +31,18 @@
     "grunt-mocha-test": "0.13.3",
     "lodash": "4.17.21",
     "mocha": "11.7.5",
-    "soajs.controller": "4.2.41"
+    "soajs.controller": "4.2.43"
   },
   "dependencies": {
     "async": "3.2.6",
     "cookie-parser": "1.4.7",
-    "cron": "4.3.4",
-    "express": "5.1.0",
+    "cron": "4.4.0",
+    "express": "5.2.1",
     "express-session": "1.18.2",
     "jsontoxml": "1.0.1",
     "merge": "2.1.1",
     "method-override": "3.0.0",
-    "qs": "6.14.0",
+    "qs": "6.14.1",
     "safe-regex": "2.1.1",
     "soajs.core.libs": "1.2.1",
     "soajs.core.modules": "5.2.17"
