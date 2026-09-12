@@ -34,13 +34,13 @@
       "randomInc": 100
     },
     "cookie": {
-      "secret": "3f6ca4cd-ed7f-40c3-b233-2d88e4f8a190"
+      "secret": "CHANGE_ME_REPLACE_WITH_SECRET_FROM_ENV_OR_VAULT"
     },
     "session": {
     },
     "key": {
       "algorithm": "aes256",
-      "password": "41bb4814-5ca8-4b74-b736-ac058e809262"
+      "password": "CHANGE_ME_REPLACE_WITH_SECRET_FROM_ENV_OR_VAULT"
     }
   },
   "deployer": {
