@@ -30,6 +30,7 @@ describe("Starting Unit test", () => {
 		require("./utilities/header.js");
 		require("./utilities/logger.js");
 		require("./utilities/request.js");
+		require("./utilities/mcpTools.js");
 
 		require("./classes/http.js");
 		require("./classes/MultiTenantSession.js");
