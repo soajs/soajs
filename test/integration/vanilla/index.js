@@ -74,6 +74,30 @@ describe("Integration for vanilla", function () {
 		});
 	});
 	
+	it("Get /mcp/tools", function (done) {
+		let options = {
+			uri: 'http://127.0.0.1:5108/mcp/tools',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		};
+		requester('get', options, (error, body) => {
+			assert.ok(body);
+			assert.deepEqual(body.result, true);
+			assert.deepEqual(body.data.name, "hello");
+			assert.deepEqual(body.data.version, "1");
+			assert.deepEqual(body.data.tools, [{
+				"m": "get",
+				"v": "/hello",
+				"l": "HEllo world",
+				"group": "SOAJS",
+				"inputSchema": {"type": "object", "properties": {}},
+				"fields": {}
+			}]);
+			done();
+		});
+	});
+	
 	it("Get /resourceInfo", function (done) {
 		let options = {
 			uri: 'http://127.0.0.1:5108/resourceInfo',

@@ -19,6 +19,7 @@ const express = require('express');
 const qs = require('qs');
 
 const utils = require("./../utilities/utils");
+const mcpTools = require("./../utilities/mcpTools");
 const registryModule = require("./../modules/registry");
 
 let autoRegHost = process.env.SOAJS_SRV_AUTOREGISTERHOST || true;
@@ -498,6 +499,20 @@ Service.prototype.start = function (cb) {
 			data.load = os.loadavg();
 			response.result = true;
 			response.data = data;
+			res.jsonp(response);
+		});
+		_self.appMaintenance.get("/mcp/tools", (req, res) => {
+			// built once, the schema does not change while the service runs
+			if (!_self.mcpTools) {
+				_self.mcpTools = mcpTools.extractMCPTools(_self.app.soajs.param.schema);
+			}
+			let response = _self.maintenanceResponse(req);
+			response.result = true;
+			response.data = {
+				"name": _self.app.soajs.param.serviceName,
+				"version": _self.app.soajs.param.serviceVersion,
+				"tools": _self.mcpTools
+			};
 			res.jsonp(response);
 		});
 		_self.appMaintenance.all('/*path', (req, res) => {
