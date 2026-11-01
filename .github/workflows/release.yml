@@ -11,6 +11,8 @@ jobs:
     services:
       mongodb:
         image: mongo:8
+        env:
+          GLIBC_TUNABLES: glibc.pthread.rseq=1  # disable tcmalloc per-CPU cache; mongo:8 refuses to start on kernel 6.19+ otherwise (SERVER-121912)
         ports:
           - 27017:27017
 
