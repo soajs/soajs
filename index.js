@@ -62,6 +62,7 @@ module.exports = {
 		"daemon": require("./servers/daemon.js")
 	},
 	"extractAPIsList": require("./utilities/utils.js").extractAPIsList,
+	"extractMCPTools": require("./utilities/mcpTools.js").extractMCPTools,
 	"es": coreModules.es,
 	"mail": coreModules.mail,
 	"mongo": coreModules.mongo,
