@@ -70,6 +70,7 @@ module.exports = {
 	"core": coreModules.core,
 	"authorization": coreModules.authorization,
 	"provision": coreModules.provision,
+	"oauth2": coreModules.oauth2,
 	"utils": coreLibs.utils
 };
 
